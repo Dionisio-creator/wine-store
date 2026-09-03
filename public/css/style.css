@@ -17,12 +17,12 @@
     --gold-200: #f3e6bd;
 
     /* Superfícies */
-    --bg: #faf7f6;
-    --bg-alt: #f3edea;
+    --bg: #ffffff;
+    --bg-alt: #f7f5f4;
     --surface: #ffffff;
-    --surface-2: #f7f2f0;
-    --border: #e9e0dc;
-    --border-strong: #d8ccc6;
+    --surface-2: #f5f2f1;
+    --border: #e8e2e0;
+    --border-strong: #d6cdca;
 
     /* Texto */
     --text: #1d1518;
@@ -53,6 +53,8 @@
     --font-display: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
 
     --header-h: 72px;
+    --category-nav-h: 46px;
+    --header-total-h: calc(var(--header-h) + var(--category-nav-h));
 }
 
 [data-theme='dark'] {
@@ -92,7 +94,7 @@
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: calc(var(--header-h) + 16px);
+    scroll-padding-top: calc(var(--header-total-h) + 16px);
     -webkit-text-size-adjust: 100%;
 }
 

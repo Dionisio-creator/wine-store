@@ -116,6 +116,7 @@ function limparFormulario() {
     $('#wineForm').reset();
     $('#wineId').value = '';
     $('#wineType').value = 'Tinto';
+    $('#wineVintage').value = new Date().getFullYear();
     $('#wineRating').value = '0';
     $('#editorTitle').textContent = 'Novo vinho';
     $('#editorStatus').textContent = 'Preencha os dados';
@@ -259,6 +260,8 @@ async function entrar(evento) {
 }
 
 async function iniciarAdmin() {
+    limparFormulario();
+
     $('#loginForm').addEventListener('submit', entrar);
     $('#wineForm').addEventListener('submit', salvarVinho);
     $('#newWineButton').addEventListener('click', limparFormulario);

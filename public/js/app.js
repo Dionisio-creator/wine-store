@@ -8,11 +8,11 @@ const TEMA_KEY = 'vinhos-tema';
 
 document.addEventListener('DOMContentLoaded', () => {
     configurarTema();
-    configurarMenuResponsivo();
-    configurarBuscaBar();
     configurarFormularios();
     configurarNavegacao();
     configurarEfeitoScroll();
+    configurarCategoriaNav();
+    configurarCarrossel();
 
     console.log(`${APP_NAME} v${APP_VERSION} carregado com sucesso!`);
 });
@@ -57,57 +57,100 @@ function configurarTema() {
 }
 
 // ============================================
-// MENU RESPONSIVO
+// NAVEGAÇÃO POR CATEGORIAS (topo do cabeçalho)
 // ============================================
 
-function configurarMenuResponsivo() {
-    const menuToggle = document.getElementById('menuToggle');
-    const navMenu = document.getElementById('navMenu');
-    if (!menuToggle || !navMenu) return;
+function configurarCategoriaNav() {
+    const nav = document.querySelector('.category-nav');
+    if (!nav) return;
 
-    const fechar = () => {
-        navMenu.classList.remove('active');
-        menuToggle.classList.remove('active');
-    };
+    nav.addEventListener('click', evento => {
+        const link = evento.target.closest('a');
+        if (!link) return;
 
-    menuToggle.addEventListener('click', event => {
-        event.stopPropagation();
-        navMenu.classList.toggle('active');
-        menuToggle.classList.toggle('active');
-    });
+        const { navTipo, navOrdenar, navDestaques } = link.dataset;
+        if (navTipo === undefined && navOrdenar === undefined && navDestaques === undefined) {
+            return; // link comum (Sobre, Contato) — segue a navegação normal
+        }
 
-    navMenu.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', fechar);
-    });
+        evento.preventDefault();
 
-    document.addEventListener('click', event => {
-        if (!event.target.closest('.navbar-container')) fechar();
+        if (navDestaques) {
+            document.getElementById('destaques')?.scrollIntoView({ behavior: 'smooth' });
+            return;
+        }
+
+        if (navTipo !== undefined) {
+            document.querySelectorAll('input[name="tipo"]').forEach(cb => {
+                cb.checked = navTipo !== '' && cb.value === navTipo;
+            });
+        }
+
+        if (navOrdenar) {
+            const select = document.getElementById('sortBy');
+            if (select) select.value = navOrdenar;
+        }
+
+        if (typeof atualizarCatalogo === 'function') atualizarCatalogo();
+        document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
     });
 }
 
 // ============================================
-// BARRA DE BUSCA
+// CARROSSEL DO HERO
 // ============================================
 
-function configurarBuscaBar() {
-    const searchBtn = document.getElementById('searchBtn');
-    const searchBar = document.getElementById('searchBar');
-    const searchInput = document.getElementById('searchInput');
-    if (!searchBtn || !searchBar) return;
+function configurarCarrossel() {
+    const secao = document.querySelector('.hero-carousel');
+    const trilha = document.getElementById('heroSlides');
+    if (!secao || !trilha) return;
 
-    searchBtn.addEventListener('click', event => {
-        event.stopPropagation();
-        const aberta = searchBar.classList.toggle('active');
-        searchBtn.classList.toggle('is-active', aberta);
-        if (aberta) searchInput.focus();
+    const slides = [...trilha.querySelectorAll('.hero-slide')];
+    const pontos = [...document.querySelectorAll('.hero-dot')];
+    const btnPrev = document.getElementById('heroPrev');
+    const btnNext = document.getElementById('heroNext');
+    const semAnimacao = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let atual = 0;
+    let timer = null;
+
+    function irPara(indice) {
+        atual = (indice + slides.length) % slides.length;
+        slides.forEach((slide, i) => slide.classList.toggle('is-active', i === atual));
+        pontos.forEach((ponto, i) => {
+            ponto.classList.toggle('is-active', i === atual);
+            ponto.setAttribute('aria-selected', String(i === atual));
+        });
+    }
+
+    function proximo() {
+        irPara(atual + 1);
+    }
+
+    function iniciarAutoplay() {
+        if (semAnimacao || slides.length < 2) return;
+        parar();
+        timer = setInterval(proximo, 6500);
+    }
+
+    function parar() {
+        if (timer) clearInterval(timer);
+        timer = null;
+    }
+
+    btnNext?.addEventListener('click', () => { proximo(); iniciarAutoplay(); });
+    btnPrev?.addEventListener('click', () => { irPara(atual - 1); iniciarAutoplay(); });
+
+    pontos.forEach((ponto, i) => {
+        ponto.addEventListener('click', () => { irPara(i); iniciarAutoplay(); });
     });
 
-    document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') {
-            searchBar.classList.remove('active');
-            searchBtn.classList.remove('is-active');
-        }
-    });
+    secao.addEventListener('mouseenter', parar);
+    secao.addEventListener('mouseleave', iniciarAutoplay);
+    secao.addEventListener('focusin', parar);
+    secao.addEventListener('focusout', iniciarAutoplay);
+
+    iniciarAutoplay();
 }
 
 // ============================================
@@ -139,17 +182,24 @@ function configurarFormularios() {
 // ============================================
 
 function configurarNavegacao() {
-    const secoes = ['catalogo', 'sobre', 'contato']
+    // Só "Sobre" e "Contato" são links de seção de verdade — os demais
+    // itens da nav de categorias são atalhos de filtro que compartilham o
+    // mesmo #catalogo, então não fazem sentido como indicador de "seção atual".
+    const secoes = ['sobre', 'contato']
         .map(id => document.getElementById(id))
         .filter(Boolean);
 
     if (!('IntersectionObserver' in window) || secoes.length === 0) return;
 
+    const linksSimples = document.querySelectorAll(
+        '.category-nav a:not([data-nav-tipo]):not([data-nav-ordenar]):not([data-nav-destaques])'
+    );
+
     const observador = new IntersectionObserver(entradas => {
         entradas.forEach(entrada => {
             if (!entrada.isIntersecting) return;
 
-            document.querySelectorAll('.nav-link').forEach(link => {
+            linksSimples.forEach(link => {
                 link.classList.toggle('active', link.getAttribute('href') === `#${entrada.target.id}`);
             });
         });

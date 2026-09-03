@@ -23,7 +23,13 @@ com um clique.
 
 ### 🎨 Design
 
-- **Paleta Burgundy + Ouro**: tokens CSS com variantes para tema claro e escuro
+- **Paleta Branco + Vinho**: fundo predominantemente branco com acentos em
+  burgundy, inspirado em lojas de vinho como a Grand Cru
+- **Cabeçalho em duas linhas**: barra com logo/busca/ícones e, abaixo, uma
+  navegação por categorias (Vinhos, Tintos, Brancos, Rosés, Espumantes,
+  Ofertas, Destaques, Sobre, Contato) que já aplica filtro e rola até a seção
+- **Banner em carrossel**: hero com 4 slides (fotos de vinícola, adega, taça
+  e uvas em `public/assets/banners/`), com troca automática, setas e bolinhas
 - **Tipografia**: Fraunces (títulos) + Inter (interface), via Google Fonts
 - **Layout Moderno**: grid responsivo, cards com imagem e chips de filtro
 - **Sem Frameworks de UI**: CSS puro e JavaScript vanilla no front-end
