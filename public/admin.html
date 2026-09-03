@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração — Vinhos Premium</title>
+    <meta name="description" content="Área administrativa protegida do catálogo Vinhos Premium.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,0..9,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+    <main class="admin-shell">
+        <section class="login-panel" id="loginPanel" aria-labelledby="loginTitle">
+            <div class="brand-mark" aria-hidden="true">🍷</div>
+            <span class="eyebrow">Vinhos Premium</span>
+            <h1 id="loginTitle">Área administrativa</h1>
+            <p class="panel-intro">Entre para atualizar o catálogo da sua loja com segurança.</p>
+
+            <form id="loginForm" class="admin-form">
+                <div class="field">
+                    <label for="username">Usuário</label>
+                    <input id="username" name="username" type="text" autocomplete="username" required>
+                </div>
+                <div class="field">
+                    <label for="password">Senha</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" required>
+                </div>
+                <p class="form-message error" id="loginMessage" role="alert"></p>
+                <button class="btn btn-primary btn-block" type="submit" id="loginButton">Entrar</button>
+            </form>
+            <a class="back-link" href="/">← Voltar para a loja</a>
+        </section>
+
+        <section class="dashboard hidden" id="dashboard" aria-labelledby="dashboardTitle">
+            <header class="admin-header">
+                <div>
+                    <span class="eyebrow">Painel de controle</span>
+                    <h1 id="dashboardTitle">Catálogo de vinhos</h1>
+                    <p class="panel-intro">Adicione, edite e organize os rótulos exibidos na loja.</p>
+                </div>
+                <div class="header-actions">
+                    <a class="btn btn-secondary btn-sm" href="/">Ver loja</a>
+                    <button class="btn btn-ghost btn-sm" id="logoutButton" type="button">Sair</button>
+                </div>
+            </header>
+
+            <div class="admin-grid">
+                <section class="admin-card catalog-card" aria-labelledby="catalogTitle">
+                    <div class="card-heading">
+                        <div>
+                            <span class="eyebrow">Produtos</span>
+                            <h2 id="catalogTitle">Seu catálogo <span class="count-badge" id="catalogCount">0</span></h2>
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="newWineButton" type="button">+ Novo vinho</button>
+                    </div>
+                    <div class="toolbar">
+                        <label class="search-control">
+                            <span class="visually-hidden">Buscar no catálogo</span>
+                            <input id="catalogSearch" type="search" placeholder="Buscar por nome, região ou tipo">
+                        </label>
+                        <button class="btn btn-secondary btn-sm" id="restoreButton" type="button">Restaurar originais</button>
+                    </div>
+                    <div class="wine-list" id="wineList" aria-live="polite"></div>
+                </section>
+
+                <section class="admin-card editor-card" aria-labelledby="editorTitle">
+                    <div class="card-heading">
+                        <div>
+                            <span class="eyebrow">Editor</span>
+                            <h2 id="editorTitle">Novo vinho</h2>
+                        </div>
+                        <span class="editor-status" id="editorStatus">Preencha os dados</span>
+                    </div>
+                    <form id="wineForm" class="admin-form wine-form">
+                        <input id="wineId" type="hidden">
+                        <div class="field field-wide">
+                            <label for="wineName">Nome *</label>
+                            <input id="wineName" type="text" required maxlength="180">
+                        </div>
+                        <div class="field">
+                            <label for="wineType">Tipo</label>
+                            <input id="wineType" type="text" value="Tinto" maxlength="60">
+                        </div>
+                        <div class="field">
+                            <label for="wineRegion">Região *</label>
+                            <input id="wineRegion" type="text" required maxlength="120">
+                        </div>
+                        <div class="field">
+                            <label for="wineVintage">Safra</label>
+                            <input id="wineVintage" type="number" min="1900" max="2200">
+                        </div>
+                        <div class="field">
+                            <label for="winePrice">Preço (R$) *</label>
+                            <input id="winePrice" type="number" min="0" step="0.01" required>
+                        </div>
+                        <div class="field">
+                            <label for="wineAlcohol">Teor alcoólico</label>
+                            <input id="wineAlcohol" type="text" placeholder="13,5%" maxlength="40">
+                        </div>
+                        <div class="field">
+                            <label for="wineProduction">Produção</label>
+                            <input id="wineProduction" type="text" placeholder="750 ml" maxlength="80">
+                        </div>
+                        <div class="field">
+                            <label for="wineRating">Avaliação</label>
+                            <input id="wineRating" type="number" min="0" max="5" step="0.1" value="0">
+                        </div>
+                        <div class="field field-wide">
+                            <label for="wineDescription">Descrição *</label>
+                            <textarea id="wineDescription" rows="4" required maxlength="2000"></textarea>
+                        </div>
+                        <div class="field field-wide">
+                            <label for="wineImage">Imagem (URL)</label>
+                            <input id="wineImage" type="url" placeholder="https://...">
+                            <span class="field-hint">Você também pode escolher uma imagem abaixo.</span>
+                        </div>
+                        <div class="field field-wide">
+                            <label for="wineImageFile">Enviar imagem</label>
+                            <input id="wineImageFile" type="file" accept="image/*">
+                            <span class="field-hint">A imagem será reduzida antes de ser salva.</span>
+                        </div>
+                        <label class="switch field-wide">
+                            <input id="wineFeatured" type="checkbox">
+                            <span><strong>Vinho em destaque</strong><small>Aparece na seleção principal da loja.</small></span>
+                        </label>
+                        <p class="form-message" id="editorMessage" role="alert"></p>
+                        <div class="editor-actions field-wide">
+                            <button class="btn btn-primary" type="submit" id="saveButton">Salvar vinho</button>
+                            <button class="btn btn-secondary" type="button" id="cancelEditButton">Limpar formulário</button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </section>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="js/catalogo.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
