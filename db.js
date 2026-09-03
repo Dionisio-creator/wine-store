@@ -13,6 +13,12 @@ if (!process.env.DATABASE_URL) {
     );
 }
 
+const nomeTabela = process.env.VINHOS_TABLE || 'vinhos';
+if (!/^[a-z_][a-z0-9_]*$/.test(nomeTabela)) {
+    throw new Error('VINHOS_TABLE deve conter apenas letras minúsculas, números e sublinhados.');
+}
+const tabela = `"${nomeTabela}"`;
+
 // O Replit (via Neon) exige SSL; um Postgres local geralmente não usa.
 const usaSSL = !/localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL);
 
@@ -22,7 +28,7 @@ const pool = new Pool({
 });
 
 const CRIAR_TABELA = `
-    CREATE TABLE IF NOT EXISTS vinhos (
+    CREATE TABLE IF NOT EXISTS ${tabela} (
         id SERIAL PRIMARY KEY,
         nome TEXT NOT NULL,
         tipo TEXT NOT NULL,
@@ -63,7 +69,7 @@ function linhaParaVinho(linha) {
 async function iniciar() {
     await pool.query(CRIAR_TABELA);
 
-    const { rows } = await pool.query('SELECT COUNT(*)::int AS total FROM vinhos');
+    const { rows } = await pool.query(`SELECT COUNT(*)::int AS total FROM ${tabela}`);
     if (rows[0].total === 0) {
         await inserirSementes();
     }
@@ -72,7 +78,7 @@ async function iniciar() {
 async function inserirSementes(cliente = pool) {
     for (const vinho of sementes) {
         await cliente.query(
-            `INSERT INTO vinhos
+            `INSERT INTO ${tabela}
                 (nome, tipo, regiao, safra, preco, descricao, alcool, producao, avaliacao, imagem, reviews, destaque, personalizado)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,false)`,
             [
@@ -86,12 +92,12 @@ async function inserirSementes(cliente = pool) {
 }
 
 async function listarVinhos() {
-    const { rows } = await pool.query('SELECT * FROM vinhos ORDER BY id');
+    const { rows } = await pool.query(`SELECT * FROM ${tabela} ORDER BY id`);
     return rows.map(linhaParaVinho);
 }
 
 async function obterVinho(id) {
-    const { rows } = await pool.query('SELECT * FROM vinhos WHERE id = $1', [id]);
+    const { rows } = await pool.query(`SELECT * FROM ${tabela} WHERE id = $1`, [id]);
     return rows[0] ? linhaParaVinho(rows[0]) : null;
 }
 
@@ -163,7 +169,7 @@ function validar(dados) {
 async function criarVinho(dados) {
     const v = validar(dados);
     const { rows } = await pool.query(
-        `INSERT INTO vinhos
+        `INSERT INTO ${tabela}
             (nome, tipo, regiao, safra, preco, descricao, alcool, producao, avaliacao, imagem, reviews, destaque, personalizado)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'[]',$11,true)
          RETURNING *`,
@@ -178,7 +184,7 @@ async function atualizarVinho(id, dados) {
 
     const v = validar({ ...existente, ...dados });
     const { rows } = await pool.query(
-        `UPDATE vinhos SET
+        `UPDATE ${tabela} SET
             nome = $1, tipo = $2, regiao = $3, safra = $4, preco = $5, descricao = $6,
             alcool = $7, producao = $8, avaliacao = $9, imagem = $10, destaque = $11
          WHERE id = $12
@@ -189,7 +195,7 @@ async function atualizarVinho(id, dados) {
 }
 
 async function removerVinho(id) {
-    const { rowCount } = await pool.query('DELETE FROM vinhos WHERE id = $1', [id]);
+    const { rowCount } = await pool.query(`DELETE FROM ${tabela} WHERE id = $1`, [id]);
     return rowCount > 0;
 }
 
@@ -197,7 +203,7 @@ async function restaurarCatalogo() {
     const cliente = await pool.connect();
     try {
         await cliente.query('BEGIN');
-        await cliente.query('TRUNCATE TABLE vinhos RESTART IDENTITY');
+        await cliente.query(`TRUNCATE TABLE ${tabela} RESTART IDENTITY`);
         await inserirSementes(cliente);
         await cliente.query('COMMIT');
     } catch (erro) {
