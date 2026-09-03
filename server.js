@@ -216,7 +216,7 @@ app.post('/api/vinhos/restaurar', exigirAdmin, async (req, res) => {
 
 db.iniciar()
     .then(() => {
-        app.listen(PORT, () => {
+        app.listen(PORT, '0.0.0.0', () => {
             console.log(`Vinhos Premium rodando em http://localhost:${PORT}`);
         });
     })
