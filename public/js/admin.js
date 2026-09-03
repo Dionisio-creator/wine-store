@@ -43,12 +43,16 @@ async function requisicao(url, opcoes = {}) {
         }
     });
 
+    const corpo = resposta.status === 204 ? null : await resposta.json().catch(() => ({}));
+
     if (resposta.status === 401) {
+        if (url === '/api/admin/login') {
+            throw new Error(corpo?.erro || 'Usuário ou senha incorretos.');
+        }
         mostrarLogin();
         throw new Error('Sua sessão expirou. Faça login novamente.');
     }
 
-    const corpo = resposta.status === 204 ? null : await resposta.json().catch(() => ({}));
     if (!resposta.ok) {
         throw new Error(corpo?.erro || 'Não foi possível concluir a operação.');
     }
