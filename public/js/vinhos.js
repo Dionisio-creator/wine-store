@@ -1,9 +1,13 @@
 // ============================================
-// RENDERIZAÇÃO E FILTROS DO CATÁLOGO PÚBLICO
+// RENDERIZAÇÃO, FILTROS E GESTÃO DE VINHOS
 // ============================================
 
 let termoBusca = '';
 let vinhosExibindo = [];
+let imagemAdministracao = null;
+let focoAntesAdministracao = null;
+let administradorAutenticado = false;
+window.csrfAdmin = '';
 
 // ============================================
 // HELPERS
@@ -158,11 +162,25 @@ function limparFiltros() {
 // RENDERIZAÇÃO
 // ============================================
 
+function acoesAdminHTML(vinho) {
+    if (!administradorAutenticado) return '';
+
+    return `
+        <div class="wine-admin-actions">
+            <button class="icon-action" data-acao="editar" data-id="${vinho.id}"
+                title="Editar vinho" aria-label="Editar ${escaparHtml(vinho.nome)}">✎</button>
+            <button class="icon-action danger" data-acao="excluir" data-id="${vinho.id}"
+                title="Excluir vinho" aria-label="Excluir ${escaparHtml(vinho.nome)}">🗑️</button>
+        </div>
+    `;
+}
+
 function cardHTML(vinho, { compacto = false } = {}) {
     return `
         <article class="wine-card" data-id="${vinho.id}">
             ${imagemDoVinho(vinho)}
             ${vinho.destaque ? '<div class="wine-badge">Destaque</div>' : ''}
+            ${acoesAdminHTML(vinho)}
             <div class="wine-content">
                 <div class="wine-meta">
                     <span class="wine-type-dot"></span>
@@ -311,6 +329,52 @@ function fecharDetalhes() {
 }
 
 // ============================================
+// EXCLUIR VINHO
+// ============================================
+
+async function excluirVinho(id) {
+    const vinho = catalogoDb.obter(id);
+    if (!vinho) return;
+
+    if (!confirm(`Remover "${vinho.nome}" do catálogo?`)) return;
+
+    try {
+        await catalogoDb.remover(id);
+
+        mostrarToast(`${vinho.nome} removido do catálogo`, 'info');
+        fecharDetalhes();
+        renderizarFiltros();
+        atualizarCatalogo();
+        renderizarListaAdministracao();
+
+        if (Number(document.getElementById('wineId')?.value) === Number(id)) {
+            prepararNovoVinho();
+        }
+    } catch (erro) {
+        if (tratarSessaoAdminExpirada(erro)) return;
+        mostrarToast(erro.message || 'Não foi possível remover o vinho', 'error');
+    }
+}
+
+async function restaurarCatalogo() {
+    if (!administradorAutenticado) {
+        abrirAdministracao();
+        return;
+    }
+    if (!confirm('Restaurar o catálogo original? Os vinhos adicionados e as edições serão perdidos.')) return;
+
+    try {
+        await catalogoDb.restaurarPadrao();
+        renderizarFiltros();
+        atualizarCatalogo();
+        mostrarToast('Catálogo padrão restaurado', 'info');
+    } catch (erro) {
+        if (tratarSessaoAdminExpirada(erro)) return;
+        mostrarToast(erro.message, 'error');
+    }
+}
+
+// ============================================
 // DELEGAÇÃO DE EVENTOS DOS CARDS
 // ============================================
 
@@ -327,6 +391,419 @@ function tratarAcaoDeVinho(evento) {
         case 'detalhes':
             abrirDetalhes(id);
             break;
+        case 'editar':
+            abrirAdministracao(id);
+            break;
+        case 'excluir':
+            excluirVinho(id);
+            break;
+    }
+}
+
+// ============================================
+// ADMINISTRAÇÃO DO CATÁLOGO
+// ============================================
+
+function atualizarInterfaceAdministracao() {
+    const login = document.getElementById('adminLoginView');
+    const catalogo = document.getElementById('adminCatalogView');
+    const sair = document.getElementById('logoutAdmin');
+    const restaurar = document.getElementById('resetCatalog');
+    const botao = document.getElementById('adminBtn');
+    const titulo = document.getElementById('adminModalTitle');
+    const subtitulo = document.getElementById('adminModalSubtitle');
+
+    login?.classList.toggle('hidden', administradorAutenticado);
+    catalogo?.classList.toggle('hidden', !administradorAutenticado);
+    sair?.classList.toggle('hidden', !administradorAutenticado);
+    restaurar?.classList.toggle('hidden', !administradorAutenticado);
+
+    if (botao) {
+        botao.innerHTML = administradorAutenticado
+            ? '<span>Gerenciar</span> ⚙'
+            : '<span>Admin</span> ⚙';
+        botao.title = administradorAutenticado
+            ? 'Gerenciar catálogo'
+            : 'Acessar área administrativa';
+        botao.setAttribute('aria-label', botao.title);
+    }
+
+    if (titulo) {
+        titulo.textContent = administradorAutenticado ? 'Gerenciar catálogo' : 'Área administrativa';
+    }
+    if (subtitulo) {
+        subtitulo.textContent = administradorAutenticado
+            ? 'Adicione, edite ou remova os rótulos da vitrine.'
+            : 'Acesso exclusivo para administradores.';
+    }
+}
+
+async function verificarSessaoAdministrativa() {
+    try {
+        const resposta = await fetch('/api/admin/status');
+        if (!resposta.ok) throw new Error();
+
+        const estado = await resposta.json();
+        administradorAutenticado = Boolean(estado.autenticado);
+        window.csrfAdmin = estado.csrfToken || '';
+    } catch {
+        administradorAutenticado = false;
+        window.csrfAdmin = '';
+    }
+
+    atualizarInterfaceAdministracao();
+}
+
+function definirFeedbackLogin(mensagem = '', tipo = '') {
+    const feedback = document.getElementById('adminLoginFeedback');
+    if (!feedback) return;
+    feedback.textContent = mensagem;
+    feedback.className = `form-feedback${tipo ? ` ${tipo}` : ''}`;
+}
+
+async function autenticarAdministrador(evento) {
+    evento.preventDefault();
+    const usuario = document.getElementById('adminUsername');
+    const senha = document.getElementById('adminPassword');
+    const botao = document.getElementById('adminLoginButton');
+
+    if (!usuario.reportValidity() || !senha.reportValidity()) return;
+
+    botao.disabled = true;
+    botao.textContent = 'Entrando…';
+    definirFeedbackLogin();
+
+    try {
+        const resposta = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario: usuario.value, senha: senha.value })
+        });
+        const corpo = await resposta.json().catch(() => ({}));
+        if (!resposta.ok) throw new Error(corpo.erro || 'Não foi possível entrar.');
+
+        administradorAutenticado = true;
+        window.csrfAdmin = corpo.csrfToken || '';
+        senha.value = '';
+        atualizarInterfaceAdministracao();
+        prepararNovoVinho();
+        atualizarCatalogo();
+        mostrarToast('Acesso administrativo liberado.', 'success');
+        requestAnimationFrame(() => document.getElementById('wineName')?.focus());
+    } catch (erro) {
+        definirFeedbackLogin(erro.message, 'error');
+    } finally {
+        botao.disabled = false;
+        botao.textContent = 'Entrar';
+    }
+}
+
+async function encerrarSessaoAdministrativa() {
+    try {
+        await fetch('/api/admin/logout', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': window.csrfAdmin || '' }
+        });
+    } finally {
+        administradorAutenticado = false;
+        window.csrfAdmin = '';
+        atualizarInterfaceAdministracao();
+        atualizarCatalogo();
+        fecharAdministracao();
+        mostrarToast('Sessão administrativa encerrada.', 'info');
+    }
+}
+
+function tratarSessaoAdminExpirada(erro) {
+    if (erro?.status !== 401 && erro?.status !== 403) return false;
+
+    administradorAutenticado = false;
+    window.csrfAdmin = '';
+    atualizarInterfaceAdministracao();
+    atualizarCatalogo();
+    definirFeedbackLogin('Sua sessão expirou. Entre novamente.', 'error');
+    abrirAdministracao();
+    return true;
+}
+
+function escaparAtributo(valor) {
+    return escaparHtml(valor == null ? '' : valor);
+}
+
+function imagemAdminHTML(vinho) {
+    return vinho.imagem
+        ? `<img src="${escaparAtributo(vinho.imagem)}" alt="" loading="lazy">`
+        : '<span aria-hidden="true">🍷</span>';
+}
+
+function renderizarListaAdministracao() {
+    const container = document.getElementById('adminWineList');
+    const contador = document.getElementById('adminListCount');
+    if (!container) return;
+
+    const itens = catalogoDb.listar();
+    if (contador) {
+        contador.textContent = itens.length === 1 ? '1 rótulo' : `${itens.length} rótulos`;
+    }
+
+    if (itens.length === 0) {
+        container.innerHTML = `
+            <div class="admin-list-empty">
+                <span aria-hidden="true">🍷</span>
+                <p>Nenhum vinho cadastrado.</p>
+                <small>Comece adicionando o primeiro rótulo.</small>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = itens.map(vinho => `
+        <article class="admin-wine-item${Number(document.getElementById('wineId')?.value) === vinho.id ? ' is-selected' : ''}"
+            data-id="${vinho.id}">
+            <div class="admin-wine-thumb">${imagemAdminHTML(vinho)}</div>
+            <div class="admin-wine-summary">
+                <strong>${escaparHtml(vinho.nome)}</strong>
+                <span>${escaparHtml(vinho.tipo)} · ${escaparHtml(vinho.regiao)}</span>
+                <small>${formatarPreco(vinho.preco)}${vinho.destaque ? ' · Destaque' : ''}</small>
+            </div>
+            <div class="admin-wine-actions">
+                <button class="btn btn-ghost btn-sm" data-admin-acao="editar" data-id="${vinho.id}"
+                    aria-label="Editar ${escaparHtml(vinho.nome)}">Editar</button>
+                <button class="btn btn-ghost btn-sm danger-text" data-admin-acao="excluir" data-id="${vinho.id}"
+                    aria-label="Excluir ${escaparHtml(vinho.nome)}">Excluir</button>
+            </div>
+        </article>
+    `).join('');
+}
+
+function definirFeedbackFormulario(mensagem = '', tipo = '') {
+    const feedback = document.getElementById('wineFormFeedback');
+    if (!feedback) return;
+    feedback.textContent = mensagem;
+    feedback.className = `form-feedback field-full${tipo ? ` ${tipo}` : ''}`;
+}
+
+function atualizarPreviaImagem(imagem) {
+    const preview = document.getElementById('wineImagePreview');
+    if (!preview) return;
+
+    preview.innerHTML = imagem
+        ? `<img src="${escaparAtributo(imagem)}" alt="Prévia do rótulo">`
+        : '🍷';
+}
+
+function prepararNovoVinho() {
+    const form = document.getElementById('wineForm');
+    if (!form) return;
+
+    form.reset();
+    document.getElementById('wineId').value = '';
+    document.getElementById('wineVintage').value = new Date().getFullYear();
+    document.getElementById('wineType').value = 'Tinto';
+    document.getElementById('wineRating').value = '0';
+    document.getElementById('wineAlcohol').value = '—';
+    document.getElementById('wineProduction').value = '—';
+    document.getElementById('wineImageUrl').value = '';
+    document.getElementById('wineFormTitle').textContent = 'Novo vinho';
+    document.getElementById('saveWineBtn').textContent = 'Adicionar vinho';
+    document.getElementById('wineImageHint').textContent =
+        'JPG, PNG ou WebP. Imagens grandes são reduzidas automaticamente.';
+    imagemAdministracao = null;
+    atualizarPreviaImagem(null);
+    definirFeedbackFormulario();
+    renderizarListaAdministracao();
+}
+
+function preencherEditorVinho(vinho) {
+    if (!vinho) return;
+
+    document.getElementById('wineId').value = vinho.id;
+    document.getElementById('wineName').value = vinho.nome || '';
+    document.getElementById('wineType').value = vinho.tipo || 'Tinto';
+    document.getElementById('wineRegion').value = vinho.regiao || '';
+    document.getElementById('wineVintage').value = vinho.safra || new Date().getFullYear();
+    document.getElementById('winePrice').value = vinho.preco ?? '';
+    document.getElementById('wineRating').value = vinho.avaliacao ?? 0;
+    document.getElementById('wineAlcohol').value = vinho.alcool || '—';
+    document.getElementById('wineProduction').value = vinho.producao || '—';
+    document.getElementById('wineDescription').value = vinho.descricao || '';
+    document.getElementById('wineFeatured').checked = Boolean(vinho.destaque);
+    document.getElementById('wineImageFile').value = '';
+    document.getElementById('wineImageUrl').value =
+        vinho.imagem && !vinho.imagem.startsWith('data:') ? vinho.imagem : '';
+    document.getElementById('wineImageHint').textContent =
+        vinho.imagem && vinho.imagem.startsWith('data:')
+            ? 'Imagem atual carregada. Escolha outra ou remova-a para substituir.'
+            : 'JPG, PNG ou WebP. Imagens grandes são reduzidas automaticamente.';
+    document.getElementById('wineFormTitle').textContent = 'Editar vinho';
+    document.getElementById('saveWineBtn').textContent = 'Salvar alterações';
+    imagemAdministracao = vinho.imagem || null;
+    atualizarPreviaImagem(imagemAdministracao);
+    definirFeedbackFormulario();
+    renderizarListaAdministracao();
+}
+
+function abrirAdministracao(id = null) {
+    const modal = document.getElementById('adminModal');
+    if (!modal) return;
+
+    if (!modal.classList.contains('active')) {
+        focoAntesAdministracao = document.activeElement;
+    }
+    modal.classList.add('active');
+    atualizarInterfaceAdministracao();
+
+    if (!administradorAutenticado) {
+        requestAnimationFrame(() => document.getElementById('adminUsername')?.focus());
+        return;
+    }
+
+    renderizarListaAdministracao();
+    if (id == null) {
+        prepararNovoVinho();
+    } else {
+        preencherEditorVinho(catalogoDb.obter(id));
+    }
+
+    requestAnimationFrame(() => document.getElementById('wineName')?.focus());
+}
+
+function fecharAdministracao() {
+    const modal = document.getElementById('adminModal');
+    if (!modal?.classList.contains('active')) return;
+
+    modal.classList.remove('active');
+    if (focoAntesAdministracao instanceof HTMLElement) {
+        focoAntesAdministracao.focus();
+    }
+    focoAntesAdministracao = null;
+}
+
+function manterFocoNaAdministracao(evento) {
+    const modal = document.getElementById('adminModal');
+    if (evento.key !== 'Tab' || !modal?.classList.contains('active')) return;
+
+    const focaveis = Array.from(modal.querySelectorAll(
+        'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(elemento => elemento.offsetParent !== null);
+    if (focaveis.length === 0) return;
+
+    const primeiro = focaveis[0];
+    const ultimo = focaveis[focaveis.length - 1];
+    if (evento.shiftKey && document.activeElement === primeiro) {
+        evento.preventDefault();
+        ultimo.focus();
+    } else if (!evento.shiftKey && document.activeElement === ultimo) {
+        evento.preventDefault();
+        primeiro.focus();
+    }
+}
+
+function dadosDoFormulario() {
+    return {
+        nome: document.getElementById('wineName').value.trim(),
+        tipo: document.getElementById('wineType').value.trim(),
+        regiao: document.getElementById('wineRegion').value.trim(),
+        safra: Number(document.getElementById('wineVintage').value),
+        preco: Number(document.getElementById('winePrice').value),
+        avaliacao: Number(document.getElementById('wineRating').value || 0),
+        alcool: document.getElementById('wineAlcohol').value.trim(),
+        producao: document.getElementById('wineProduction').value.trim(),
+        descricao: document.getElementById('wineDescription').value.trim(),
+        imagem: imagemAdministracao,
+        destaque: document.getElementById('wineFeatured').checked
+    };
+}
+
+function validarFormularioLocal(dados) {
+    if (!dados.nome) return 'Informe o nome do vinho.';
+    if (!dados.tipo) return 'Informe o tipo do vinho.';
+    if (!dados.regiao) return 'Informe a região do vinho.';
+    if (!Number.isInteger(dados.safra) || dados.safra < 1000 || dados.safra > 2100) {
+        return 'Informe uma safra válida.';
+    }
+    if (!Number.isFinite(dados.preco) || dados.preco < 0) {
+        return 'Informe um preço válido.';
+    }
+    if (!Number.isFinite(dados.avaliacao) || dados.avaliacao < 0 || dados.avaliacao > 5) {
+        return 'A avaliação deve estar entre 0 e 5.';
+    }
+    if (!dados.descricao) return 'Informe uma descrição.';
+    return '';
+}
+
+async function salvarVinho(evento) {
+    evento.preventDefault();
+    const form = evento.currentTarget;
+    const botao = document.getElementById('saveWineBtn');
+    const dados = dadosDoFormulario();
+    const erroLocal = validarFormularioLocal(dados);
+
+    if (!form.reportValidity() || erroLocal) {
+        definirFeedbackFormulario(erroLocal || 'Revise os campos obrigatórios.', 'error');
+        return;
+    }
+
+    const id = Number(document.getElementById('wineId').value);
+    const editando = Boolean(id);
+    botao.disabled = true;
+    botao.textContent = editando ? 'Salvando…' : 'Adicionando…';
+    definirFeedbackFormulario();
+
+    try {
+        const vinho = editando
+            ? await catalogoDb.atualizar(id, dados)
+            : await catalogoDb.adicionar(dados);
+
+        renderizarFiltros();
+        atualizarCatalogo();
+        renderizarListaAdministracao();
+        mostrarToast(editando ? 'Vinho atualizado com sucesso!' : 'Vinho adicionado com sucesso!', 'success');
+        definirFeedbackFormulario(editando ? 'Alterações salvas.' : 'Vinho adicionado ao catálogo.', 'success');
+
+        if (editando) {
+            preencherEditorVinho(vinho);
+        } else {
+            prepararNovoVinho();
+            definirFeedbackFormulario('Vinho adicionado ao catálogo.', 'success');
+        }
+    } catch (erro) {
+        if (tratarSessaoAdminExpirada(erro)) return;
+        definirFeedbackFormulario(erro.message || 'Não foi possível salvar o vinho.', 'error');
+        mostrarToast(erro.message || 'Não foi possível salvar o vinho.', 'error');
+    } finally {
+        botao.disabled = false;
+        botao.textContent = editando ? 'Salvar alterações' : 'Adicionar vinho';
+    }
+}
+
+async function tratarAcaoAdministracao(evento) {
+    const botao = evento.target.closest('[data-admin-acao]');
+    if (!botao) return;
+
+    const id = Number(botao.dataset.id);
+    const vinho = catalogoDb.obter(id);
+    if (!vinho) return;
+
+    if (botao.dataset.adminAcao === 'editar') {
+        preencherEditorVinho(vinho);
+        return;
+    }
+
+    if (botao.dataset.adminAcao === 'excluir') {
+        if (!confirm(`Remover "${vinho.nome}" do catálogo?`)) return;
+
+        try {
+            await catalogoDb.remover(id);
+            renderizarFiltros();
+            atualizarCatalogo();
+            renderizarListaAdministracao();
+            prepararNovoVinho();
+            mostrarToast(`${vinho.nome} removido do catálogo.`, 'info');
+        } catch (erro) {
+            if (tratarSessaoAdminExpirada(erro)) return;
+            mostrarToast(erro.message || 'Não foi possível remover o vinho.', 'error');
+        }
     }
 }
 
@@ -362,6 +839,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         await catalogoDb.carregar();
+        await verificarSessaoAdministrativa();
     } catch (erro) {
         mostrarErroDeCarregamento();
         mostrarToast(erro.message, 'error');
@@ -395,6 +873,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('sortBy').addEventListener('change', atualizarCatalogo);
     document.getElementById('clearFilters').addEventListener('click', limparFiltros);
+    document.getElementById('resetCatalog').addEventListener('click', restaurarCatalogo);
 
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', evento => {
@@ -408,10 +887,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (evento.target.id === 'wineModal') fecharDetalhes();
     });
 
+    // Gestão do catálogo
+    document.getElementById('adminBtn').addEventListener('click', () => abrirAdministracao());
+    document.getElementById('closeAdmin').addEventListener('click', fecharAdministracao);
+    document.getElementById('adminModal').addEventListener('click', evento => {
+        if (evento.target.id === 'adminModal') fecharAdministracao();
+    });
+    document.getElementById('adminLoginForm').addEventListener('submit', autenticarAdministrador);
+    document.getElementById('logoutAdmin').addEventListener('click', encerrarSessaoAdministrativa);
+    document.getElementById('newWineBtn').addEventListener('click', prepararNovoVinho);
+    document.getElementById('cancelWineEdit').addEventListener('click', prepararNovoVinho);
+    document.getElementById('wineForm').addEventListener('submit', salvarVinho);
+    document.getElementById('adminWineList').addEventListener('click', tratarAcaoAdministracao);
+
+    const imagemArquivo = document.getElementById('wineImageFile');
+    imagemArquivo.addEventListener('change', async evento => {
+        const arquivo = evento.target.files[0];
+        if (!arquivo) return;
+
+        try {
+            imagemAdministracao = await processarImagem(arquivo);
+            document.getElementById('wineImageUrl').value = '';
+            document.getElementById('wineImageHint').textContent =
+                'Imagem carregada e pronta para salvar neste rótulo.';
+            atualizarPreviaImagem(imagemAdministracao);
+            definirFeedbackFormulario();
+        } catch (erro) {
+            evento.target.value = '';
+            definirFeedbackFormulario(erro.message, 'error');
+            mostrarToast(erro.message, 'error');
+        }
+    });
+
+    document.getElementById('wineImageUrl').addEventListener('input', evento => {
+        imagemAdministracao = evento.target.value.trim() || null;
+        atualizarPreviaImagem(imagemAdministracao);
+    });
+
+    document.getElementById('removeWineImage').addEventListener('click', () => {
+        imagemAdministracao = null;
+        document.getElementById('wineImageFile').value = '';
+        document.getElementById('wineImageUrl').value = '';
+        document.getElementById('wineImageHint').textContent = 'Imagem removida. Salve para confirmar.';
+        atualizarPreviaImagem(null);
+    });
+
     // Fechar modais com Escape
     document.addEventListener('keydown', evento => {
-        if (evento.key !== 'Escape') return;
-        fecharDetalhes();
-        fecharCarrinho();
+        manterFocoNaAdministracao(evento);
+
+        if (evento.key === 'Escape') {
+            fecharDetalhes();
+            fecharCarrinho();
+            fecharAdministracao();
+        }
     });
 });

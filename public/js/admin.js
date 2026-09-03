@@ -1,6 +1,7 @@
 const estadoAdmin = {
     vinhos: [],
-    filtro: ''
+    filtro: '',
+    csrfToken: ''
 };
 
 const $ = seletor => document.querySelector(seletor);
@@ -30,10 +31,14 @@ function mostrarToast(mensagem, tipo = 'info') {
 }
 
 async function requisicao(url, opcoes = {}) {
+    const metodo = String(opcoes.method || 'GET').toUpperCase();
     const resposta = await fetch(url, {
         ...opcoes,
         headers: {
             ...(opcoes.body ? { 'Content-Type': 'application/json' } : {}),
+            ...(metodo !== 'GET' && estadoAdmin.csrfToken
+                ? { 'X-CSRF-Token': estadoAdmin.csrfToken }
+                : {}),
             ...(opcoes.headers || {})
         }
     });
@@ -235,13 +240,14 @@ async function entrar(evento) {
     definirMensagem('loginMessage', '');
 
     try {
-        await requisicao('/api/admin/login', {
+        const sessao = await requisicao('/api/admin/login', {
             method: 'POST',
             body: JSON.stringify({
-                username: $('#username').value,
-                password: $('#password').value
+                usuario: $('#username').value,
+                senha: $('#password').value
             })
         });
+        estadoAdmin.csrfToken = sessao.csrfToken || '';
         $('#password').value = '';
         mostrarDashboard();
         await carregarCatalogo();
@@ -265,6 +271,7 @@ async function iniciarAdmin() {
     $('#logoutButton').addEventListener('click', async () => {
         await requisicao('/api/admin/logout', { method: 'POST' }).catch(() => {});
         estadoAdmin.vinhos = [];
+        estadoAdmin.csrfToken = '';
         mostrarLogin();
         mostrarToast('Sessão encerrada.', 'info');
     });
@@ -281,8 +288,9 @@ async function iniciarAdmin() {
     });
 
     try {
-        const sessao = await requisicao('/api/admin/session');
+        const sessao = await requisicao('/api/admin/status');
         if (sessao.autenticado) {
+            estadoAdmin.csrfToken = sessao.csrfToken || '';
             mostrarDashboard();
             await carregarCatalogo();
         } else {

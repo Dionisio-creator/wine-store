@@ -5,6 +5,21 @@
 const IMAGEM_LARGURA_MAX = 900;
 const IMAGEM_QUALIDADE = 0.82;
 
+function cabecalhosAdmin(incluirJson = false) {
+    const cabecalhos = {
+        'X-CSRF-Token': window.csrfAdmin || ''
+    };
+    if (incluirJson) cabecalhos['Content-Type'] = 'application/json';
+    return cabecalhos;
+}
+
+async function erroDaResposta(resposta, mensagemPadrao) {
+    const corpo = await resposta.json().catch(() => ({}));
+    const erro = new Error(corpo.erro || mensagemPadrao);
+    erro.status = resposta.status;
+    throw erro;
+}
+
 class CatalogoAPI {
     constructor() {
         this.itens = [];
@@ -34,13 +49,12 @@ class CatalogoAPI {
     async adicionar(dados) {
         const resposta = await fetch('/api/vinhos', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: cabecalhosAdmin(true),
             body: JSON.stringify(dados)
         });
 
         if (!resposta.ok) {
-            const erro = await resposta.json().catch(() => ({}));
-            throw new Error(erro.erro || 'Não foi possível adicionar o vinho.');
+            await erroDaResposta(resposta, 'Não foi possível adicionar o vinho.');
         }
 
         const vinho = await resposta.json();
@@ -52,13 +66,12 @@ class CatalogoAPI {
     async atualizar(id, dados) {
         const resposta = await fetch(`/api/vinhos/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: cabecalhosAdmin(true),
             body: JSON.stringify(dados)
         });
 
         if (!resposta.ok) {
-            const erro = await resposta.json().catch(() => ({}));
-            throw new Error(erro.erro || 'Não foi possível atualizar o vinho.');
+            await erroDaResposta(resposta, 'Não foi possível atualizar o vinho.');
         }
 
         const vinho = await resposta.json();
@@ -68,17 +81,25 @@ class CatalogoAPI {
     }
 
     async remover(id) {
-        const resposta = await fetch(`/api/vinhos/${id}`, { method: 'DELETE' });
-        if (!resposta.ok) return false;
+        const resposta = await fetch(`/api/vinhos/${id}`, {
+            method: 'DELETE',
+            headers: cabecalhosAdmin()
+        });
+        if (!resposta.ok) {
+            await erroDaResposta(resposta, 'Não foi possível remover o vinho.');
+        }
 
         this.itens = this.itens.filter(v => v.id !== Number(id));
         return true;
     }
 
     async restaurarPadrao() {
-        const resposta = await fetch('/api/vinhos/restaurar', { method: 'POST' });
+        const resposta = await fetch('/api/vinhos/restaurar', {
+            method: 'POST',
+            headers: cabecalhosAdmin()
+        });
         if (!resposta.ok) {
-            throw new Error('Não foi possível restaurar o catálogo.');
+            await erroDaResposta(resposta, 'Não foi possível restaurar o catálogo.');
         }
 
         this.itens = await resposta.json();

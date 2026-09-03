@@ -62,40 +62,44 @@ wine-store/
    **Database** → **Create a database** (PostgreSQL). O Replit cria o
    banco e já preenche a variável de ambiente `DATABASE_URL` sozinho —
    não precisa copiar senha nem host de lugar nenhum.
-3. **Rode o projeto**: clique em **Run** (ou, no Shell, `npm install && npm start`).
+3. **Configure os segredos administrativos**: adicione `ADMIN_USERNAME`,
+   `ADMIN_PASSWORD` e uma chave aleatória longa em `SESSION_SECRET`.
+4. **Rode o projeto**: clique em **Run** (ou, no Shell, `npm install && npm start`).
    Na primeira execução, o servidor cria a tabela `vinhos` e a popula com
    os 20 vinhos de `seed-vinhos.js` automaticamente.
-4. **Abra o site**: use a URL do webview que o Replit mostra — é o mesmo
+5. **Abra o site**: use a URL do webview que o Replit mostra — é o mesmo
    site de sempre, só que agora os dados vêm do banco.
 
-### Área administrativa
+### Como alterar as informações dos vinhos
 
-Acesse `/admin.html` para adicionar, editar, excluir e restaurar vinhos.
-O painel exige o usuário e a senha configurados nos Secrets do Replit:
-
-- `ADMIN_USERNAME`
-- `ADMIN_PASSWORD`
-- `SESSION_SECRET`
-
-As credenciais nunca ficam no navegador ou no código. O login cria um cookie
-de sessão assinado, com duração de 8 horas, e as rotas que alteram o catálogo
-recusam requisições sem uma sessão administrativa válida.
+Use o botão **Admin** no cabeçalho e entre com as credenciais configuradas nos
+segredos `ADMIN_USERNAME` e `ADMIN_PASSWORD`. As alterações feitas pela tela usam
+as rotas da API protegidas por sessão e validação CSRF.
 
 ## 🔌 API
 
 | Método | Rota                    | Uso                                              |
 |--------|-------------------------|---------------------------------------------------|
+| GET    | `/api/admin/status`     | Informa se a sessão administrativa está ativa     |
+| POST   | `/api/admin/login`      | Inicia sessão com `usuario` e `senha`              |
+| POST   | `/api/admin/logout`     | Encerra a sessão administrativa                    |
 | GET    | `/api/vinhos`           | Lista todos os vinhos                             |
 | GET    | `/api/vinhos/:id`       | Detalhe de um vinho                               |
-| POST   | `/api/vinhos`           | Cria um vinho (requer sessão administrativa)      |
-| PUT    | `/api/vinhos/:id`       | Atualiza um vinho (requer sessão administrativa)  |
-| DELETE | `/api/vinhos/:id`       | Remove um vinho (requer sessão administrativa)    |
-| POST   | `/api/vinhos/restaurar` | Recria o catálogo (requer sessão administrativa)  |
+| POST   | `/api/vinhos`           | Cria um vinho (requer sessão administrativa)       |
+| PUT    | `/api/vinhos/:id`       | Atualiza um vinho (requer sessão administrativa)   |
+| DELETE | `/api/vinhos/:id`       | Remove um vinho (requer sessão administrativa)     |
+| POST   | `/api/vinhos/restaurar` | Restaura os originais (requer sessão administrativa) |
 
 Campos aceitos no corpo: `nome`, `tipo`, `regiao`, `safra`, `preco`,
 `descricao`, `alcool`, `producao`, `avaliacao`, `imagem` (URL ou data URL),
-`destaque` (true/false). Só `nome`, `regiao`, `descricao` e `preco` são
-obrigatórios — o resto tem valor padrão.
+`destaque` (true/false). `nome`, `tipo`, `regiao`, `safra`, `preco` e
+`descricao` são obrigatórios.
+
+O login recebe JSON no formato `{"usuario":"...","senha":"..."}` e cria um
+cookie de sessão HttpOnly com duração de oito horas. A resposta do login e de
+`GET /api/admin/status` inclui `csrfToken` quando a sessão está ativa. Envie esse
+valor no cabeçalho `X-CSRF-Token` em toda rota mutável, inclusive logout e
+restauração. O navegador faz isso automaticamente pela tela administrativa.
 
 ## 💻 Rodando localmente (fora do Replit)
 
@@ -105,7 +109,7 @@ ou Supabase).
 ```bash
 npm install
 cp .env.example .env
-# edite .env com a DATABASE_URL do seu banco
+# edite .env com DATABASE_URL, ADMIN_USERNAME, ADMIN_PASSWORD e SESSION_SECRET
 npm start
 ```
 
@@ -119,12 +123,12 @@ Acesse `http://localhost:3000`.
 - **Filtro por Preço**: o limite do slider acompanha o vinho mais caro
 - **Ordenação**: por preço (crescente/decrescente), nome ou avaliação
 
-### Gestão do catálogo
+### Administração do catálogo
 
-- O site público é somente leitura.
-- A área `/admin.html` permite adicionar, editar e excluir vinhos.
-- A restauração do catálogo original fica disponível apenas no painel
-  administrativo e pede confirmação antes de apagar alterações.
+- **Adicionar e editar**: abra a área **Admin** no cabeçalho
+- **Excluir**: administradores autenticados podem usar o ícone no card ou a lista administrativa
+- **Restaurar catálogo original**: link na barra de filtros — chama
+  `POST /api/vinhos/restaurar` e recria os 20 vinhos de `seed-vinhos.js`
 
 ### Sistema de Carrinho
 
@@ -168,9 +172,9 @@ claro e `[data-theme='dark']` sobrescreve os mesmos tokens no tema escuro:
 
 ## 🚦 Roadmap Futuro
 
-- [ ] Site administrativo (adicionar/editar vinhos pela interface, usando a API já pronta)
+- [x] Site administrativo para adicionar, editar e excluir vinhos
 - [ ] Integração com API de pagamento
-- [ ] Sistema de autenticação
+- [x] Sessão administrativa protegida por credenciais e CSRF
 - [x] Tema escuro
 - [x] Catálogo em banco de dados (PostgreSQL)
 - [ ] Sistema de wishlist

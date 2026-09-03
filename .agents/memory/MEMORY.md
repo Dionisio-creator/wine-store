@@ -1,1 +1,2 @@
 - [Managed database validation](managed-database-validation.md) — static completion review may miss runtime-managed PostgreSQL bindings; verify the live workflow and DB directly.
+- [Catalog mutation authorization](catalog-mutation-authorization.md) — catalog writes must be protected on the server, not only hidden from unauthenticated visitors.

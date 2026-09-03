@@ -49,6 +49,10 @@
                     <button class="icon-btn" id="searchBtn" title="Buscar" aria-label="Buscar">
                         🔍
                     </button>
+                    <button class="btn btn-secondary btn-admin" id="adminBtn"
+                        title="Acessar área administrativa" aria-label="Acessar área administrativa" type="button">
+                        <span>Admin</span> ⚙
+                    </button>
                     <button class="icon-btn" id="cartBtn" title="Carrinho" aria-label="Abrir carrinho">
                         🛒 <span class="cart-count hidden" id="cartCount">0</span>
                     </button>
@@ -167,6 +171,7 @@
 
                     <div class="sidebar-footer">
                         <button class="btn btn-secondary btn-sm btn-block" id="clearFilters">Limpar filtros</button>
+                        <button class="link-reset hidden" id="resetCatalog">Restaurar catálogo original</button>
                     </div>
                 </aside>
 
@@ -370,6 +375,172 @@
             <button class="close-btn" id="closeModal" aria-label="Fechar"
                 style="position:absolute; top:14px; right:14px; z-index:3;">&times;</button>
             <div id="wineDetail"></div>
+        </div>
+    </div>
+
+    <!-- Gestão do catálogo -->
+    <div class="modal" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+        <div class="modal-content catalog-admin-modal">
+            <div class="modal-header">
+                <div>
+                    <span class="eyebrow">Área administrativa</span>
+                    <h2 id="adminModalTitle">Gerenciar catálogo</h2>
+                    <p id="adminModalSubtitle">Acesso exclusivo para administradores.</p>
+                </div>
+                <div class="modal-header-actions">
+                    <button class="btn btn-ghost btn-sm hidden" id="logoutAdmin" type="button">Sair</button>
+                    <button class="close-btn" id="closeAdmin" aria-label="Fechar">&times;</button>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <div id="adminLoginView" class="admin-login">
+                    <div class="admin-login-icon" aria-hidden="true">🔐</div>
+                    <h3>Entrar na administração</h3>
+                    <p>Use as credenciais administrativas da loja para gerenciar o catálogo.</p>
+                    <form id="adminLoginForm">
+                        <div class="field">
+                            <label for="adminUsername">Usuário</label>
+                            <input type="text" id="adminUsername" required autocomplete="username">
+                        </div>
+                        <div class="field">
+                            <label for="adminPassword">Senha administrativa</label>
+                            <input type="password" id="adminPassword" required autocomplete="current-password">
+                        </div>
+                        <p id="adminLoginFeedback" class="form-feedback" role="alert" aria-live="polite"></p>
+                        <button class="btn btn-primary btn-block" id="adminLoginButton" type="submit">Entrar</button>
+                    </form>
+                </div>
+
+                <div id="adminCatalogView" class="admin-layout hidden">
+                    <section class="admin-catalog-panel" aria-labelledby="adminListTitle">
+                    <div class="admin-panel-head">
+                        <div>
+                            <h3 id="adminListTitle">Rótulos cadastrados</h3>
+                            <span id="adminListCount" class="field-hint"></span>
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="newWineBtn" type="button">+ Novo vinho</button>
+                    </div>
+                    <div id="adminWineList" class="admin-wine-list"></div>
+                    </section>
+
+                    <section class="admin-editor-panel" aria-labelledby="wineFormTitle">
+                    <div class="admin-panel-head">
+                        <div>
+                            <h3 id="wineFormTitle">Novo vinho</h3>
+                            <span class="field-hint">Os campos marcados com * são obrigatórios.</span>
+                        </div>
+                    </div>
+
+                    <form id="wineForm" class="wine-form" novalidate>
+                        <input type="hidden" id="wineId">
+
+                        <div class="field field-full">
+                            <label for="wineName">Nome do vinho *</label>
+                            <input type="text" id="wineName" name="nome" required maxlength="160"
+                                placeholder="Ex.: Quinta do Crasto Reserva">
+                        </div>
+
+                        <div class="field">
+                            <label for="wineType">Tipo *</label>
+                            <input type="text" id="wineType" name="tipo" list="tiposVinho" required
+                                maxlength="60" placeholder="Ex.: Tinto">
+                            <datalist id="tiposVinho">
+                                <option value="Tinto"></option>
+                                <option value="Branco"></option>
+                                <option value="Rosé"></option>
+                                <option value="Espumante"></option>
+                                <option value="Sobremesa"></option>
+                            </datalist>
+                        </div>
+
+                        <div class="field">
+                            <label for="wineRegion">Região *</label>
+                            <input type="text" id="wineRegion" name="regiao" list="listaRegioes" required
+                                maxlength="120" placeholder="Ex.: Douro, Portugal">
+                        </div>
+
+                        <div class="field">
+                            <label for="wineVintage">Safra *</label>
+                            <input type="number" id="wineVintage" name="safra" required min="1000"
+                                max="2100" step="1" inputmode="numeric" placeholder="2022">
+                        </div>
+
+                        <div class="field">
+                            <label for="winePrice">Preço (R$) *</label>
+                            <input type="number" id="winePrice" name="preco" required min="0" max="99999999"
+                                step="0.01" inputmode="decimal" placeholder="89,90">
+                        </div>
+
+                        <div class="field">
+                            <label for="wineRating">Avaliação</label>
+                            <input type="number" id="wineRating" name="avaliacao" min="0" max="5"
+                                step="0.1" inputmode="decimal" value="0" placeholder="4,5">
+                            <span class="field-hint">De 0 a 5 estrelas.</span>
+                        </div>
+
+                        <div class="field">
+                            <label for="wineAlcohol">Teor alcoólico</label>
+                            <input type="text" id="wineAlcohol" name="alcool" maxlength="40"
+                                placeholder="Ex.: 14,5%">
+                        </div>
+
+                        <div class="field field-full">
+                            <label for="wineProduction">País / produção</label>
+                            <input type="text" id="wineProduction" name="producao" maxlength="120"
+                                placeholder="Ex.: Portugal">
+                        </div>
+
+                        <div class="field field-full">
+                            <label for="wineDescription">Descrição *</label>
+                            <textarea id="wineDescription" name="descricao" required maxlength="1000"
+                                placeholder="Conte o que torna este rótulo especial." rows="4"></textarea>
+                        </div>
+
+                        <div class="form-divider">Imagem do rótulo</div>
+
+                        <div class="field field-full">
+                            <div class="image-uploader">
+                                <div class="image-preview" id="wineImagePreview" aria-label="Prévia da imagem do vinho">
+                                    🍷
+                                </div>
+                                <div class="image-controls">
+                                    <label for="wineImageFile" class="file-label">
+                                        Escolher imagem
+                                        <input type="file" id="wineImageFile" accept="image/*">
+                                    </label>
+                                    <input type="url" id="wineImageUrl" name="imagem"
+                                        placeholder="Ou cole a URL da imagem">
+                                    <div class="image-buttons">
+                                        <button class="btn btn-ghost btn-sm" id="removeWineImage" type="button">
+                                            Remover imagem
+                                        </button>
+                                    </div>
+                                    <span class="field-hint" id="wineImageHint">
+                                        JPG, PNG ou WebP. Imagens grandes são reduzidas automaticamente.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <label class="switch field-full" for="wineFeatured">
+                            <input type="checkbox" id="wineFeatured" name="destaque">
+                            <span class="switch-text">
+                                <strong>Marcar como destaque</strong>
+                                <span>Exibir este vinho na seleção da casa.</span>
+                            </span>
+                        </label>
+
+                        <p id="wineFormFeedback" class="form-feedback field-full" role="alert" aria-live="polite"></p>
+
+                        <div class="admin-form-actions field-full">
+                            <button class="btn btn-secondary" id="cancelWineEdit" type="button">Limpar</button>
+                            <button class="btn btn-primary" id="saveWineBtn" type="submit">Adicionar vinho</button>
+                        </div>
+                    </form>
+                    </section>
+                </div>
+            </div>
         </div>
     </div>
 

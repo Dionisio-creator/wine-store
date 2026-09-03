@@ -575,6 +575,237 @@
 }
 
 /* ============================================
+   GESTÃO DO CATÁLOGO
+   ============================================ */
+
+.catalog-admin-modal {
+    max-width: 1120px;
+}
+
+.catalog-admin-modal .modal-header {
+    align-items: flex-start;
+}
+
+.catalog-admin-modal .eyebrow {
+    margin-bottom: 0.3rem;
+}
+
+.modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.admin-login {
+    width: min(100%, 380px);
+    margin: 1.5rem auto;
+    padding: clamp(1.5rem, 5vw, 2.5rem);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+}
+
+.admin-login-icon {
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 1rem;
+    background-color: var(--wine-200);
+    border-radius: var(--radius-full);
+    font-size: 1.35rem;
+}
+
+.admin-login h3 {
+    font-family: var(--font-display);
+    margin-bottom: 0.45rem;
+}
+
+.admin-login > p {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    margin-bottom: 1.25rem;
+}
+
+.admin-login form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    text-align: left;
+}
+
+.admin-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.85fr) minmax(420px, 1.15fr);
+    gap: 1.5rem;
+}
+
+.admin-catalog-panel,
+.admin-editor-panel {
+    min-width: 0;
+}
+
+.admin-editor-panel {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--border);
+}
+
+.admin-panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.admin-panel-head h3 {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+}
+
+.admin-wine-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-height: 520px;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.admin-wine-item {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.7rem;
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color var(--transition), background-color var(--transition);
+}
+
+.admin-wine-item.is-selected {
+    border-color: var(--primary);
+    background-color: color-mix(in srgb, var(--primary) 7%, var(--surface-2));
+}
+
+.admin-wine-thumb {
+    width: 52px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background:
+        radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, var(--gold-500) 18%, transparent), transparent 60%),
+        linear-gradient(150deg, var(--wine-700), var(--wine-900));
+    font-size: 1.35rem;
+}
+
+.admin-wine-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.admin-wine-summary {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 0.1rem;
+}
+
+.admin-wine-summary strong,
+.admin-wine-summary span,
+.admin-wine-summary small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-wine-summary strong {
+    font-size: 0.88rem;
+}
+
+.admin-wine-summary span,
+.admin-wine-summary small {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.admin-wine-summary small {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.admin-wine-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.3rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.55rem;
+}
+
+.admin-wine-actions .btn {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+}
+
+.danger-text {
+    color: var(--danger) !important;
+}
+
+.admin-list-empty {
+    display: grid;
+    place-items: center;
+    gap: 0.25rem;
+    padding: 2rem 1rem;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.admin-list-empty > span {
+    font-size: 2rem;
+}
+
+.admin-list-empty p {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.admin-list-empty small {
+    font-size: 0.78rem;
+}
+
+.form-feedback {
+    min-height: 1.35rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.form-feedback.success {
+    color: var(--success);
+}
+
+.form-feedback.error {
+    color: var(--danger);
+}
+
+.admin-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--border);
+}
+
+/* ============================================
    TOAST
    ============================================ */
 
@@ -688,6 +919,17 @@
 
     .wine-form {
         grid-template-columns: 1fr;
+    }
+
+    .admin-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-editor-panel {
+        padding-left: 0;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        border-left: 0;
     }
 
     .modal-footer {

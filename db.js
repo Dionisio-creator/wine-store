@@ -97,30 +97,66 @@ async function obterVinho(id) {
 
 // Normaliza e valida os dados vindos da API antes de gravar no banco
 function validar(dados) {
+    const tipo = String(dados.tipo || '').trim();
     const nome = String(dados.nome || '').trim();
     const regiao = String(dados.regiao || '').trim();
     const descricao = String(dados.descricao || '').trim();
+    const alcool = String(dados.alcool || '—').trim();
+    const producao = String(dados.producao || '—').trim();
     const preco = Number(dados.preco);
-    const safra = parseInt(dados.safra, 10);
-    const avaliacao = Number(dados.avaliacao);
+    const safra = Number(dados.safra);
+    const avaliacao = dados.avaliacao == null || dados.avaliacao === ''
+        ? 0
+        : Number(dados.avaliacao);
+    const imagem = dados.imagem == null || dados.imagem === ''
+        ? null
+        : String(dados.imagem).trim();
 
     if (!nome) throw new Error('Informe o nome do vinho.');
+    if (nome.length > 160) throw new Error('O nome deve ter no máximo 160 caracteres.');
+    if (!tipo) throw new Error('Informe o tipo do vinho.');
+    if (tipo.length > 60) throw new Error('O tipo deve ter no máximo 60 caracteres.');
     if (!regiao) throw new Error('Informe a região do vinho.');
+    if (regiao.length > 120) throw new Error('A região deve ter no máximo 120 caracteres.');
     if (!descricao) throw new Error('Informe uma descrição.');
-    if (!Number.isFinite(preco) || preco < 0) throw new Error('Informe um preço válido.');
+    if (descricao.length > 1000) throw new Error('A descrição deve ter no máximo 1000 caracteres.');
+    if (!Number.isFinite(preco) || preco < 0 || preco > 99999999) {
+        throw new Error('Informe um preço válido.');
+    }
+    if (!Number.isInteger(safra) || safra < 1000 || safra > 2100) {
+        throw new Error('Informe uma safra válida.');
+    }
+    if (!Number.isFinite(avaliacao) || avaliacao < 0 || avaliacao > 5) {
+        throw new Error('A avaliação deve estar entre 0 e 5.');
+    }
+    if (alcool.length > 40) throw new Error('O teor alcoólico deve ter no máximo 40 caracteres.');
+    if (producao.length > 120) throw new Error('O país ou produção deve ter no máximo 120 caracteres.');
+    if (typeof dados.destaque !== 'undefined' && typeof dados.destaque !== 'boolean') {
+        throw new Error('O destaque deve ser verdadeiro ou falso.');
+    }
+    if (imagem) {
+        const ehUrlWeb = /^https?:\/\/\S+$/i.test(imagem);
+        const ehImagemEmDados = /^data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/=\s]+$/i.test(imagem);
+        if (!ehUrlWeb && !ehImagemEmDados) {
+            throw new Error('Informe uma URL de imagem válida ou envie um arquivo JPG, PNG ou WebP.');
+        }
+        if (imagem.length > 4_500_000) {
+            throw new Error('A imagem é muito grande. Escolha um arquivo menor.');
+        }
+    }
 
     return {
         nome,
-        tipo: String(dados.tipo || 'Tinto').trim(),
+        tipo,
         regiao,
-        safra: Number.isFinite(safra) ? safra : new Date().getFullYear(),
+        safra,
         preco,
         descricao,
-        alcool: String(dados.alcool || '—').trim(),
-        producao: String(dados.producao || '—').trim(),
-        avaliacao: Number.isFinite(avaliacao) ? Math.min(5, Math.max(0, avaliacao)) : 0,
-        imagem: dados.imagem || null,
-        destaque: Boolean(dados.destaque)
+        alcool,
+        producao,
+        avaliacao,
+        imagem,
+        destaque: dados.destaque === true
     };
 }
 

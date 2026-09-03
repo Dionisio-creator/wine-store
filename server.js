@@ -4,166 +4,155 @@
 
 require('dotenv').config();
 
-const path = require('path');
 const crypto = require('crypto');
+const path = require('path');
 const express = require('express');
 const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const COOKIE_SESSAO = 'vinhos_admin_session';
-const DURACAO_SESSAO_SEGUNDOS = 60 * 60 * 8;
-const SESSION_SECRET = process.env.SESSION_SECRET;
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const tentativasLogin = new Map();
+const ADMIN_COOKIE = 'vinhos_admin';
+const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
 
-app.set('trust proxy', 1);
 app.use(express.json({ limit: '5mb' }));
-app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.use(express.static(path.join(__dirname, 'public')));
 
-function compararSeguros(a, b) {
-    const valorA = Buffer.from(String(a || ''));
-    const valorB = Buffer.from(String(b || ''));
-    return valorA.length === valorB.length &&
-        crypto.timingSafeEqual(valorA, valorB);
-}
+// ---------- SESSÃO ADMINISTRATIVA ----------
 
-function assinarSessao(payload) {
-    return crypto.createHmac('sha256', SESSION_SECRET)
-        .update(payload)
+function assinatura(valor) {
+    return crypto
+        .createHmac('sha256', process.env.SESSION_SECRET || '')
+        .update(valor)
         .digest('base64url');
 }
 
-function criarTokenSessao(username) {
-    const payload = Buffer.from(JSON.stringify({
-        username,
-        expiraEm: Date.now() + DURACAO_SESSAO_SEGUNDOS * 1000
+function cookieDaRequisicao(req, nome) {
+    const cookies = String(req.headers.cookie || '').split(';');
+    for (const cookie of cookies) {
+        const [chave, ...partes] = cookie.trim().split('=');
+        if (chave === nome) {
+            try {
+                return decodeURIComponent(partes.join('='));
+            } catch {
+                return null;
+            }
+        }
+    }
+    return null;
+}
+
+function criarSessaoAdmin() {
+    const conteudo = Buffer.from(JSON.stringify({
+        expiraEm: Date.now() + ADMIN_SESSION_MS,
+        csrf: crypto.randomBytes(24).toString('hex')
     })).toString('base64url');
-    return `${payload}.${assinarSessao(payload)}`;
+
+    return `${conteudo}.${assinatura(conteudo)}`;
 }
 
-function lerCookie(req, nome) {
-    const cookies = String(req.headers.cookie || '')
-        .split(';')
-        .map(parte => parte.trim());
-    const cookie = cookies.find(parte => parte.startsWith(`${nome}=`));
+function lerSessaoAdmin(req) {
+    const cookie = cookieDaRequisicao(req, ADMIN_COOKIE);
     if (!cookie) return null;
+
+    const [conteudo, assinaturaRecebida] = cookie.split('.');
+    if (!conteudo || !assinaturaRecebida) return null;
+
+    const assinaturaEsperada = assinatura(conteudo);
+    const recebida = Buffer.from(assinaturaRecebida);
+    const esperada = Buffer.from(assinaturaEsperada);
+    if (recebida.length !== esperada.length || !crypto.timingSafeEqual(recebida, esperada)) {
+        return null;
+    }
+
     try {
-        return decodeURIComponent(cookie.slice(nome.length + 1));
+        const sessao = JSON.parse(Buffer.from(conteudo, 'base64url').toString('utf8'));
+        return sessao.expiraEm > Date.now() && sessao.csrf ? sessao : null;
     } catch {
         return null;
     }
 }
 
-function obterSessao(req) {
-    if (!SESSION_SECRET) return null;
+function valoresSecretosIguais(recebido, esperado) {
+    if (typeof recebido !== 'string' || typeof esperado !== 'string') return false;
 
-    const token = lerCookie(req, COOKIE_SESSAO);
-    if (!token) return null;
-
-    const [payload, assinatura] = token.split('.');
-    if (!payload || !assinatura || !compararSeguros(assinatura, assinarSessao(payload))) {
-        return null;
-    }
-
-    try {
-        const sessao = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-        if (!sessao.username || sessao.expiraEm < Date.now()) return null;
-        if (!compararSeguros(sessao.username, ADMIN_USERNAME)) return null;
-        return sessao;
-    } catch {
-        return null;
-    }
+    const hashRecebido = crypto.createHash('sha256').update(recebido).digest();
+    const hashEsperado = crypto.createHash('sha256').update(esperado).digest();
+    return crypto.timingSafeEqual(hashRecebido, hashEsperado);
 }
 
-function definirCookieSessao(res, req, token) {
-    const partes = [
-        `${COOKIE_SESSAO}=${encodeURIComponent(token)}`,
-        'HttpOnly',
-        'Path=/',
-        'SameSite=Strict',
-        `Max-Age=${DURACAO_SESSAO_SEGUNDOS}`
-    ];
-    if (req.headers['x-forwarded-proto'] === 'https' || process.env.NODE_ENV === 'production') {
-        partes.push('Secure');
-    }
-    res.setHeader('Set-Cookie', partes.join('; '));
+function credenciaisAdminCorretas(usuario, senha) {
+    return valoresSecretosIguais(usuario, process.env.ADMIN_USERNAME) &&
+        valoresSecretosIguais(senha, process.env.ADMIN_PASSWORD);
+}
+
+function requisicaoSegura(req) {
+    return req.secure || String(req.headers['x-forwarded-proto']).split(',')[0] === 'https';
+}
+
+function definirCookieAdmin(req, res, valor, maxAgeSegundos) {
+    const seguro = requisicaoSegura(req) ? '; Secure' : '';
+    res.setHeader(
+        'Set-Cookie',
+        `${ADMIN_COOKIE}=${encodeURIComponent(valor)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAgeSegundos}${seguro}`
+    );
 }
 
 function exigirAdmin(req, res, next) {
-    const sessao = obterSessao(req);
-    if (!sessao) {
-        return res.status(401).json({ erro: 'Faça login para gerenciar o catálogo.' });
+    if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD || !process.env.SESSION_SECRET) {
+        return res.status(503).json({ erro: 'A área administrativa ainda não foi configurada.' });
     }
-    req.admin = sessao;
+
+    const sessao = lerSessaoAdmin(req);
+    if (!sessao) {
+        return res.status(401).json({ erro: 'Entre novamente na área administrativa.' });
+    }
+
+    const csrf = req.get('X-CSRF-Token') || '';
+    const recebido = Buffer.from(csrf);
+    const esperado = Buffer.from(sessao.csrf);
+    if (recebido.length !== esperado.length || !crypto.timingSafeEqual(recebido, esperado)) {
+        return res.status(403).json({ erro: 'A sessão administrativa não pôde ser validada.' });
+    }
+
+    req.sessaoAdmin = sessao;
     next();
 }
 
-function chaveTentativa(req) {
-    return String(req.ip || req.socket.remoteAddress || 'desconhecido');
-}
+// ---------- API ----------
 
-function loginBloqueado(req) {
-    const agora = Date.now();
-    const registro = tentativasLogin.get(chaveTentativa(req));
-    if (!registro || registro.expiraEm <= agora) {
-        tentativasLogin.delete(chaveTentativa(req));
-        return false;
-    }
-    return registro.total >= 5;
-}
-
-function registrarFalhaLogin(req) {
-    const chave = chaveTentativa(req);
-    const registro = tentativasLogin.get(chave) || { total: 0, expiraEm: Date.now() + 15 * 60 * 1000 };
-    registro.total += 1;
-    tentativasLogin.set(chave, registro);
-}
-
-// ---------- AUTENTICAÇÃO ADMINISTRATIVA ----------
-
-app.get('/api/admin/session', (req, res) => {
-    const sessao = obterSessao(req);
-    if (!sessao) return res.json({ autenticado: false });
-    res.json({ autenticado: true, username: sessao.username });
+app.get('/api/admin/status', (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    const sessao = lerSessaoAdmin(req);
+    res.json({
+        configurado: Boolean(
+            process.env.ADMIN_USERNAME &&
+            process.env.ADMIN_PASSWORD &&
+            process.env.SESSION_SECRET
+        ),
+        autenticado: Boolean(sessao),
+        csrfToken: sessao ? sessao.csrf : null
+    });
 });
 
 app.post('/api/admin/login', (req, res) => {
-    if (!SESSION_SECRET || !ADMIN_USERNAME || !ADMIN_PASSWORD) {
-        return res.status(503).json({
-            erro: 'O acesso administrativo ainda não foi configurado nos Secrets do Replit.'
-        });
+    res.set('Cache-Control', 'no-store');
+    if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD || !process.env.SESSION_SECRET) {
+        return res.status(503).json({ erro: 'A área administrativa ainda não foi configurada.' });
+    }
+    if (!credenciaisAdminCorretas(req.body?.usuario, req.body?.senha)) {
+        return res.status(401).json({ erro: 'Usuário ou senha incorretos.' });
     }
 
-    if (loginBloqueado(req)) {
-        return res.status(429).json({
-            erro: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
-        });
-    }
-
-    const username = String(req.body?.username || '').trim();
-    const password = String(req.body?.password || '');
-    const credenciaisValidas = compararSeguros(username, ADMIN_USERNAME) &&
-        compararSeguros(password, ADMIN_PASSWORD);
-
-    if (!credenciaisValidas) {
-        registrarFalhaLogin(req);
-        return res.status(401).json({ erro: 'Usuário ou senha inválidos.' });
-    }
-
-    tentativasLogin.delete(chaveTentativa(req));
-    definirCookieSessao(res, req, criarTokenSessao(ADMIN_USERNAME));
-    res.json({ autenticado: true, username: ADMIN_USERNAME });
+    const cookie = criarSessaoAdmin();
+    definirCookieAdmin(req, res, cookie, Math.floor(ADMIN_SESSION_MS / 1000));
+    const sessao = lerSessaoAdmin({ headers: { cookie: `${ADMIN_COOKIE}=${encodeURIComponent(cookie)}` } });
+    res.json({ autenticado: true, csrfToken: sessao.csrf });
 });
 
-app.post('/api/admin/logout', (req, res) => {
-    res.setHeader('Set-Cookie', `${COOKIE_SESSAO}=; HttpOnly; Path=/; SameSite=Strict; Max-Age=0`);
+app.post('/api/admin/logout', exigirAdmin, (req, res) => {
+    definirCookieAdmin(req, res, '', 0);
     res.status(204).end();
 });
-
-// ---------- API ----------
 
 app.get('/api/vinhos', async (req, res) => {
     try {
@@ -185,7 +174,6 @@ app.get('/api/vinhos/:id', async (req, res) => {
     }
 });
 
-// Usado pela área administrativa protegida
 app.post('/api/vinhos', exigirAdmin, async (req, res) => {
     try {
         res.status(201).json(await db.criarVinho(req.body));
@@ -194,7 +182,6 @@ app.post('/api/vinhos', exigirAdmin, async (req, res) => {
     }
 });
 
-// Usado pela área administrativa protegida
 app.put('/api/vinhos/:id', exigirAdmin, async (req, res) => {
     try {
         const vinho = await db.atualizarVinho(req.params.id, req.body);
