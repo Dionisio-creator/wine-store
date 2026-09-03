@@ -68,15 +68,18 @@ wine-store/
 4. **Abra o site**: use a URL do webview que o Replit mostra — é o mesmo
    site de sempre, só que agora os dados vêm do banco.
 
-### Como alterar as informações dos vinhos agora
+### Área administrativa
 
-Você tem duas formas, mesmo antes de o site administrativo existir:
+Acesse `/admin.html` para adicionar, editar, excluir e restaurar vinhos.
+O painel exige o usuário e a senha configurados nos Secrets do Replit:
 
-- **Direto no banco, pelo Replit**: na aba **Database**, o Replit mostra as
-  tabelas em formato de planilha — dá pra abrir a tabela `vinhos` e editar
-  nome, preço, descrição etc. célula por célula, sem escrever código.
-- **Pela API**, com `curl` ou o Postman/Insomnia, usando as rotas abaixo
-  (as mesmas que o futuro site administrativo vai usar).
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+- `SESSION_SECRET`
+
+As credenciais nunca ficam no navegador ou no código. O login cria um cookie
+de sessão assinado, com duração de 8 horas, e as rotas que alteram o catálogo
+recusam requisições sem uma sessão administrativa válida.
 
 ## 🔌 API
 
@@ -84,18 +87,10 @@ Você tem duas formas, mesmo antes de o site administrativo existir:
 |--------|-------------------------|---------------------------------------------------|
 | GET    | `/api/vinhos`           | Lista todos os vinhos                             |
 | GET    | `/api/vinhos/:id`       | Detalhe de um vinho                               |
-| POST   | `/api/vinhos`           | Cria um vinho (corpo em JSON)                     |
-| PUT    | `/api/vinhos/:id`       | Atualiza um vinho (aceita atualização parcial)    |
-| DELETE | `/api/vinhos/:id`       | Remove um vinho                                   |
-| POST   | `/api/vinhos/restaurar` | Apaga tudo e recria os 20 vinhos originais        |
-
-Exemplo de criação via terminal:
-
-```bash
-curl -X POST https://SEU-REPL.replit.dev/api/vinhos \
-  -H "Content-Type: application/json" \
-  -d '{"nome":"Novo Vinho","tipo":"Tinto","regiao":"Douro","preco":99.9,"descricao":"Notas de frutas vermelhas."}'
-```
+| POST   | `/api/vinhos`           | Cria um vinho (requer sessão administrativa)      |
+| PUT    | `/api/vinhos/:id`       | Atualiza um vinho (requer sessão administrativa)  |
+| DELETE | `/api/vinhos/:id`       | Remove um vinho (requer sessão administrativa)    |
+| POST   | `/api/vinhos/restaurar` | Recria o catálogo (requer sessão administrativa)  |
 
 Campos aceitos no corpo: `nome`, `tipo`, `regiao`, `safra`, `preco`,
 `descricao`, `alcool`, `producao`, `avaliacao`, `imagem` (URL ou data URL),
@@ -124,17 +119,12 @@ Acesse `http://localhost:3000`.
 - **Filtro por Preço**: o limite do slider acompanha o vinho mais caro
 - **Ordenação**: por preço (crescente/decrescente), nome ou avaliação
 
-### Excluir e Restaurar (pelo site)
+### Gestão do catálogo
 
-- **Excluir**: passe o mouse sobre um card e clique no ícone 🗑️
-- **Restaurar catálogo original**: link na barra de filtros — chama
-  `POST /api/vinhos/restaurar` e recria os 20 vinhos de `seed-vinhos.js`
-
-> **Adicionar e editar vinhos pela interface do site** foram propositalmente
-> deixados de fora — essas ações vão ficar em um site administrativo à
-> parte, que vai consumir as mesmas rotas `POST` e `PUT` da API acima.
-> O cliente já preparado para isso está em `public/js/catalogo.js`
-> (`catalogoDb.adicionar()` / `catalogoDb.atualizar()` / `processarImagem()`).
+- O site público é somente leitura.
+- A área `/admin.html` permite adicionar, editar e excluir vinhos.
+- A restauração do catálogo original fica disponível apenas no painel
+  administrativo e pede confirmação antes de apagar alterações.
 
 ### Sistema de Carrinho
 

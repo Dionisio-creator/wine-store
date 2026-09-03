@@ -1,5 +1,5 @@
 // ============================================
-// RENDERIZAÇÃO, FILTROS E GESTÃO DE VINHOS
+// RENDERIZAÇÃO E FILTROS DO CATÁLOGO PÚBLICO
 // ============================================
 
 let termoBusca = '';
@@ -158,21 +158,11 @@ function limparFiltros() {
 // RENDERIZAÇÃO
 // ============================================
 
-function acoesAdminHTML(vinho) {
-    return `
-        <div class="wine-admin-actions">
-            <button class="icon-action danger" data-acao="excluir" data-id="${vinho.id}"
-                title="Excluir vinho" aria-label="Excluir ${escaparHtml(vinho.nome)}">🗑️</button>
-        </div>
-    `;
-}
-
 function cardHTML(vinho, { compacto = false } = {}) {
     return `
         <article class="wine-card" data-id="${vinho.id}">
             ${imagemDoVinho(vinho)}
             ${vinho.destaque ? '<div class="wine-badge">Destaque</div>' : ''}
-            ${acoesAdminHTML(vinho)}
             <div class="wine-content">
                 <div class="wine-meta">
                     <span class="wine-type-dot"></span>
@@ -321,42 +311,6 @@ function fecharDetalhes() {
 }
 
 // ============================================
-// EXCLUIR VINHO
-// ============================================
-
-async function excluirVinho(id) {
-    const vinho = catalogoDb.obter(id);
-    if (!vinho) return;
-
-    if (!confirm(`Remover "${vinho.nome}" do catálogo?`)) return;
-
-    try {
-        const removeu = await catalogoDb.remover(id);
-        if (!removeu) throw new Error();
-
-        mostrarToast(`${vinho.nome} removido do catálogo`, 'info');
-        fecharDetalhes();
-        renderizarFiltros();
-        atualizarCatalogo();
-    } catch {
-        mostrarToast('Não foi possível remover o vinho', 'error');
-    }
-}
-
-async function restaurarCatalogo() {
-    if (!confirm('Restaurar o catálogo original? Os vinhos adicionados e as edições serão perdidos.')) return;
-
-    try {
-        await catalogoDb.restaurarPadrao();
-        renderizarFiltros();
-        atualizarCatalogo();
-        mostrarToast('Catálogo padrão restaurado', 'info');
-    } catch (erro) {
-        mostrarToast(erro.message, 'error');
-    }
-}
-
-// ============================================
 // DELEGAÇÃO DE EVENTOS DOS CARDS
 // ============================================
 
@@ -372,9 +326,6 @@ function tratarAcaoDeVinho(evento) {
             break;
         case 'detalhes':
             abrirDetalhes(id);
-            break;
-        case 'excluir':
-            excluirVinho(id);
             break;
     }
 }
@@ -444,7 +395,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('sortBy').addEventListener('change', atualizarCatalogo);
     document.getElementById('clearFilters').addEventListener('click', limparFiltros);
-    document.getElementById('resetCatalog').addEventListener('click', restaurarCatalogo);
 
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', evento => {

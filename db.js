@@ -69,9 +69,9 @@ async function iniciar() {
     }
 }
 
-async function inserirSementes() {
+async function inserirSementes(cliente = pool) {
     for (const vinho of sementes) {
-        await pool.query(
+        await cliente.query(
             `INSERT INTO vinhos
                 (nome, tipo, regiao, safra, preco, descricao, alcool, producao, avaliacao, imagem, reviews, destaque, personalizado)
              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,false)`,
@@ -158,8 +158,18 @@ async function removerVinho(id) {
 }
 
 async function restaurarCatalogo() {
-    await pool.query('TRUNCATE TABLE vinhos RESTART IDENTITY');
-    await inserirSementes();
+    const cliente = await pool.connect();
+    try {
+        await cliente.query('BEGIN');
+        await cliente.query('TRUNCATE TABLE vinhos RESTART IDENTITY');
+        await inserirSementes(cliente);
+        await cliente.query('COMMIT');
+    } catch (erro) {
+        await cliente.query('ROLLBACK');
+        throw erro;
+    } finally {
+        cliente.release();
+    }
     return listarVinhos();
 }
 

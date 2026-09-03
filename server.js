@@ -18,7 +18,9 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const tentativasLogin = new Map();
 
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '5mb' }));
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.use(express.static(path.join(__dirname, 'public')));
 
 function compararSeguros(a, b) {
@@ -47,7 +49,12 @@ function lerCookie(req, nome) {
         .split(';')
         .map(parte => parte.trim());
     const cookie = cookies.find(parte => parte.startsWith(`${nome}=`));
-    return cookie ? decodeURIComponent(cookie.slice(nome.length + 1)) : null;
+    if (!cookie) return null;
+    try {
+        return decodeURIComponent(cookie.slice(nome.length + 1));
+    } catch {
+        return null;
+    }
 }
 
 function obterSessao(req) {
@@ -95,9 +102,7 @@ function exigirAdmin(req, res, next) {
 }
 
 function chaveTentativa(req) {
-    return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'desconhecido')
-        .split(',')[0]
-        .trim();
+    return String(req.ip || req.socket.remoteAddress || 'desconhecido');
 }
 
 function loginBloqueado(req) {
@@ -180,7 +185,7 @@ app.get('/api/vinhos/:id', async (req, res) => {
     }
 });
 
-// Usado pelo futuro site administrativo
+// Usado pela área administrativa protegida
 app.post('/api/vinhos', exigirAdmin, async (req, res) => {
     try {
         res.status(201).json(await db.criarVinho(req.body));
@@ -189,7 +194,7 @@ app.post('/api/vinhos', exigirAdmin, async (req, res) => {
     }
 });
 
-// Usado pelo futuro site administrativo
+// Usado pela área administrativa protegida
 app.put('/api/vinhos/:id', exigirAdmin, async (req, res) => {
     try {
         const vinho = await db.atualizarVinho(req.params.id, req.body);

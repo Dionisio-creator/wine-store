@@ -16,3 +16,10 @@ PORT=5000 npm start
 ```
 
 The main API is available at `/api/vinhos`.
+
+## Admin area
+
+- Open `/admin.html` to manage the wine catalog.
+- `ADMIN_USERNAME` and `ADMIN_PASSWORD` are stored as Replit Secrets.
+- `SESSION_SECRET` signs the 8-hour admin session cookie.
+- Catalog write routes require an authenticated admin session; public catalog reads remain available.
