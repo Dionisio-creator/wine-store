@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinhos Premium — Curadoria de rótulos</title>
+    <meta name="description" content="Loja de vinhos com curadoria própria: tintos, brancos, rosés e espumantes selecionados.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/componentes.css">
+
+    <script>
+        // Aplica o tema antes da primeira pintura para evitar flash
+        (function () {
+            try {
+                var salvo = localStorage.getItem('vinhos-tema');
+                var escuro = salvo ? salvo === 'dark'
+                    : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (escuro) document.documentElement.setAttribute('data-theme', 'dark');
+            } catch (e) { /* localStorage indisponível */ }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <a href="#home" class="logo">
+                    <span class="logo-icon">🍷</span>
+                    <span class="logo-text">Vinhos Premium</span>
+                </a>
+
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="#catalogo" class="nav-link">Catálogo</a></li>
+                    <li><a href="#sobre" class="nav-link">Sobre</a></li>
+                    <li><a href="#contato" class="nav-link">Contato</a></li>
+                </ul>
+
+                <div class="header-icons">
+                    <button class="icon-btn" id="themeToggle" title="Alternar tema" aria-label="Alternar tema">
+                        🌙
+                    </button>
+                    <button class="icon-btn" id="searchBtn" title="Buscar" aria-label="Buscar">
+                        🔍
+                    </button>
+                    <button class="icon-btn" id="cartBtn" title="Carrinho" aria-label="Abrir carrinho">
+                        🛒 <span class="cart-count hidden" id="cartCount">0</span>
+                    </button>
+                </div>
+
+                <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Barra de busca -->
+        <div class="search-bar" id="searchBar">
+            <div class="search-bar-inner">
+                <div>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Buscar por nome, tipo, região ou descrição..."
+                        class="search-input"
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-tag">
+                    <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
+                    <span><strong>Curadoria própria</strong> · seleção de sommeliers</span>
+                </div>
+                <h1>Descubra os melhores <em>vinhos</em> do mundo</h1>
+                <p>
+                    Rótulos escolhidos garrafa a garrafa, das encostas do Douro ao Vale do Napa,
+                    com curadoria de sommeliers para todos os paladares.
+                </p>
+                <div class="hero-actions">
+                    <a href="#catalogo" class="btn btn-primary btn-lg">Explorar catálogo</a>
+                </div>
+            </div>
+
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <strong>15+</strong>
+                    <span>anos de mercado</span>
+                </div>
+                <div class="hero-stat">
+                    <strong>50+</strong>
+                    <span>regiões vinícolas</span>
+                </div>
+                <div class="hero-stat">
+                    <strong>10k+</strong>
+                    <span>clientes atendidos</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Destaques -->
+    <section class="featured-section">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow">Seleção da casa</span>
+                <h2>Vinhos em destaque</h2>
+                <p class="section-sub">Os rótulos que nossos sommeliers estão recomendando neste mês.</p>
+            </div>
+            <div class="featured-grid" id="featuredGrid"></div>
+        </div>
+    </section>
+
+    <!-- Catálogo -->
+    <main id="catalogo" class="main-content">
+        <div class="container">
+            <div class="content-wrapper">
+                <!-- Filtros -->
+                <aside class="sidebar">
+                    <div class="sidebar-head">
+                        <h3>Filtros</h3>
+                        <span class="filter-count" id="filterCount"></span>
+                    </div>
+
+                    <div class="filter-group">
+                        <span class="filter-title">Tipo de vinho</span>
+                        <div class="filter-options" id="filtro-tipo"></div>
+                    </div>
+
+                    <div class="filter-group">
+                        <span class="filter-title">Região</span>
+                        <div class="filter-options" id="filtro-regiao"></div>
+                    </div>
+
+                    <div class="filter-group">
+                        <span class="filter-title">Preço máximo</span>
+                        <div class="price-range">
+                            <input
+                                type="range"
+                                min="0"
+                                max="500"
+                                step="5"
+                                value="500"
+                                id="priceRange"
+                                class="price-slider"
+                                aria-label="Preço máximo"
+                            >
+                            <div class="price-display">
+                                Até <strong id="priceValue">R$ 500,00</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-footer">
+                        <button class="btn btn-secondary btn-sm btn-block" id="clearFilters">Limpar filtros</button>
+                        <button class="link-reset" id="resetCatalog">Restaurar catálogo original</button>
+                    </div>
+                </aside>
+
+                <!-- Grid -->
+                <section class="wine-grid">
+                    <div class="grid-header">
+                        <div>
+                            <h2>Nossa seleção</h2>
+                            <div class="results-count" id="resultsCount"></div>
+                        </div>
+                        <div class="grid-tools">
+                            <select id="sortBy" class="sort-select" aria-label="Ordenar">
+                                <option value="">Ordenar por…</option>
+                                <option value="preco-asc">Menor preço</option>
+                                <option value="preco-desc">Maior preço</option>
+                                <option value="nome">Nome (A–Z)</option>
+                                <option value="avaliacao">Melhor avaliados</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="winesList" class="wines-container"></div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Sobre -->
+    <section id="sobre" class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <span class="eyebrow">Quem somos</span>
+                    <h2>Uma adega com nome e sotaque</h2>
+                    <p>Somos uma loja especializada em vinhos premium, com mais de 15 anos de mercado. Nossa missão é levar os melhores rótulos do mundo até a sua mesa — sem mistério e sem esnobismo.</p>
+                    <p>Cada garrafa é escolhida por nossos sommeliers, que provam, comparam e só aprovam o que colocariam no próprio jantar.</p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat">
+                        <h3>500+</h3>
+                        <p>Vinhos catalogados</p>
+                    </div>
+                    <div class="stat">
+                        <h3>50+</h3>
+                        <p>Regiões vinícolas</p>
+                    </div>
+                    <div class="stat">
+                        <h3>10K+</h3>
+                        <p>Clientes satisfeitos</p>
+                    </div>
+                    <div class="stat">
+                        <h3>4.7</h3>
+                        <p>Nota média do catálogo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contato -->
+    <section id="contato" class="contact-section">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow">Fale com a gente</span>
+                <h2>Entre em contato</h2>
+            </div>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <div class="info-item">
+                        <span class="info-icon">📍</span>
+                        <div>
+                            <h4>Endereço</h4>
+                            <p>Av. Principal, 123 — São Paulo, SP</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">📞</span>
+                        <div>
+                            <h4>Telefone</h4>
+                            <p>(11) 3000-0000</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">✉️</span>
+                        <div>
+                            <h4>E-mail</h4>
+                            <p>contato@vinhos-premium.com.br</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">🕑</span>
+                        <div>
+                            <h4>Horário</h4>
+                            <p>Seg a sáb, das 10h às 20h</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form class="contact-form" id="contactForm">
+                    <div class="field">
+                        <label for="contatoNome">Nome</label>
+                        <input type="text" id="contatoNome" placeholder="Seu nome" required>
+                    </div>
+                    <div class="field">
+                        <label for="contatoEmail">E-mail</label>
+                        <input type="email" id="contatoEmail" placeholder="voce@email.com" required>
+                    </div>
+                    <div class="field field-full">
+                        <label for="contatoMensagem">Mensagem</label>
+                        <textarea id="contatoMensagem" placeholder="Como podemos ajudar?" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar mensagem</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter-section">
+        <div class="container">
+            <div class="newsletter-inner">
+                <h2>Receba nossas ofertas</h2>
+                <p>Dicas de harmonização, chegadas novas e promoções exclusivas — no máximo um e-mail por semana.</p>
+                <form class="newsletter-form" id="newsletterForm">
+                    <input type="email" placeholder="Seu melhor e-mail" required aria-label="E-mail">
+                    <button type="submit" class="btn btn-primary">Inscrever-se</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section footer-brand">
+                    <a href="#home" class="logo">
+                        <span class="logo-icon">🍷</span>
+                        <span class="logo-text">Vinhos Premium</span>
+                    </a>
+                    <p>Curadoria de rótulos do Douro ao Vale do Napa, com entrega para todo o Brasil.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Sobre</h4>
+                    <ul>
+                        <li><a href="#sobre">Quem somos</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Carreiras</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Suporte</h4>
+                    <ul>
+                        <li><a href="#">Perguntas frequentes</a></li>
+                        <li><a href="#contato">Contato</a></li>
+                        <li><a href="#">Política de trocas</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Termos de serviço</a></li>
+                        <li><a href="#">Privacidade</a></li>
+                        <li><a href="#">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Vinhos Premium. Todos os direitos reservados.</p>
+                <p>Beba com moderação · Venda proibida para menores de 18 anos</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal do carrinho -->
+    <div class="modal" id="cartModal" role="dialog" aria-modal="true" aria-label="Carrinho">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2>Seu carrinho</h2>
+                    <p>Revise os itens antes de finalizar.</p>
+                </div>
+                <button class="close-btn" id="closeCart" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="cartItems" class="cart-items"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="cart-total">
+                    <span>Total</span>
+                    <strong id="cartTotal">R$ 0,00</strong>
+                </div>
+                <button class="btn btn-primary" id="checkoutBtn">Finalizar compra</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de detalhes -->
+    <div class="modal" id="wineModal" role="dialog" aria-modal="true" aria-label="Detalhes do vinho">
+        <div class="modal-content wine-detail-modal">
+            <button class="close-btn" id="closeModal" aria-label="Fechar"
+                style="position:absolute; top:14px; right:14px; z-index:3;">&times;</button>
+            <div id="wineDetail"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="js/catalogo.js"></script>
+    <script src="js/carrinho.js"></script>
+    <script src="js/vinhos.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

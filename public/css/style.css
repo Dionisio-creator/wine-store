@@ -1,0 +1,398 @@
+/* ============================================
+   DESIGN TOKENS, BASE E ELEMENTOS
+   ============================================ */
+
+:root {
+    color-scheme: light;
+
+    /* Paleta */
+    --wine-900: #3a0f1b;
+    --wine-800: #4d1524;
+    --wine-700: #6b1d2e;
+    --wine-600: #8b2740;
+    --wine-500: #a63552;
+    --wine-200: #f0d9df;
+    --gold-600: #a8842a;
+    --gold-500: #c9a227;
+    --gold-200: #f3e6bd;
+
+    /* Superfícies */
+    --bg: #faf7f6;
+    --bg-alt: #f3edea;
+    --surface: #ffffff;
+    --surface-2: #f7f2f0;
+    --border: #e9e0dc;
+    --border-strong: #d8ccc6;
+
+    /* Texto */
+    --text: #1d1518;
+    --text-muted: #6e625f;
+    --text-soft: #948783;
+
+    /* Semânticos */
+    --primary: var(--wine-700);
+    --primary-hover: var(--wine-800);
+    --accent: var(--gold-500);
+    --danger: #c0392b;
+    --success: #1f8a56;
+
+    /* Forma e movimento */
+    --radius-sm: 8px;
+    --radius: 14px;
+    --radius-lg: 22px;
+    --radius-full: 999px;
+    --shadow-xs: 0 1px 2px rgba(29, 21, 24, 0.06);
+    --shadow-sm: 0 2px 8px rgba(29, 21, 24, 0.06);
+    --shadow: 0 12px 28px -12px rgba(29, 21, 24, 0.22);
+    --shadow-lg: 0 28px 60px -24px rgba(29, 21, 24, 0.35);
+    --ring: 0 0 0 3px rgba(139, 39, 64, 0.18);
+    --transition: 200ms cubic-bezier(0.2, 0.7, 0.3, 1);
+
+    /* Tipografia */
+    --font-sans: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-display: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+
+    --header-h: 72px;
+}
+
+[data-theme='dark'] {
+    color-scheme: dark;
+
+    --bg: #14100f;
+    --bg-alt: #1a1514;
+    --surface: #1d1817;
+    --surface-2: #251e1d;
+    --border: #332b29;
+    --border-strong: #453b39;
+
+    --text: #f6efec;
+    --text-muted: #b6a7a2;
+    --text-soft: #8d7f7b;
+
+    --primary: #d4718c;
+    --primary-hover: #e08ba2;
+    --accent: #e0bb4a;
+    --wine-200: #4a2029;
+    --gold-200: #4a3d16;
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4);
+    --shadow: 0 14px 32px -14px rgba(0, 0, 0, 0.7);
+    --shadow-lg: 0 30px 70px -28px rgba(0, 0, 0, 0.85);
+    --ring: 0 0 0 3px rgba(212, 113, 140, 0.25);
+}
+
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-h) + 16px);
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-sans);
+    color: var(--text);
+    background-color: var(--bg);
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color var(--transition), color var(--transition);
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+::selection {
+    background: var(--wine-200);
+    color: var(--wine-900);
+}
+
+/* ============================================
+   TIPOGRAFIA
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+}
+
+h1, h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+}
+
+h1 { font-size: clamp(2.4rem, 5.5vw, 3.8rem); }
+h2 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1rem; }
+
+p { line-height: 1.7; }
+
+.section-head {
+    margin-bottom: 2.5rem;
+}
+
+.section-head.center {
+    text-align: center;
+}
+
+.eyebrow {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 0.6rem;
+}
+
+.section-sub {
+    color: var(--text-muted);
+    max-width: 56ch;
+    margin-top: 0.6rem;
+}
+
+.section-head.center .section-sub {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+
+.container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ============================================
+   BOTÕES
+   ============================================ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 12px 24px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color var(--transition), color var(--transition),
+                border-color var(--transition), transform var(--transition),
+                box-shadow var(--transition);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+}
+
+[data-theme='dark'] .btn-primary {
+    color: #22141a;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text);
+    border-color: var(--border-strong);
+}
+
+.btn-secondary:hover {
+    background-color: var(--surface-2);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-ghost {
+    background-color: transparent;
+    color: var(--text-muted);
+    border-color: transparent;
+}
+
+.btn-ghost:hover {
+    background-color: var(--surface-2);
+    color: var(--text);
+}
+
+.btn-danger {
+    background-color: transparent;
+    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+.btn-danger:hover {
+    background-color: var(--danger);
+    color: #fff;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+}
+
+.btn-lg {
+    padding: 15px 32px;
+    font-size: 1.02rem;
+}
+
+/* ============================================
+   FORMULÁRIOS
+   ============================================ */
+
+input[type='text'],
+input[type='email'],
+input[type='number'],
+input[type='url'],
+textarea,
+select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-soft);
+}
+
+input[type='text']:focus,
+input[type='email']:focus,
+input[type='number']:focus,
+input[type='url']:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: var(--ring);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 96px;
+    line-height: 1.6;
+}
+
+select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position: calc(100% - 19px) calc(50% + 1px), calc(100% - 14px) calc(50% + 1px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 38px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.field label,
+.field-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+}
+
+.field-hint {
+    font-size: 0.78rem;
+    color: var(--text-soft);
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+
+.hidden {
+    display: none !important;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.text-center { text-align: center; }
+
+.mt-1 { margin-top: 1rem; }
+.mt-2 { margin-top: 2rem; }
+.mt-3 { margin-top: 3rem; }
+.mb-1 { margin-bottom: 1rem; }
+.mb-2 { margin-bottom: 2rem; }
+.mb-3 { margin-bottom: 3rem; }
+
+/* ============================================
+   RESPONSIVIDADE BASE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 18px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

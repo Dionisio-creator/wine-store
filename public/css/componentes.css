@@ -1,0 +1,721 @@
+/* ============================================
+   MODAIS
+   ============================================ */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    padding: 20px;
+    background-color: color-mix(in srgb, #150e10 62%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    overflow-y: auto;
+    animation: overlayIn 200ms ease;
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes overlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes panelIn {
+    from {
+        transform: translateY(16px) scale(0.985);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    max-height: calc(100vh - 40px);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    animation: panelIn 260ms cubic-bezier(0.2, 0.7, 0.3, 1);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.35rem 1.6rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.modal-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+}
+
+.modal-body {
+    padding: 1.6rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.6rem;
+    border-top: 1px solid var(--border);
+    background-color: var(--surface-2);
+}
+
+.close-btn {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.close-btn:hover {
+    background-color: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+}
+
+/* ============================================
+   CARRINHO
+   ============================================ */
+
+.cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 140px;
+}
+
+.cart-item {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 1rem;
+    padding: 0.85rem;
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    align-items: center;
+}
+
+.cart-item-image {
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(150deg, var(--wine-700), var(--wine-900));
+    font-size: 1.5rem;
+}
+
+.cart-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cart-item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.cart-item-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.cart-item-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.3;
+}
+
+.cart-item-price {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.cart-item-subtotal {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.qty {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 3px;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+}
+
+.qty button {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+
+.qty button:hover {
+    background-color: var(--surface-2);
+    color: var(--primary);
+}
+
+.cart-item-quantity {
+    min-width: 26px;
+    text-align: center;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.cart-item-remove {
+    margin-left: auto;
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    font-size: 0.78rem;
+    color: var(--text-soft);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition), background-color var(--transition);
+}
+
+.cart-item-remove:hover {
+    color: var(--danger);
+    background-color: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.cart-empty {
+    display: grid;
+    place-items: center;
+    gap: 0.5rem;
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--text-soft);
+}
+
+.cart-empty .empty-state-icon {
+    font-size: 2.2rem;
+}
+
+.cart-total {
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-total span:first-child {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+}
+
+.cart-total strong {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* ============================================
+   DETALHE DO VINHO
+   ============================================ */
+
+.wine-detail-modal {
+    max-width: 900px;
+}
+
+.wine-detail {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    min-height: 100%;
+}
+
+.wine-detail-image {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 260px;
+    overflow: hidden;
+    background:
+        radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, var(--gold-500) 18%, transparent), transparent 60%),
+        linear-gradient(150deg, var(--wine-700), var(--wine-900));
+    font-size: 5rem;
+}
+
+.wine-detail-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wine-detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.wine-detail-name {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.wine-detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.tag {
+    padding: 5px 12px;
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.tag.tag-accent {
+    background-color: var(--gold-200);
+    border-color: transparent;
+    color: var(--gold-600);
+}
+
+.wine-detail-price {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.wine-detail-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.wine-detail-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background-color: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.detail-info-item {
+    padding: 0.85rem 1rem;
+    background-color: var(--surface-2);
+}
+
+.detail-info-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    margin-bottom: 0.15rem;
+}
+
+.detail-info-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.wine-detail-description {
+    color: var(--text-muted);
+    line-height: 1.75;
+}
+
+.wine-detail-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.wine-detail-actions .btn-primary {
+    flex: 1;
+    min-width: 180px;
+}
+
+.wine-detail-reviews {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+}
+
+.wine-detail-reviews h4 {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    margin-bottom: 0.85rem;
+}
+
+.review {
+    padding: 0.9rem 1rem;
+    background-color: var(--surface-2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.review + .review {
+    margin-top: 0.6rem;
+}
+
+.review-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.review-author {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.review-rating {
+    color: var(--accent);
+    font-size: 0.82rem;
+}
+
+.review-text {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+/* ============================================
+   FORMULÁRIO DE VINHO (ADICIONAR / EDITAR)
+   ============================================ */
+
+.wine-form-modal {
+    max-width: 640px;
+}
+
+.wine-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.wine-form .field-full {
+    grid-column: 1 / -1;
+}
+
+.form-divider {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+}
+
+.form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--border);
+}
+
+.switch {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+}
+
+.switch input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.switch-text strong {
+    display: block;
+    font-size: 0.9rem;
+}
+
+.switch-text span {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+/* Upload de imagem */
+.image-uploader {
+    display: grid;
+    grid-template-columns: 132px 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+.image-preview {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: var(--radius);
+    border: 1px dashed var(--border-strong);
+    background:
+        radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, var(--gold-500) 16%, transparent), transparent 60%),
+        linear-gradient(150deg, var(--wine-700), var(--wine-900));
+    font-size: 2rem;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.image-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.file-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 8px 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--transition), border-color var(--transition),
+                color var(--transition);
+}
+
+.file-label:hover {
+    background-color: var(--surface-2);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.file-label input {
+    display: none;
+}
+
+/* ============================================
+   TOAST
+   ============================================ */
+
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    z-index: 1100;
+    display: none;
+    max-width: min(380px, calc(100vw - 32px));
+    padding: 0.9rem 1.25rem;
+    background-color: #221a1c;
+    color: #fdf7f5;
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-lg);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.toast.active {
+    display: block;
+    animation: toastIn 260ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes toastIn {
+    from {
+        transform: translate(-50%, 24px);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
+
+.toast.success { background-color: #14603f; }
+.toast.error { background-color: #8e2b21; }
+.toast.info { background-color: var(--wine-800); }
+
+/* ============================================
+   ESTADOS
+   ============================================ */
+
+.empty-state {
+    grid-column: 1 / -1;
+    display: grid;
+    place-items: center;
+    gap: 0.4rem;
+    padding: 4rem 1rem;
+    text-align: center;
+    background-color: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+}
+
+.empty-state-icon {
+    font-size: 2.5rem;
+    opacity: 0.75;
+}
+
+.empty-state-text {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.empty-state-hint {
+    font-size: 0.87rem;
+    color: var(--text-muted);
+}
+
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVIDADE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .modal {
+        padding: 12px;
+    }
+
+    .modal-content {
+        max-height: calc(100vh - 24px);
+    }
+
+    .wine-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .wine-detail-image {
+        min-height: 200px;
+        aspect-ratio: 16 / 9;
+    }
+
+    .wine-detail-content {
+        padding: 1.5rem;
+    }
+
+    .wine-form {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .image-uploader {
+        grid-template-columns: 1fr;
+    }
+
+    .wine-detail-info {
+        grid-template-columns: 1fr;
+    }
+
+    .cart-item {
+        grid-template-columns: 52px 1fr;
+        gap: 0.75rem;
+    }
+
+    .cart-item-image {
+        width: 52px;
+        height: 52px;
+    }
+}
