@@ -15,13 +15,14 @@
     <link rel="stylesheet" href="css/componentes.css">
 
     <script>
-        // Aplica o tema antes da primeira pintura para evitar flash
+        // Aplica o tema antes da primeira pintura para evitar flash.
+        // O site sempre abre no claro por padrão — só volta ao escuro se a
+        // pessoa já tiver ativado manualmente antes (preferência salva).
         (function () {
             try {
-                var salvo = localStorage.getItem('vinhos-tema');
-                var escuro = salvo ? salvo === 'dark'
-                    : window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (escuro) document.documentElement.setAttribute('data-theme', 'dark');
+                if (localStorage.getItem('vinhos-tema') === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
             } catch (e) { /* localStorage indisponível */ }
         })();
     </script>
@@ -29,25 +30,27 @@
 <body>
     <!-- Header -->
     <header class="header" id="header">
-        <nav class="navbar">
-            <div class="navbar-container">
+        <div class="header-top">
+            <div class="header-top-inner">
                 <a href="#home" class="logo">
                     <span class="logo-icon">🍷</span>
                     <span class="logo-text">Vinhos Premium</span>
                 </a>
 
-                <ul class="nav-menu" id="navMenu">
-                    <li><a href="#catalogo" class="nav-link">Catálogo</a></li>
-                    <li><a href="#sobre" class="nav-link">Sobre</a></li>
-                    <li><a href="#contato" class="nav-link">Contato</a></li>
-                </ul>
+                <label class="header-search">
+                    <span class="visually-hidden">Buscar</span>
+                    <span class="header-search-icon" aria-hidden="true">🔍</span>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Digite o que você procura..."
+                        autocomplete="off"
+                    >
+                </label>
 
                 <div class="header-icons">
                     <button class="icon-btn" id="themeToggle" title="Alternar tema" aria-label="Alternar tema">
                         🌙
-                    </button>
-                    <button class="icon-btn" id="searchBtn" title="Buscar" aria-label="Buscar">
-                        🔍
                     </button>
                     <button class="btn btn-secondary btn-admin" id="adminBtn"
                         title="Acessar área administrativa" aria-label="Acessar área administrativa" type="button">
@@ -57,68 +60,132 @@
                         🛒 <span class="cart-count hidden" id="cartCount">0</span>
                     </button>
                 </div>
-
-                <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-            </div>
-        </nav>
-
-        <!-- Barra de busca -->
-        <div class="search-bar" id="searchBar">
-            <div class="search-bar-inner">
-                <div>
-                    <input
-                        type="text"
-                        id="searchInput"
-                        placeholder="Buscar por nome, tipo, região ou descrição..."
-                        class="search-input"
-                        autocomplete="off"
-                    >
-                </div>
             </div>
         </div>
+
+        <!-- Navegação por categorias -->
+        <nav class="category-nav" aria-label="Categorias">
+            <div class="category-nav-inner">
+                <a href="#catalogo" data-nav-tipo="">
+                    <span class="category-nav-icon">🍷</span> Vinhos
+                </a>
+                <a href="#catalogo" data-nav-tipo="Tinto">
+                    <span class="category-nav-icon">🍷</span> Tintos
+                </a>
+                <a href="#catalogo" data-nav-tipo="Branco">
+                    <span class="category-nav-icon">🥂</span> Brancos
+                </a>
+                <a href="#catalogo" data-nav-tipo="Rosé">
+                    <span class="category-nav-icon icon-taca-rose" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="1em" height="1em">
+                            <path d="M7 3h10l-1.15 8.3A4 4 0 0 1 12 15a4 4 0 0 1-3.85-3.7L7 3Z" fill="#d0788c" stroke="#8d3450" stroke-width="1.3" stroke-linejoin="round"/>
+                            <path d="M12 15v5.2M8.8 20.2h6.4" stroke="#8d3450" stroke-width="1.3" stroke-linecap="round"/>
+                        </svg>
+                    </span> Rosés
+                </a>
+                <a href="#catalogo" data-nav-tipo="Espumante">
+                    <span class="category-nav-icon">🍾</span> Espumantes
+                </a>
+                <a href="#catalogo" data-nav-ordenar="preco-asc">
+                    <span class="category-nav-icon">🏷️</span> Ofertas
+                </a>
+                <a href="#destaques" data-nav-destaques="true">
+                    <span class="category-nav-icon">⭐</span> Destaques
+                </a>
+                <a href="#sobre">Sobre</a>
+                <a href="#contato">Contato</a>
+            </div>
+        </nav>
     </header>
 
-    <!-- Hero -->
-    <section id="home" class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <div class="hero-tag">
-                    <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
-                    <span><strong>Curadoria própria</strong> · seleção de sommeliers</span>
+    <!-- Hero em carrossel -->
+    <section id="home" class="hero-carousel" aria-roledescription="carrossel">
+        <div class="hero-slides" id="heroSlides">
+            <article class="hero-slide is-active" style="--slide-image: url('/assets/banners/vinicola.jpg');">
+                <div class="hero-slide-content">
+                    <div class="hero-tag">
+                        <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
+                        <span><strong>Curadoria própria</strong> · seleção de sommeliers</span>
+                    </div>
+                    <h1>Descubra os melhores <em>vinhos</em> do mundo</h1>
+                    <p>Rótulos escolhidos garrafa a garrafa, das encostas do Douro ao Vale do Napa, com curadoria de sommeliers para todos os paladares.</p>
+                    <div class="hero-actions">
+                        <a href="#catalogo" class="btn btn-primary btn-lg">Explorar catálogo</a>
+                    </div>
                 </div>
-                <h1>Descubra os melhores <em>vinhos</em> do mundo</h1>
-                <p>
-                    Rótulos escolhidos garrafa a garrafa, das encostas do Douro ao Vale do Napa,
-                    com curadoria de sommeliers para todos os paladares.
-                </p>
-                <div class="hero-actions">
-                    <a href="#catalogo" class="btn btn-primary btn-lg">Explorar catálogo</a>
-                </div>
-            </div>
+            </article>
 
-            <div class="hero-stats">
-                <div class="hero-stat">
-                    <strong>15+</strong>
-                    <span>anos de mercado</span>
+            <article class="hero-slide" style="--slide-image: url('/assets/banners/adega.jpg');">
+                <div class="hero-slide-content">
+                    <div class="hero-tag">
+                        <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
+                        <span><strong>Envelhecidos com paciência</strong> · adegas parceiras</span>
+                    </div>
+                    <h1>Direto das melhores <em>vinícolas</em> para você</h1>
+                    <p>Trabalhamos com produtores que respeitam o tempo de cada safra, do barril à garrafa.</p>
+                    <div class="hero-actions">
+                        <a href="#sobre" class="btn btn-primary btn-lg">Conheça nossa história</a>
+                    </div>
                 </div>
-                <div class="hero-stat">
-                    <strong>50+</strong>
-                    <span>regiões vinícolas</span>
+            </article>
+
+            <article class="hero-slide" style="--slide-image: url('/assets/banners/taca.jpg');">
+                <div class="hero-slide-content">
+                    <div class="hero-tag">
+                        <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
+                        <span><strong>Harmonize sem erro</strong> · guia de sommelier</span>
+                    </div>
+                    <h1>O vinho certo para cada <em>ocasião</em></h1>
+                    <p>Da taça ao prato: sugestões de harmonização para acompanhar o seu jantar.</p>
+                    <div class="hero-actions">
+                        <a href="#catalogo" class="btn btn-primary btn-lg">Ver seleção completa</a>
+                    </div>
                 </div>
-                <div class="hero-stat">
-                    <strong>10k+</strong>
-                    <span>clientes atendidos</span>
+            </article>
+
+            <article class="hero-slide" style="--slide-image: url('/assets/banners/uvas.jpg');">
+                <div class="hero-slide-content">
+                    <div class="hero-tag">
+                        <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
+                        <span><strong>Da uva à garrafa</strong> · colheita selecionada</span>
+                    </div>
+                    <h1>Safras premiadas em cada <em>colheita</em></h1>
+                    <p>Uvas selecionadas a mão, em vinhedos que carregam gerações de tradição vinícola.</p>
+                    <div class="hero-actions">
+                        <a href="#catalogo" class="btn btn-primary btn-lg">Explorar catálogo</a>
+                    </div>
                 </div>
+            </article>
+        </div>
+
+        <button class="hero-arrow hero-arrow-prev" id="heroPrev" aria-label="Slide anterior">‹</button>
+        <button class="hero-arrow hero-arrow-next" id="heroNext" aria-label="Próximo slide">›</button>
+
+        <div class="hero-dots" id="heroDots" role="tablist" aria-label="Selecionar slide">
+            <button class="hero-dot is-active" data-slide="0" role="tab" aria-selected="true" aria-label="Slide 1"></button>
+            <button class="hero-dot" data-slide="1" role="tab" aria-selected="false" aria-label="Slide 2"></button>
+            <button class="hero-dot" data-slide="2" role="tab" aria-selected="false" aria-label="Slide 3"></button>
+            <button class="hero-dot" data-slide="3" role="tab" aria-selected="false" aria-label="Slide 4"></button>
+        </div>
+
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <strong>15+</strong>
+                <span>anos de mercado</span>
+            </div>
+            <div class="hero-stat">
+                <strong>50+</strong>
+                <span>regiões vinícolas</span>
+            </div>
+            <div class="hero-stat">
+                <strong>10k+</strong>
+                <span>clientes atendidos</span>
             </div>
         </div>
     </section>
 
     <!-- Destaques -->
-    <section class="featured-section">
+    <section class="featured-section" id="destaques">
         <div class="container">
             <div class="section-head">
                 <span class="eyebrow">Seleção da casa</span>
