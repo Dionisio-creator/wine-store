@@ -254,6 +254,30 @@ function atualizarCatalogo() {
     }
 }
 
+async function buscarVinhosComFiltros() {
+    const botao = document.getElementById('searchHeaderFilters');
+    botao.disabled = true;
+    botao.setAttribute('aria-busy', 'true');
+    try {
+        await catalogoDb.carregar();
+        atualizarCatalogo();
+        document.dispatchEvent(new Event('filtros-aplicados'));
+        const catalogo = document.getElementById('catalogo');
+        const titulo = catalogo.querySelector('h2');
+        titulo.setAttribute('tabindex', '-1');
+        titulo.focus({ preventScroll: true });
+        catalogo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!vinhosExibindo.length) {
+            mostrarToast('Indisponível: não há vinhos com os filtros selecionados.', 'info');
+        }
+    } catch (erro) {
+        mostrarToast('Não foi possível pesquisar agora. Tente novamente.', 'error');
+    } finally {
+        botao.disabled = false;
+        botao.removeAttribute('aria-busy');
+    }
+}
+
 function limparFiltros() {
     document.querySelectorAll('.filter-checkbox').forEach(cb => (cb.checked = false));
 
@@ -335,8 +359,8 @@ function renderizarVinhos(lista = vinhosExibindo) {
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">🍷</div>
-                <div class="empty-state-text">Nenhum vinho encontrado</div>
-                <div class="empty-state-hint">Ajuste os filtros para ver outros vinhos do catálogo.</div>
+                <div class="empty-state-text">Indisponível</div>
+                <div class="empty-state-hint">Não há vinhos que correspondam à sua pesquisa. Ajuste os filtros ou limpe a seleção.</div>
             </div>
         `;
         return;
@@ -992,6 +1016,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelectorAll('#filtrosPainel .filter-checkbox').forEach(cb => (cb.checked = false));
         atualizarCatalogo();
     });
+    document.getElementById('searchHeaderFilters')?.addEventListener('click', buscarVinhosComFiltros);
 
     const priceRange = document.getElementById('priceRange');
     priceRange?.addEventListener('input', evento => {

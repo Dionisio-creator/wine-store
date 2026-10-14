@@ -159,6 +159,7 @@ function configurarFiltrosDropdown() {
     document.addEventListener('keydown', evento => {
         if (evento.key === 'Escape') fechar();
     });
+    document.addEventListener('filtros-aplicados', fechar);
 }
 
 // ============================================

@@ -295,9 +295,28 @@
     overflow-y: auto;
 }
 
-.nav-dropdown-panel .link-reset {
+.filter-actions {
     grid-column: 1 / -1;
-    justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.filter-actions .btn {
+    min-height: 44px;
+}
+
+.filter-actions .link-reset {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+}
+
+.filter-actions :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
 }
 
 /* ============================================
@@ -499,6 +518,10 @@
     grid-template-columns: 1fr;
     gap: 2.5rem;
     align-items: start;
+}
+
+#catalogo {
+    scroll-margin-top: 140px;
 }
 
 /* ============================================
