@@ -72,7 +72,6 @@ const UVAS_POPULARES = [
     'Syrah',
     'Chardonnay',
     'Sauvignon Blanc',
-    'Riesling',
     'Tempranillo',
     'Carménère'
 ];
@@ -80,6 +79,28 @@ const UVAS_POPULARES = [
 function normalizarUva(uva) {
     return String(uva || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
+
+// Ocultas somente no filtro: os dados dos vinhos permanecem intactos.
+const UVAS_OCULTAS = new Set([
+    'Riesling',
+    'Albariño',
+    'Arinto',
+    'Cinsault',
+    'Fernão Pires',
+    'Glera',
+    'Grenache',
+    'Grüner Veltliner',
+    'Macabeo',
+    'Moscato Bianco',
+    'Parellada',
+    'Petit Verdot',
+    'Pinot Meunier',
+    'Sangiovese',
+    'Tinta Roriz',
+    'Touriga Franca',
+    'Touriga Nacional',
+    'Xarel·lo'
+].map(normalizarUva));
 
 function renderizarFiltros() {
     const filtrosAtivos = {};
@@ -107,6 +128,7 @@ function renderizarFiltros() {
         const uvas = new Map();
         [...UVAS_POPULARES, ...catalogoDb.valoresDeUvas()].forEach(valor => {
             const chave = normalizarUva(valor);
+            if (UVAS_OCULTAS.has(chave)) return;
             if (!uvas.has(chave)) uvas.set(chave, valor);
         });
         const uvasAtivas = (filtrosAtivos.uvas || []).map(normalizarUva);
