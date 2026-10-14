@@ -92,10 +92,16 @@ async function iniciar() {
 async function preencherUvasFaltantes() {
     for (const vinho of sementes) {
         if (!vinho.uvas) continue;
+        // Casa pelo id OU pelo nome: o id é mais confiável (os 20 vinhos
+        // originais foram inseridos nessa mesma ordem, então o id numérico
+        // bate com a posição no catálogo semente), mas mantemos o nome como
+        // critério alternativo, caso o id não bata por algum motivo.
         await pool.query(
             `UPDATE ${tabela} SET uvas = $1
-             WHERE nome = $2 AND uvas = '' AND personalizado = false`,
-            [vinho.uvas, vinho.nome]
+             WHERE (id = $2 OR nome = $3)
+               AND (uvas IS NULL OR uvas = '')
+               AND personalizado = false`,
+            [vinho.uvas, vinho.id, vinho.nome]
         );
     }
 }
