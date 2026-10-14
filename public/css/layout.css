@@ -276,7 +276,7 @@
 
 .nav-dropdown-panel-inner {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem 2rem;
     max-width: 1240px;
     margin: 0 auto;
@@ -1208,8 +1208,8 @@
         grid-template-columns: 1fr;
     }
 
-    .sidebar {
-        position: static;
+    .nav-dropdown-panel-inner {
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .about-content,
