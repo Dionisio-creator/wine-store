@@ -64,6 +64,23 @@ const CAMPO_DO_FILTRO = {
     pais: 'producao'
 };
 
+const UVAS_POPULARES = [
+    'Cabernet Sauvignon',
+    'Merlot',
+    'Malbec',
+    'Pinot Noir',
+    'Syrah',
+    'Chardonnay',
+    'Sauvignon Blanc',
+    'Riesling',
+    'Tempranillo',
+    'Carménère'
+];
+
+function normalizarUva(uva) {
+    return String(uva || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
 function renderizarFiltros() {
     const filtrosAtivos = {};
     document.querySelectorAll('.filter-checkbox[name]').forEach(cb => {
@@ -87,10 +104,16 @@ function renderizarFiltros() {
     // Uvas: cada vinho pode ter mais de uma, separadas por vírgula
     const containerUvas = document.getElementById('filtro-uvas');
     if (containerUvas) {
-        containerUvas.innerHTML = catalogoDb.valoresDeUvas().map(valor => `
+        const uvas = new Map();
+        [...UVAS_POPULARES, ...catalogoDb.valoresDeUvas()].forEach(valor => {
+            const chave = normalizarUva(valor);
+            if (!uvas.has(chave)) uvas.set(chave, valor);
+        });
+        const uvasAtivas = (filtrosAtivos.uvas || []).map(normalizarUva);
+        containerUvas.innerHTML = [...uvas.values()].map(valor => `
             <label class="chip">
                 <input type="checkbox" name="uvas" value="${escaparHtml(valor)}"
-                    class="filter-checkbox"${(filtrosAtivos.uvas || []).includes(valor) ? ' checked' : ''}>
+                    class="filter-checkbox"${uvasAtivas.includes(normalizarUva(valor)) ? ' checked' : ''}>
                 <span>${escaparHtml(valor)}</span>
             </label>
         `).join('');
@@ -106,7 +129,8 @@ function renderizarFiltros() {
         if (eraMaximo || Number(slider.value) > maximo) {
             slider.value = maximo;
         }
-        document.getElementById('priceValue').textContent = formatarPreco(Number(slider.value));
+        const priceValue = document.getElementById('priceValue');
+        if (priceValue) priceValue.textContent = formatarPreco(Number(slider.value));
     }
 
     // Datalist de regiões usado no formulário
@@ -126,14 +150,17 @@ function computarLista() {
     const regioes = Array.from(document.querySelectorAll('input[name="regiao"]:checked')).map(cb => cb.value);
     const paises = Array.from(document.querySelectorAll('input[name="pais"]:checked')).map(cb => cb.value);
     const uvas = Array.from(document.querySelectorAll('input[name="uvas"]:checked')).map(cb => cb.value);
-    const precoMax = Number(document.getElementById('priceRange').value);
+    const uvasNormalizadas = uvas.map(normalizarUva);
+    const slider = document.getElementById('priceRange');
+    const precoMax = slider ? Number(slider.value) : Infinity;
     const termo = termoBusca.trim().toLowerCase();
 
     let lista = catalogoDb.listar().filter(vinho => {
         const combinaTipo = tipos.length === 0 || tipos.includes(vinho.tipo);
         const combinaRegiao = regioes.length === 0 || regioes.includes(vinho.regiao);
         const combinaPais = paises.length === 0 || paises.includes(vinho.producao);
-        const combinaUvas = uvas.length === 0 || uvasDoVinho(vinho).some(u => uvas.includes(u));
+        const combinaUvas = uvas.length === 0 ||
+            uvasDoVinho(vinho).some(u => uvasNormalizadas.includes(normalizarUva(u)));
         const combinaPreco = vinho.preco <= precoMax;
         const combinaBusca = !termo ||
             vinho.nome.toLowerCase().includes(termo) ||
@@ -145,7 +172,7 @@ function computarLista() {
         return combinaTipo && combinaRegiao && combinaPais && combinaUvas && combinaPreco && combinaBusca;
     });
 
-    const ordem = document.getElementById('sortBy').value;
+    const ordem = document.getElementById('sortBy')?.value;
     if (ordem === 'preco-asc') {
         lista.sort((a, b) => a.preco - b.preco);
     } else if (ordem === 'preco-desc') {
@@ -175,9 +202,13 @@ function limparFiltros() {
     document.querySelectorAll('.filter-checkbox').forEach(cb => (cb.checked = false));
 
     const slider = document.getElementById('priceRange');
-    slider.value = slider.max;
-    document.getElementById('priceValue').textContent = formatarPreco(Number(slider.max));
-    document.getElementById('sortBy').value = '';
+    if (slider) {
+        slider.value = slider.max;
+        const priceValue = document.getElementById('priceValue');
+        if (priceValue) priceValue.textContent = formatarPreco(Number(slider.max));
+    }
+    const sortBy = document.getElementById('sortBy');
+    if (sortBy) sortBy.value = '';
 
     const busca = document.getElementById('searchInput');
     if (busca) busca.value = '';
@@ -907,14 +938,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     const priceRange = document.getElementById('priceRange');
-    priceRange.addEventListener('input', evento => {
-        document.getElementById('priceValue').textContent = formatarPreco(Number(evento.target.value));
+    priceRange?.addEventListener('input', evento => {
+        const priceValue = document.getElementById('priceValue');
+        if (priceValue) priceValue.textContent = formatarPreco(Number(evento.target.value));
         atualizarCatalogo();
     });
 
-    document.getElementById('sortBy').addEventListener('change', atualizarCatalogo);
-    document.getElementById('clearFilters').addEventListener('click', limparFiltros);
-    document.getElementById('resetCatalog').addEventListener('click', restaurarCatalogo);
+    document.getElementById('sortBy')?.addEventListener('change', atualizarCatalogo);
+    document.getElementById('clearFilters')?.addEventListener('click', limparFiltros);
+    document.getElementById('resetCatalog')?.addEventListener('click', restaurarCatalogo);
 
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', evento => {
