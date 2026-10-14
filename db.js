@@ -80,6 +80,23 @@ async function iniciar() {
     const { rows } = await pool.query(`SELECT COUNT(*)::int AS total FROM ${tabela}`);
     if (rows[0].total === 0) {
         await inserirSementes();
+    } else {
+        // Bancos que já existiam antes da coluna "uvas" ser criada ganharam
+        // ela em branco (valor padrão da migração) — aqui preenchemos com os
+        // dados reais de seed-vinhos.js, só nos vinhos originais (não
+        // personalizados) que ainda estiverem sem uva cadastrada.
+        await preencherUvasFaltantes();
+    }
+}
+
+async function preencherUvasFaltantes() {
+    for (const vinho of sementes) {
+        if (!vinho.uvas) continue;
+        await pool.query(
+            `UPDATE ${tabela} SET uvas = $1
+             WHERE nome = $2 AND uvas = '' AND personalizado = false`,
+            [vinho.uvas, vinho.nome]
+        );
     }
 }
 
