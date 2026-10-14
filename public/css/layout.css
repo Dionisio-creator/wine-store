@@ -159,6 +159,7 @@
 
 /* Navegação por categorias */
 .category-nav {
+    position: relative;
     display: flex;
     align-items: center;
     min-height: var(--category-nav-h);
@@ -216,6 +217,87 @@
 .category-nav-icon svg {
     width: 1em;
     height: 1em;
+}
+
+/* Dropdown "Filtros" */
+.nav-dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 12px 14px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--primary);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--transition), border-color var(--transition);
+}
+
+.nav-dropdown-trigger:hover,
+.nav-dropdown-trigger[aria-expanded='true'] {
+    color: var(--primary-hover);
+    border-bottom-color: var(--primary);
+}
+
+.nav-dropdown-caret {
+    font-size: 0.7rem;
+    transition: transform var(--transition);
+}
+
+.nav-dropdown-trigger[aria-expanded='true'] .nav-dropdown-caret {
+    transform: rotate(180deg);
+}
+
+.nav-dropdown-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 90;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity var(--transition), transform var(--transition),
+                visibility var(--transition);
+}
+
+.nav-dropdown-panel.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.nav-dropdown-panel-inner {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem 2rem;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 1.5rem 24px;
+}
+
+.nav-dropdown-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.nav-dropdown-panel .filter-options {
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.nav-dropdown-panel .link-reset {
+    grid-column: 1 / -1;
+    justify-self: start;
 }
 
 /* ============================================
@@ -1144,6 +1226,14 @@
 
     .category-nav-inner {
         padding: 0 12px;
+    }
+
+    .nav-dropdown-panel-inner {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+        padding: 1.25rem 18px;
+        max-height: 70vh;
+        overflow-y: auto;
     }
 
     .hero-slides {

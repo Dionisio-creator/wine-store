@@ -133,6 +133,7 @@ function preencherFormulario(vinho) {
     $('#wineName').value = vinho.nome || '';
     $('#wineType').value = vinho.tipo || 'Tinto';
     $('#wineRegion').value = vinho.regiao || '';
+    $('#wineGrapes').value = vinho.uvas || '';
     $('#wineVintage').value = vinho.safra || '';
     $('#winePrice').value = vinho.preco ?? '';
     $('#wineAlcohol').value = vinho.alcool || '';
@@ -159,6 +160,7 @@ function dadosDoFormulario() {
         nome: $('#wineName').value.trim(),
         tipo: $('#wineType').value.trim(),
         regiao: $('#wineRegion').value.trim(),
+        uvas: $('#wineGrapes').value.trim(),
         safra: $('#wineVintage').value,
         preco: $('#winePrice').value,
         alcool: $('#wineAlcohol').value.trim(),

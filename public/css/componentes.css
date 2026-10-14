@@ -367,6 +367,10 @@
     background-color: var(--surface-2);
 }
 
+.detail-info-item-full {
+    grid-column: 1 / -1;
+}
+
 .detail-info-label {
     font-size: 0.72rem;
     letter-spacing: 0.06em;

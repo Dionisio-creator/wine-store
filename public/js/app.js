@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     configurarNavegacao();
     configurarEfeitoScroll();
     configurarCategoriaNav();
+    configurarFiltrosDropdown();
     configurarCarrossel();
 
     console.log(`${APP_NAME} v${APP_VERSION} carregado com sucesso!`);
@@ -93,6 +94,70 @@ function configurarCategoriaNav() {
 
         if (typeof atualizarCatalogo === 'function') atualizarCatalogo();
         document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
+    });
+}
+
+// ============================================
+// DROPDOWN DE FILTROS (País, Tipo, Uvas)
+// ============================================
+
+function configurarFiltrosDropdown() {
+    const trigger = document.getElementById('filtrosTrigger');
+    const painel = document.getElementById('filtrosPainel');
+    if (!trigger || !painel) return;
+
+    let fecharTimer = null;
+    // Quando aberto por clique, ignora o "mouseleave" — só fecha de novo com
+    // outro clique, clique fora, ou Escape (evita o clique reabrir/fechar
+    // em sequência logo depois do hover já ter aberto o painel).
+    let travadoPorClique = false;
+
+    function abrir() {
+        clearTimeout(fecharTimer);
+        painel.classList.add('open');
+        trigger.setAttribute('aria-expanded', 'true');
+    }
+
+    function fechar() {
+        painel.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+        travadoPorClique = false;
+    }
+
+    function fecharComAtraso() {
+        if (travadoPorClique) return;
+        clearTimeout(fecharTimer);
+        fecharTimer = setTimeout(fechar, 150);
+    }
+
+    // Mouse: passar por cima abre; sair de ambos fecha (com pequeno atraso
+    // pra não fechar ao mover o cursor do botão até o painel)
+    trigger.addEventListener('mouseenter', abrir);
+    trigger.addEventListener('mouseleave', fecharComAtraso);
+    painel.addEventListener('mouseenter', () => clearTimeout(fecharTimer));
+    painel.addEventListener('mouseleave', fecharComAtraso);
+
+    // Clique: essencial em telas sem mouse/hover. Clicar abre e "trava"
+    // aberto; clicar de novo fecha.
+    trigger.addEventListener('click', evento => {
+        evento.stopPropagation();
+        if (travadoPorClique) {
+            fechar();
+        } else {
+            travadoPorClique = true;
+            abrir();
+        }
+    });
+
+    // Clique fora ou Escape fecha
+    document.addEventListener('click', evento => {
+        if (!painel.contains(evento.target) && evento.target !== trigger) {
+            fechar();
+        }
+    });
+
+    document.addEventListener('keydown', evento => {
+        if (evento.key === 'Escape') fechar();
     });
 }
 

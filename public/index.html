@@ -64,28 +64,18 @@
         </div>
 
         <!-- Navegação por categorias -->
-        <nav class="category-nav" aria-label="Categorias">
+        <nav class="category-nav" aria-label="Categorias" id="categoryNav">
             <div class="category-nav-inner">
                 <a href="#catalogo" data-nav-tipo="">
                     <span class="category-nav-icon">🍷</span> Vinhos
                 </a>
-                <a href="#catalogo" data-nav-tipo="Tinto">
-                    <span class="category-nav-icon">🍷</span> Tintos
-                </a>
-                <a href="#catalogo" data-nav-tipo="Branco">
-                    <span class="category-nav-icon">🥂</span> Brancos
-                </a>
-                <a href="#catalogo" data-nav-tipo="Rosé">
-                    <span class="category-nav-icon icon-taca-rose" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" width="1em" height="1em">
-                            <path d="M7 3h10l-1.15 8.3A4 4 0 0 1 12 15a4 4 0 0 1-3.85-3.7L7 3Z" fill="#d0788c" stroke="#8d3450" stroke-width="1.3" stroke-linejoin="round"/>
-                            <path d="M12 15v5.2M8.8 20.2h6.4" stroke="#8d3450" stroke-width="1.3" stroke-linecap="round"/>
-                        </svg>
-                    </span> Rosés
-                </a>
-                <a href="#catalogo" data-nav-tipo="Espumante">
-                    <span class="category-nav-icon">🍾</span> Espumantes
-                </a>
+
+                <button type="button" class="nav-dropdown-trigger" id="filtrosTrigger"
+                    aria-expanded="false" aria-haspopup="true" aria-controls="filtrosPainel">
+                    <span class="category-nav-icon">🔎</span> Filtros
+                    <span class="nav-dropdown-caret" aria-hidden="true">▾</span>
+                </button>
+
                 <a href="#catalogo" data-nav-ordenar="preco-asc">
                     <span class="category-nav-icon">🏷️</span> Ofertas
                 </a>
@@ -94,6 +84,24 @@
                 </a>
                 <a href="#sobre">Sobre</a>
                 <a href="#contato">Contato</a>
+            </div>
+
+            <div class="nav-dropdown-panel" id="filtrosPainel" role="menu" aria-label="Filtros">
+                <div class="nav-dropdown-panel-inner">
+                    <div class="nav-dropdown-group">
+                        <span class="filter-title">País</span>
+                        <div class="filter-options" id="filtro-pais"></div>
+                    </div>
+                    <div class="nav-dropdown-group">
+                        <span class="filter-title">Tipo</span>
+                        <div class="filter-options" id="filtro-tipo"></div>
+                    </div>
+                    <div class="nav-dropdown-group">
+                        <span class="filter-title">Uvas</span>
+                        <div class="filter-options" id="filtro-uvas"></div>
+                    </div>
+                    <button type="button" class="link-reset" id="clearHeaderFilters">Limpar estes filtros</button>
+                </div>
             </div>
         </nav>
     </header>
@@ -205,11 +213,6 @@
                     <div class="sidebar-head">
                         <h3>Filtros</h3>
                         <span class="filter-count" id="filterCount"></span>
-                    </div>
-
-                    <div class="filter-group">
-                        <span class="filter-title">Tipo de vinho</span>
-                        <div class="filter-options" id="filtro-tipo"></div>
                     </div>
 
                     <div class="filter-group">
@@ -525,6 +528,13 @@
                             <label for="wineRegion">Região *</label>
                             <input type="text" id="wineRegion" name="regiao" list="listaRegioes" required
                                 maxlength="120" placeholder="Ex.: Douro, Portugal">
+                        </div>
+
+                        <div class="field field-full">
+                            <label for="wineGrapes">Uvas</label>
+                            <input type="text" id="wineGrapes" name="uvas" maxlength="200"
+                                placeholder="Ex.: Cabernet Sauvignon, Merlot">
+                            <span class="field-hint">Separe mais de uma uva por vírgula.</span>
                         </div>
 
                         <div class="field">

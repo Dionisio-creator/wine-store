@@ -111,6 +111,16 @@ class CatalogoAPI {
             .sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'));
     }
 
+    // Cada vinho guarda as uvas como uma única string separada por vírgula
+    // (ex.: "Cabernet Sauvignon, Merlot") — aqui elas são separadas para
+    // virar opções individuais de filtro.
+    valoresDeUvas() {
+        const todas = this.itens.flatMap(v =>
+            String(v.uvas || '').split(',').map(u => u.trim()).filter(Boolean)
+        );
+        return [...new Set(todas)].sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'));
+    }
+
     precoMaximo() {
         return this.itens.reduce((maior, v) => Math.max(maior, v.preco), 0);
     }

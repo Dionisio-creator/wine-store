@@ -57,24 +57,44 @@ function imagemDoVinho(vinho, classe = 'wine-image', emojiClasse = 'wine-image-e
 // FILTROS DINÂMICOS
 // ============================================
 
-function renderizarFiltros() {
-    const filtrosAtivos = {
-        tipo: Array.from(document.querySelectorAll('input[name="tipo"]:checked')).map(cb => cb.value),
-        regiao: Array.from(document.querySelectorAll('input[name="regiao"]:checked')).map(cb => cb.value)
-    };
+// Nome do filtro (e do atributo "name" do checkbox) → campo correspondente no vinho
+const CAMPO_DO_FILTRO = {
+    tipo: 'tipo',
+    regiao: 'regiao',
+    pais: 'producao'
+};
 
-    ['tipo', 'regiao'].forEach(campo => {
-        const container = document.getElementById(`filtro-${campo}`);
+function renderizarFiltros() {
+    const filtrosAtivos = {};
+    document.querySelectorAll('.filter-checkbox[name]').forEach(cb => {
+        if (!cb.checked) return;
+        (filtrosAtivos[cb.name] ||= []).push(cb.value);
+    });
+
+    Object.entries(CAMPO_DO_FILTRO).forEach(([filtro, campo]) => {
+        const container = document.getElementById(`filtro-${filtro}`);
         if (!container) return;
 
         container.innerHTML = catalogoDb.valoresDe(campo).map(valor => `
             <label class="chip">
-                <input type="checkbox" name="${campo}" value="${escaparHtml(valor)}"
-                    class="filter-checkbox"${filtrosAtivos[campo].includes(valor) ? ' checked' : ''}>
+                <input type="checkbox" name="${filtro}" value="${escaparHtml(valor)}"
+                    class="filter-checkbox"${(filtrosAtivos[filtro] || []).includes(valor) ? ' checked' : ''}>
                 <span>${escaparHtml(valor)}</span>
             </label>
         `).join('');
     });
+
+    // Uvas: cada vinho pode ter mais de uma, separadas por vírgula
+    const containerUvas = document.getElementById('filtro-uvas');
+    if (containerUvas) {
+        containerUvas.innerHTML = catalogoDb.valoresDeUvas().map(valor => `
+            <label class="chip">
+                <input type="checkbox" name="uvas" value="${escaparHtml(valor)}"
+                    class="filter-checkbox"${(filtrosAtivos.uvas || []).includes(valor) ? ' checked' : ''}>
+                <span>${escaparHtml(valor)}</span>
+            </label>
+        `).join('');
+    }
 
     // O teto do slider acompanha o vinho mais caro do catálogo
     const slider = document.getElementById('priceRange');
@@ -97,23 +117,32 @@ function renderizarFiltros() {
     }
 }
 
+function uvasDoVinho(vinho) {
+    return String(vinho.uvas || '').split(',').map(u => u.trim()).filter(Boolean);
+}
+
 function computarLista() {
     const tipos = Array.from(document.querySelectorAll('input[name="tipo"]:checked')).map(cb => cb.value);
     const regioes = Array.from(document.querySelectorAll('input[name="regiao"]:checked')).map(cb => cb.value);
+    const paises = Array.from(document.querySelectorAll('input[name="pais"]:checked')).map(cb => cb.value);
+    const uvas = Array.from(document.querySelectorAll('input[name="uvas"]:checked')).map(cb => cb.value);
     const precoMax = Number(document.getElementById('priceRange').value);
     const termo = termoBusca.trim().toLowerCase();
 
     let lista = catalogoDb.listar().filter(vinho => {
         const combinaTipo = tipos.length === 0 || tipos.includes(vinho.tipo);
         const combinaRegiao = regioes.length === 0 || regioes.includes(vinho.regiao);
+        const combinaPais = paises.length === 0 || paises.includes(vinho.producao);
+        const combinaUvas = uvas.length === 0 || uvasDoVinho(vinho).some(u => uvas.includes(u));
         const combinaPreco = vinho.preco <= precoMax;
         const combinaBusca = !termo ||
             vinho.nome.toLowerCase().includes(termo) ||
             vinho.tipo.toLowerCase().includes(termo) ||
             vinho.regiao.toLowerCase().includes(termo) ||
+            (vinho.uvas || '').toLowerCase().includes(termo) ||
             vinho.descricao.toLowerCase().includes(termo);
 
-        return combinaTipo && combinaRegiao && combinaPreco && combinaBusca;
+        return combinaTipo && combinaRegiao && combinaPais && combinaUvas && combinaPreco && combinaBusca;
     });
 
     const ordem = document.getElementById('sortBy').value;
@@ -301,6 +330,12 @@ function abrirDetalhes(id) {
                         <div class="detail-info-label">País</div>
                         <div class="detail-info-value">${escaparHtml(vinho.producao)}</div>
                     </div>
+                    ${vinho.uvas ? `
+                    <div class="detail-info-item detail-info-item-full">
+                        <div class="detail-info-label">Uvas</div>
+                        <div class="detail-info-value">${escaparHtml(vinho.uvas)}</div>
+                    </div>
+                    ` : ''}
                 </div>
 
                 <p class="wine-detail-description">${escaparHtml(vinho.descricao)}</p>
@@ -600,6 +635,7 @@ function prepararNovoVinho() {
     document.getElementById('wineId').value = '';
     document.getElementById('wineVintage').value = new Date().getFullYear();
     document.getElementById('wineType').value = 'Tinto';
+    document.getElementById('wineGrapes').value = '';
     document.getElementById('wineRating').value = '0';
     document.getElementById('wineAlcohol').value = '—';
     document.getElementById('wineProduction').value = '—';
@@ -621,6 +657,7 @@ function preencherEditorVinho(vinho) {
     document.getElementById('wineName').value = vinho.nome || '';
     document.getElementById('wineType').value = vinho.tipo || 'Tinto';
     document.getElementById('wineRegion').value = vinho.regiao || '';
+    document.getElementById('wineGrapes').value = vinho.uvas || '';
     document.getElementById('wineVintage').value = vinho.safra || new Date().getFullYear();
     document.getElementById('winePrice').value = vinho.preco ?? '';
     document.getElementById('wineRating').value = vinho.avaliacao ?? 0;
@@ -704,6 +741,7 @@ function dadosDoFormulario() {
         nome: document.getElementById('wineName').value.trim(),
         tipo: document.getElementById('wineType').value.trim(),
         regiao: document.getElementById('wineRegion').value.trim(),
+        uvas: document.getElementById('wineGrapes').value.trim(),
         safra: Number(document.getElementById('wineVintage').value),
         preco: Number(document.getElementById('winePrice').value),
         avaliacao: Number(document.getElementById('wineRating').value || 0),
@@ -855,15 +893,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (el) el.addEventListener('click', tratarAcaoDeVinho);
     });
 
-    // Filtros (delegado, pois os chips são recriados)
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) {
-        sidebar.addEventListener('change', evento => {
-            if (evento.target.classList.contains('filter-checkbox')) {
-                atualizarCatalogo();
-            }
-        });
-    }
+    // Filtros (delegado no documento, pois os chips são recriados e vivem
+    // em dois lugares: a sidebar e o dropdown de filtros do cabeçalho)
+    document.addEventListener('change', evento => {
+        if (evento.target.classList.contains('filter-checkbox')) {
+            atualizarCatalogo();
+        }
+    });
+
+    document.getElementById('clearHeaderFilters')?.addEventListener('click', () => {
+        document.querySelectorAll('#filtrosPainel .filter-checkbox').forEach(cb => (cb.checked = false));
+        atualizarCatalogo();
+    });
 
     const priceRange = document.getElementById('priceRange');
     priceRange.addEventListener('input', evento => {

@@ -33,6 +33,7 @@ const CRIAR_TABELA = `
         nome TEXT NOT NULL,
         tipo TEXT NOT NULL,
         regiao TEXT NOT NULL,
+        uvas TEXT NOT NULL DEFAULT '',
         safra INTEGER NOT NULL,
         preco NUMERIC(10,2) NOT NULL DEFAULT 0,
         descricao TEXT NOT NULL DEFAULT '',
@@ -47,12 +48,18 @@ const CRIAR_TABELA = `
     );
 `;
 
+// Adiciona a coluna "uvas" em bancos que já existiam antes dela ser criada.
+const MIGRAR_COLUNA_UVAS = `
+    ALTER TABLE ${tabela} ADD COLUMN IF NOT EXISTS uvas TEXT NOT NULL DEFAULT '';
+`;
+
 function linhaParaVinho(linha) {
     return {
         id: linha.id,
         nome: linha.nome,
         tipo: linha.tipo,
         regiao: linha.regiao,
+        uvas: linha.uvas,
         safra: linha.safra,
         preco: Number(linha.preco),
         descricao: linha.descricao,
@@ -68,6 +75,7 @@ function linhaParaVinho(linha) {
 
 async function iniciar() {
     await pool.query(CRIAR_TABELA);
+    await pool.query(MIGRAR_COLUNA_UVAS);
 
     const { rows } = await pool.query(`SELECT COUNT(*)::int AS total FROM ${tabela}`);
     if (rows[0].total === 0) {
@@ -79,10 +87,10 @@ async function inserirSementes(cliente = pool) {
     for (const vinho of sementes) {
         await cliente.query(
             `INSERT INTO ${tabela}
-                (nome, tipo, regiao, safra, preco, descricao, alcool, producao, avaliacao, imagem, reviews, destaque, personalizado)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,false)`,
+                (nome, tipo, regiao, uvas, safra, preco, descricao, alcool, producao, avaliacao, imagem, reviews, destaque, personalizado)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,false)`,
             [
-                vinho.nome, vinho.tipo, vinho.regiao, vinho.safra, vinho.preco,
+                vinho.nome, vinho.tipo, vinho.regiao, vinho.uvas || '', vinho.safra, vinho.preco,
                 vinho.descricao, vinho.alcool, vinho.producao, vinho.avaliacao,
                 vinho.imagem || null, JSON.stringify(vinho.reviews || []),
                 Boolean(vinho.destaque)
@@ -106,6 +114,7 @@ function validar(dados) {
     const tipo = String(dados.tipo || '').trim();
     const nome = String(dados.nome || '').trim();
     const regiao = String(dados.regiao || '').trim();
+    const uvas = String(dados.uvas || '').trim();
     const descricao = String(dados.descricao || '').trim();
     const alcool = String(dados.alcool || '—').trim();
     const producao = String(dados.producao || '—').trim();
@@ -124,6 +133,7 @@ function validar(dados) {
     if (tipo.length > 60) throw new Error('O tipo deve ter no máximo 60 caracteres.');
     if (!regiao) throw new Error('Informe a região do vinho.');
     if (regiao.length > 120) throw new Error('A região deve ter no máximo 120 caracteres.');
+    if (uvas.length > 200) throw new Error('As uvas devem ter no máximo 200 caracteres.');
     if (!descricao) throw new Error('Informe uma descrição.');
     if (descricao.length > 1000) throw new Error('A descrição deve ter no máximo 1000 caracteres.');
     if (!Number.isFinite(preco) || preco < 0 || preco > 99999999) {
@@ -155,6 +165,7 @@ function validar(dados) {
         nome,
         tipo,
         regiao,
+        uvas,
         safra,
         preco,
         descricao,
@@ -170,10 +181,10 @@ async function criarVinho(dados) {
     const v = validar(dados);
     const { rows } = await pool.query(
         `INSERT INTO ${tabela}
-            (nome, tipo, regiao, safra, preco, descricao, alcool, producao, avaliacao, imagem, reviews, destaque, personalizado)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'[]',$11,true)
+            (nome, tipo, regiao, uvas, safra, preco, descricao, alcool, producao, avaliacao, imagem, reviews, destaque, personalizado)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'[]',$12,true)
          RETURNING *`,
-        [v.nome, v.tipo, v.regiao, v.safra, v.preco, v.descricao, v.alcool, v.producao, v.avaliacao, v.imagem, v.destaque]
+        [v.nome, v.tipo, v.regiao, v.uvas, v.safra, v.preco, v.descricao, v.alcool, v.producao, v.avaliacao, v.imagem, v.destaque]
     );
     return linhaParaVinho(rows[0]);
 }
@@ -185,11 +196,11 @@ async function atualizarVinho(id, dados) {
     const v = validar({ ...existente, ...dados });
     const { rows } = await pool.query(
         `UPDATE ${tabela} SET
-            nome = $1, tipo = $2, regiao = $3, safra = $4, preco = $5, descricao = $6,
-            alcool = $7, producao = $8, avaliacao = $9, imagem = $10, destaque = $11
-         WHERE id = $12
+            nome = $1, tipo = $2, regiao = $3, uvas = $4, safra = $5, preco = $6, descricao = $7,
+            alcool = $8, producao = $9, avaliacao = $10, imagem = $11, destaque = $12
+         WHERE id = $13
          RETURNING *`,
-        [v.nome, v.tipo, v.regiao, v.safra, v.preco, v.descricao, v.alcool, v.producao, v.avaliacao, v.imagem, v.destaque, id]
+        [v.nome, v.tipo, v.regiao, v.uvas, v.safra, v.preco, v.descricao, v.alcool, v.producao, v.avaliacao, v.imagem, v.destaque, id]
     );
     return linhaParaVinho(rows[0]);
 }
