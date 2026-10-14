@@ -182,6 +182,37 @@ test('cobre leitura, autenticação e o ciclo criar, atualizar, excluir e restau
     assert.equal(criado.corpo.personalizado, true);
     const idCriado = criado.corpo.id;
 
+    const foto = 'data:image/png;base64,aGVsbG8=';
+    const lote = { vinhos: [{ id: idCriado, nome: criado.corpo.nome, imagem: foto }] };
+    const bloqueado = await api('/api/admin/importar-imagens', {
+        method: 'POST', body: JSON.stringify(lote)
+    });
+    assert.equal(bloqueado.resposta.status, 401);
+    const semCsrf = await api('/api/admin/importar-imagens', {
+        method: 'POST', headers: { Cookie: cookie }, body: JSON.stringify(lote)
+    });
+    assert.equal(semCsrf.resposta.status, 403);
+    const invalido = await api('/api/admin/importar-imagens', {
+        method: 'POST', headers: cabecalhosAdmin(),
+        body: JSON.stringify({ vinhos: [...lote.vinhos, { id: 999999, nome: 'Ausente', imagem: foto }] })
+    });
+    assert.equal(invalido.resposta.status, 400);
+    assert.equal((await api(`/api/vinhos/${idCriado}`)).corpo.imagem, null, 'Importação deve ser transacional');
+    const importado = await api('/api/admin/importar-imagens', {
+        method: 'POST', headers: cabecalhosAdmin(), body: JSON.stringify(lote)
+    });
+    assert.equal(importado.resposta.status, 200);
+    assert.equal(importado.corpo.importadas, 1);
+    const repetir = await api('/api/admin/importar-imagens', {
+        method: 'POST', headers: cabecalhosAdmin(),
+        body: JSON.stringify({ vinhos: [{ ...lote.vinhos[0], imagem: 'https://example.com/nova.jpg' }] })
+    });
+    assert.equal(repetir.corpo.importadas, 0);
+    assert.equal(repetir.corpo.preservadas, 1);
+    const publico = await api(`/api/vinhos/${idCriado}`);
+    assert.equal(publico.corpo.imagem, foto);
+    assert.equal(publico.resposta.headers.get('cache-control'), 'no-store');
+
     const atualizado = await api(`/api/vinhos/${idCriado}`, {
         method: 'PUT',
         headers: cabecalhosAdmin(),
@@ -196,6 +227,7 @@ test('cobre leitura, autenticação e o ciclo criar, atualizar, excluir e restau
     assert.equal(atualizado.corpo.preco, 109.9);
     assert.equal(atualizado.corpo.destaque, true);
     assert.equal(atualizado.corpo.tipo, corpoVinho().tipo);
+    assert.equal(atualizado.corpo.imagem, foto, 'Editar preços e textos não deve apagar a foto');
 
     const removido = await api(`/api/vinhos/${idCriado}`, {
         method: 'DELETE',

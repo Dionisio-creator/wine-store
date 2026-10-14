@@ -15,6 +15,10 @@ const ADMIN_COOKIE = 'vinhos_admin';
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
 
 app.use(express.json({ limit: '5mb' }));
+app.use('/api', (req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------- SESSÃO ADMINISTRATIVA ----------
@@ -119,6 +123,21 @@ function exigirAdmin(req, res, next) {
 }
 
 // ---------- API ----------
+
+app.get('/api/site-info', (req, res) => {
+    res.json({
+        ambiente: process.env.REPLIT_DEPLOYMENT === '1' ? 'production' : 'development',
+        urlPublica: process.env.SITE_PUBLIC_URL || null
+    });
+});
+
+app.post('/api/admin/importar-imagens', exigirAdmin, async (req, res) => {
+    try {
+        res.json(await db.importarImagens(req.body?.vinhos));
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
 
 app.get('/api/admin/status', (req, res) => {
     res.set('Cache-Control', 'no-store');

@@ -233,6 +233,43 @@ async function removerVinho(id) {
     return rowCount > 0;
 }
 
+// Importação explícita pelo administrador: só preenche imagens ausentes.
+async function importarImagens(vinhos) {
+    if (!Array.isArray(vinhos) || !vinhos.length || vinhos.length > 100) {
+        throw new Error('Envie um arquivo com 1 a 100 imagens de vinhos.');
+    }
+    const cliente = await pool.connect();
+    let importadas = 0;
+    try {
+        await cliente.query('BEGIN');
+        const usados = new Set();
+        for (const item of vinhos) {
+            if (!Number.isInteger(item.id) || usados.has(item.id) || !item.imagem) {
+                throw new Error('Arquivo inválido: vinho repetido ou imagem ausente.');
+            }
+            usados.add(item.id);
+            const { rows } = await cliente.query(
+                `SELECT * FROM ${tabela} WHERE id = $1 FOR UPDATE`, [item.id]
+            );
+            if (!rows[0] || rows[0].nome !== item.nome) {
+                throw new Error(`O vinho de ID ${item.id} não corresponde ao catálogo. Nenhuma imagem foi importada.`);
+            }
+            const v = validar({ ...linhaParaVinho(rows[0]), imagem: item.imagem });
+            if (!rows[0].imagem) {
+                await cliente.query(`UPDATE ${tabela} SET imagem = $1 WHERE id = $2`, [v.imagem, item.id]);
+                importadas++;
+            }
+        }
+        await cliente.query('COMMIT');
+    } catch (erro) {
+        await cliente.query('ROLLBACK');
+        throw erro;
+    } finally {
+        cliente.release();
+    }
+    return { importadas, preservadas: vinhos.length - importadas };
+}
+
 async function restaurarCatalogo() {
     const cliente = await pool.connect();
     try {
@@ -255,6 +292,7 @@ module.exports = {
     obterVinho,
     criarVinho,
     atualizarVinho,
+    importarImagens,
     removerVinho,
     restaurarCatalogo
 };

@@ -28,7 +28,7 @@ class CatalogoAPI {
     // Busca o catálogo no servidor e guarda em cache local para leituras
     // síncronas (listar/obter/valoresDe) usadas pelo restante da aplicação.
     async carregar() {
-        const resposta = await fetch('/api/vinhos');
+        const resposta = await fetch('/api/vinhos', { cache: 'no-store' });
         if (!resposta.ok) {
             throw new Error('Não foi possível carregar o catálogo do servidor.');
         }

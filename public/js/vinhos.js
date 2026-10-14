@@ -9,6 +9,40 @@ let focoAntesAdministracao = null;
 let administradorAutenticado = false;
 window.csrfAdmin = '';
 
+let atualizandoCatalogoPublico = false;
+let erroAtualizacaoAvisado = false;
+
+async function sincronizarCatalogoPublico() {
+    if (atualizandoCatalogoPublico || document.hidden ||
+        document.getElementById('saveWineBtn')?.disabled) return;
+    atualizandoCatalogoPublico = true;
+    try {
+        const anterior = JSON.stringify(catalogoDb.listar());
+        await catalogoDb.carregar();
+        if (anterior !== JSON.stringify(catalogoDb.listar())) {
+            renderizarFiltros();
+            atualizarCatalogo();
+            if (administradorAutenticado) renderizarListaAdministracao();
+        }
+        erroAtualizacaoAvisado = false;
+    } catch (erro) {
+        if (!erroAtualizacaoAvisado) {
+            mostrarToast('Não foi possível atualizar o catálogo. Tentaremos novamente.', 'error');
+            erroAtualizacaoAvisado = true;
+        }
+    } finally {
+        atualizandoCatalogoPublico = false;
+    }
+}
+
+// Visitantes com a página aberta também recebem edições feitas no admin.
+setInterval(sincronizarCatalogoPublico, 30000);
+window.addEventListener('focus', sincronizarCatalogoPublico);
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) sincronizarCatalogoPublico();
+});
+document.addEventListener('catalogo-importado', sincronizarCatalogoPublico);
+
 // ============================================
 // HELPERS
 // ============================================

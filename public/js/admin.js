@@ -118,6 +118,7 @@ function renderizarCatalogo() {
 
 function limparFormulario() {
     $('#wineForm').reset();
+    $('#wineImage').dataset.imagemAtual = '';
     $('#wineId').value = '';
     $('#wineType').value = 'Tinto';
     $('#wineVintage').value = new Date().getFullYear();
@@ -141,6 +142,7 @@ function preencherFormulario(vinho) {
     $('#wineRating').value = vinho.avaliacao ?? 0;
     $('#wineDescription').value = vinho.descricao || '';
     $('#wineImage').value = vinho.imagem?.startsWith('data:') ? '' : (vinho.imagem || '');
+    $('#wineImage').dataset.imagemAtual = vinho.imagem || '';
     $('#wineImageFile').value = '';
     $('#wineFeatured').checked = Boolean(vinho.destaque);
     $('#editorTitle').textContent = 'Editar vinho';
@@ -167,7 +169,7 @@ function dadosDoFormulario() {
         producao: $('#wineProduction').value.trim(),
         avaliacao: $('#wineRating').value,
         descricao: $('#wineDescription').value.trim(),
-        imagem: $('#wineImage').value.trim() || null,
+        imagem: $('#wineImage').value.trim() || $('#wineImage').dataset.imagemAtual || null,
         destaque: $('#wineFeatured').checked
     };
 }
@@ -311,3 +313,6 @@ async function iniciarAdmin() {
 }
 
 document.addEventListener('DOMContentLoaded', iniciarAdmin);
+document.addEventListener('catalogo-importado', () => {
+    carregarCatalogo().catch(erro => mostrarToast(erro.message, 'error'));
+});
