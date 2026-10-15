@@ -2,7 +2,13 @@
 // CAMADA DE BANCO DE DADOS (PostgreSQL)
 // ============================================
 
-const { Pool } = require('pg');
+// USE_FAKE_DB=true troca o PostgreSQL de verdade por um banco falso em
+// memória (veja scripts/fake-pg.js) — usado só para rodar localmente sem
+// precisar instalar ou configurar um Postgres. No Replit essa variável
+// nunca é definida, então o site publicado sempre usa o banco de verdade.
+const { Pool } = process.env.USE_FAKE_DB === 'true'
+    ? require('./scripts/fake-pg')
+    : require('pg');
 const sementes = require('./seed-vinhos');
 
 if (!process.env.DATABASE_URL) {
