@@ -878,6 +878,26 @@
     color: var(--text);
 }
 
+.wine-name-link {
+    cursor: pointer;
+    width: fit-content;
+    transition: color var(--transition);
+}
+
+.wine-name-link:hover,
+.wine-name-link:focus-visible {
+    color: var(--primary);
+    text-decoration: underline;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 3px;
+}
+
+.wine-name-link:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
 .wine-info {
     font-size: 0.84rem;
     color: var(--text-muted);

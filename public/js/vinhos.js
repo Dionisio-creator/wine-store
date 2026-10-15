@@ -326,7 +326,8 @@ function cardHTML(vinho, { compacto = false } = {}) {
                     <span class="wine-type-dot"></span>
                     ${escaparHtml(vinho.tipo)} · ${vinho.safra}
                 </div>
-                <h3 class="wine-name">${escaparHtml(vinho.nome)}</h3>
+                <h3 class="wine-name wine-name-link" data-acao="detalhes" data-id="${vinho.id}"
+                    role="button" tabindex="0" aria-label="Ver detalhes de ${escaparHtml(vinho.nome)}">${escaparHtml(vinho.nome)}</h3>
                 <div class="wine-info">${escaparHtml(vinho.regiao)} · ${escaparHtml(vinho.alcool)}</div>
                 ${compacto ? '' : `<p class="wine-description">${escaparHtml(vinho.descricao)}</p>`}
                 <div class="wine-rating">
@@ -1001,7 +1002,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Cards (catálogo, destaques e modal de detalhes)
     ['winesList', 'featuredGrid', 'wineDetail'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.addEventListener('click', tratarAcaoDeVinho);
+        if (!el) return;
+        el.addEventListener('click', tratarAcaoDeVinho);
+        // O nome do vinho usa role="button" (não é um <button> de verdade),
+        // então Enter/Espaço precisam ser tratados manualmente.
+        el.addEventListener('keydown', evento => {
+            if (evento.key !== 'Enter' && evento.key !== ' ') return;
+            if (!evento.target.classList.contains('wine-name-link')) return;
+            evento.preventDefault();
+            tratarAcaoDeVinho(evento);
+        });
     });
 
     // Filtros (delegado no documento, pois os chips são recriados e vivem
