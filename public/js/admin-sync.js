@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const url = new URL(info.urlPublica);
                 if (url.protocol === 'https:') {
                     const link = document.createElement('a');
-                    link.href = new URL('/admin.html', url).href;
+                    link.href = new URL('/admin', url).href;
                     link.target = '_blank';
                     link.rel = 'noopener';
                     link.textContent = ' Editar o site publicado';

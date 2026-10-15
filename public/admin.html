@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administração — Vinhos Premium</title>
-    <meta name="description" content="Área administrativa protegida do catálogo Vinhos Premium.">
+    <title>Administração — Grand Cru Copacabana</title>
+    <meta name="description" content="Área administrativa protegida do catálogo Grand Cru Copacabana.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,0..9,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <div data-admin-environment role="status"></div>
         <section class="login-panel" id="loginPanel" aria-labelledby="loginTitle">
             <div class="brand-mark" aria-hidden="true">🍷</div>
-            <span class="eyebrow">Vinhos Premium</span>
+            <span class="eyebrow">Grand Cru Copacabana</span>
             <h1 id="loginTitle">Área administrativa</h1>
             <p class="panel-intro">Entre para atualizar o catálogo da sua loja com segurança.</p>
 
@@ -39,8 +39,8 @@
             <header class="admin-header">
                 <div>
                     <span class="eyebrow">Painel de controle</span>
-                    <h1 id="dashboardTitle">Catálogo de vinhos</h1>
-                    <p class="panel-intro">Adicione, edite e organize os rótulos exibidos na loja.</p>
+                    <h1 id="dashboardTitle">Painel da loja</h1>
+                    <p class="panel-intro">Gerencie o catálogo, os cadastros de clientes e os pedidos do dia.</p>
                 </div>
                 <div class="header-actions">
                     <a class="btn btn-secondary btn-sm" href="/">Ver loja</a>
@@ -48,6 +48,79 @@
                 </div>
             </header>
 
+            <nav class="admin-tabs" role="tablist" aria-label="Seções do painel">
+                <button type="button" role="tab" class="admin-tab active" data-tab="catalogo" aria-selected="true" aria-controls="tab-catalogo">🍷 Catálogo</button>
+                <button type="button" role="tab" class="admin-tab" data-tab="clientes" aria-selected="false" aria-controls="tab-clientes">👤 Clientes <span class="count-badge tab-badge" id="clientesPendentesBadge" hidden>0</span></button>
+                <button type="button" role="tab" class="admin-tab" data-tab="pedidos" aria-selected="false" aria-controls="tab-pedidos">🧾 Pedidos <span class="count-badge tab-badge" id="pedidosNovosBadge" hidden>0</span></button>
+                <button type="button" role="tab" class="admin-tab" data-tab="site" aria-selected="false" aria-controls="tab-site">⚙️ Informações do site</button>
+            </nav>
+
+            <!-- ABA: INFORMAÇÕES DO SITE -->
+            <section class="admin-card admin-tab-panel hidden" id="tab-site" role="tabpanel" aria-labelledby="siteTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Conteúdo da loja</span>
+                        <h2 id="siteTitle">Informações do site</h2>
+                        <p class="panel-intro">Altere endereço, contatos, o texto do “Sobre nós”, os banners e o rodapé. As mudanças aparecem na loja assim que você salvar.</p>
+                        <p class="field-hint">Dica: nos textos, <code>**palavra**</code> fica em <strong>negrito</strong> e <code>*palavra*</code> fica em <em>itálico</em>. No “Sobre nós”, deixe uma linha em branco entre os parágrafos.</p>
+                    </div>
+                </div>
+                <form id="siteForm" class="site-form" novalidate>
+                    <div id="siteCampos"></div>
+                    <div class="site-form-actions">
+                        <p class="form-message" id="siteMensagem" role="alert"></p>
+                        <a class="btn btn-secondary" href="/" target="_blank" rel="noopener">Ver loja</a>
+                        <button class="btn btn-primary" type="submit" id="siteSalvar">Salvar informações</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ABA: CLIENTES -->
+            <section class="admin-card admin-tab-panel hidden" id="tab-clientes" role="tabpanel" aria-labelledby="clientesTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Cadastros da loja</span>
+                        <h2 id="clientesTitle">Clientes <span class="count-badge" id="clientesCount">0</span></h2>
+                        <p class="panel-intro">Depois de passar o cadastro para o outro sistema, aperte <strong>OK</strong> para marcar como salvo.</p>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" id="atualizarClientes" type="button">↻ Atualizar</button>
+                </div>
+                <div class="toolbar">
+                    <label class="search-control">
+                        <span class="visually-hidden">Buscar cadastro</span>
+                        <input id="clientesBusca" type="search" placeholder="Buscar por e-mail, CPF ou telefone">
+                    </label>
+                    <div class="segmented" role="group" aria-label="Filtrar cadastros">
+                        <button type="button" class="active" data-filtro-cliente="pendentes">Pendentes</button>
+                        <button type="button" data-filtro-cliente="salvos">Salvos</button>
+                        <button type="button" data-filtro-cliente="todos">Todos</button>
+                    </div>
+                </div>
+                <div class="record-list" id="clientesLista" aria-live="polite"></div>
+            </section>
+
+            <!-- ABA: PEDIDOS -->
+            <section class="admin-card admin-tab-panel hidden" id="tab-pedidos" role="tabpanel" aria-labelledby="pedidosTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Vendas do dia</span>
+                        <h2 id="pedidosTitle">Pedidos</h2>
+                        <p class="panel-intro">Todo pedido enviado pelo WhatsApp também aparece aqui. Confirme quando a venda for fechada ou cancele se não se concretizar.</p>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" id="atualizarPedidos" type="button">↻ Atualizar</button>
+                </div>
+                <div class="toolbar day-picker">
+                    <button class="btn btn-secondary btn-sm" id="diaAnterior" type="button" aria-label="Dia anterior">‹</button>
+                    <input id="pedidosData" type="date" aria-label="Dia dos pedidos">
+                    <button class="btn btn-secondary btn-sm" id="diaSeguinte" type="button" aria-label="Dia seguinte">›</button>
+                    <button class="btn btn-ghost btn-sm" id="diaHoje" type="button">Hoje</button>
+                </div>
+                <div class="sales-summary" id="pedidosResumo"></div>
+                <div class="record-list" id="pedidosLista" aria-live="polite"></div>
+            </section>
+
+            <!-- ABA: CATÁLOGO -->
+            <div class="admin-tab-panel" id="tab-catalogo" role="tabpanel">
             <div data-admin-image-tools></div>
             <div class="admin-grid">
                 <section class="admin-card catalog-card" aria-labelledby="catalogTitle">
@@ -141,11 +214,14 @@
                     </form>
                 </section>
             </div>
+            </div>
         </section>
     </main>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="js/catalogo.js"></script>
     <script src="js/admin.js"></script>
+    <script src="js/admin-vendas.js"></script>
+    <script src="js/admin-site.js"></script>
     <script src="js/admin-sync.js"></script>
 </body>
 </html>

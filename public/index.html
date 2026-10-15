@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vinhos Premium — Curadoria de rótulos</title>
+    <title>Grand Cru Copacabana — Vinhos, restaurante e experiências</title>
     <meta name="description" content="Loja de vinhos com curadoria própria: tintos, brancos, rosés e espumantes selecionados.">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,8 +33,7 @@
         <div class="header-top">
             <div class="header-top-inner">
                 <a href="#home" class="logo">
-                    <span class="logo-icon">🍷</span>
-                    <span class="logo-text">Vinhos Premium</span>
+                    <img class="logo-img" src="assets/logo-grand-cru.png" alt="Grand Cru" width="389" height="109">
                 </a>
 
                 <label class="header-search">
@@ -52,10 +51,11 @@
                     <button class="icon-btn" id="themeToggle" title="Alternar tema" aria-label="Alternar tema">
                         🌙
                     </button>
-                    <button class="btn btn-secondary btn-admin" id="adminBtn"
-                        title="Acessar área administrativa" aria-label="Acessar área administrativa" type="button">
-                        <span>Admin</span> ⚙
-                    </button>
+                    <a class="icon-btn header-whatsapp" data-contato-link="whatsapp"
+                        href="https://wa.me/5521989014962" target="_blank" rel="noopener"
+                        title="Fale com a loja no WhatsApp" aria-label="Falar com a loja no WhatsApp">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.49-8.42"/></svg>
+                    </a>
                     <button class="icon-btn" id="cartBtn" title="Carrinho" aria-label="Abrir carrinho">
                         🛒 <span class="cart-count hidden" id="cartCount">0</span>
                     </button>
@@ -123,12 +123,12 @@
                 <div class="hero-slide-content">
                     <div class="hero-tag">
                         <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
-                        <span><strong>Curadoria própria</strong> · seleção de sommeliers</span>
+                        <span><strong data-site="banner.slides.0.seloDestaque">Curadoria própria</strong> · <span data-site="banner.slides.0.seloTexto">seleção de sommeliers</span></span>
                     </div>
-                    <h1>Descubra os melhores <em>vinhos</em> do mundo</h1>
-                    <p>Rótulos escolhidos garrafa a garrafa, das encostas do Douro ao Vale do Napa, com curadoria de sommeliers para todos os paladares.</p>
+                    <h1 data-site-formatado="banner.slides.0.titulo">Descubra os melhores <em>vinhos</em> do mundo</h1>
+                    <p data-site="banner.slides.0.texto">Rótulos escolhidos garrafa a garrafa, das encostas do Douro ao Vale do Napa, com curadoria de sommeliers para todos os paladares.</p>
                     <div class="hero-actions">
-                        <a href="#catalogo" class="btn btn-primary btn-lg">Explorar catálogo</a>
+                        <a href="#catalogo" class="btn btn-primary btn-lg" data-site="banner.slides.0.botao">Explorar catálogo</a>
                     </div>
                 </div>
             </article>
@@ -137,12 +137,12 @@
                 <div class="hero-slide-content">
                     <div class="hero-tag">
                         <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
-                        <span><strong>Envelhecidos com paciência</strong> · adegas parceiras</span>
+                        <span><strong data-site="banner.slides.1.seloDestaque">Envelhecidos com paciência</strong> · <span data-site="banner.slides.1.seloTexto">adegas parceiras</span></span>
                     </div>
-                    <h1>Direto das melhores <em>vinícolas</em> para você</h1>
-                    <p>Trabalhamos com produtores que respeitam o tempo de cada safra, do barril à garrafa.</p>
+                    <h1 data-site-formatado="banner.slides.1.titulo">Direto das melhores <em>vinícolas</em> para você</h1>
+                    <p data-site="banner.slides.1.texto">Trabalhamos com produtores que respeitam o tempo de cada safra, do barril à garrafa.</p>
                     <div class="hero-actions">
-                        <a href="#sobre" class="btn btn-primary btn-lg">Conheça nossa história</a>
+                        <a href="#sobre" class="btn btn-primary btn-lg" data-site="banner.slides.1.botao">Conheça nossa história</a>
                     </div>
                 </div>
             </article>
@@ -151,12 +151,12 @@
                 <div class="hero-slide-content">
                     <div class="hero-tag">
                         <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
-                        <span><strong>Harmonize sem erro</strong> · guia de sommelier</span>
+                        <span><strong data-site="banner.slides.2.seloDestaque">Harmonize sem erro</strong> · <span data-site="banner.slides.2.seloTexto">guia de sommelier</span></span>
                     </div>
-                    <h1>O vinho certo para cada <em>ocasião</em></h1>
-                    <p>Da taça ao prato: sugestões de harmonização para acompanhar o seu jantar.</p>
+                    <h1 data-site-formatado="banner.slides.2.titulo">O vinho certo para cada <em>ocasião</em></h1>
+                    <p data-site="banner.slides.2.texto">Da taça ao prato: sugestões de harmonização para acompanhar o seu jantar.</p>
                     <div class="hero-actions">
-                        <a href="#catalogo" class="btn btn-primary btn-lg">Ver seleção completa</a>
+                        <a href="#catalogo" class="btn btn-primary btn-lg" data-site="banner.slides.2.botao">Ver seleção completa</a>
                     </div>
                 </div>
             </article>
@@ -165,12 +165,12 @@
                 <div class="hero-slide-content">
                     <div class="hero-tag">
                         <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
-                        <span><strong>Da uva à garrafa</strong> · colheita selecionada</span>
+                        <span><strong data-site="banner.slides.3.seloDestaque">Da uva à garrafa</strong> · <span data-site="banner.slides.3.seloTexto">colheita selecionada</span></span>
                     </div>
-                    <h1>Safras premiadas em cada <em>colheita</em></h1>
-                    <p>Uvas selecionadas a mão, em vinhedos que carregam gerações de tradição vinícola.</p>
+                    <h1 data-site-formatado="banner.slides.3.titulo">Safras premiadas em cada <em>colheita</em></h1>
+                    <p data-site="banner.slides.3.texto">Uvas selecionadas a mão, em vinhedos que carregam gerações de tradição vinícola.</p>
                     <div class="hero-actions">
-                        <a href="#catalogo" class="btn btn-primary btn-lg">Explorar catálogo</a>
+                        <a href="#catalogo" class="btn btn-primary btn-lg" data-site="banner.slides.3.botao">Explorar catálogo</a>
                     </div>
                 </div>
             </article>
@@ -185,16 +185,16 @@
 
         <div class="hero-stats">
             <div class="hero-stat">
-                <strong>15+</strong>
-                <span>anos de mercado</span>
+                <strong data-site="banner.numeros.0.valor">15+</strong>
+                <span data-site="banner.numeros.0.rotulo">anos de mercado</span>
             </div>
             <div class="hero-stat">
-                <strong>50+</strong>
-                <span>regiões vinícolas</span>
+                <strong data-site="banner.numeros.1.valor">50+</strong>
+                <span data-site="banner.numeros.1.rotulo">regiões vinícolas</span>
             </div>
             <div class="hero-stat">
-                <strong>10k+</strong>
-                <span>clientes atendidos</span>
+                <strong data-site="banner.numeros.2.valor">10k+</strong>
+                <span data-site="banner.numeros.2.rotulo">clientes atendidos</span>
             </div>
         </div>
     </section>
@@ -244,27 +244,32 @@
         <div class="container">
             <div class="about-content">
                 <div class="about-text">
-                    <span class="eyebrow">Quem somos</span>
-                    <h2>Uma adega com nome e sotaque</h2>
-                    <p>Somos uma loja especializada em vinhos premium, com mais de 15 anos de mercado. Nossa missão é levar os melhores rótulos do mundo até a sua mesa — sem mistério e sem esnobismo.</p>
-                    <p>Cada garrafa é escolhida por nossos sommeliers, que provam, comparam e só aprovam o que colocariam no próprio jantar.</p>
+                    <img class="about-logo" src="assets/logo-grand-cru.png" alt="Grand Cru Copacabana" width="389" height="109" loading="lazy">
+                    <span class="eyebrow" data-site="sobre.selo">Quem somos</span>
+                    <h2 data-site="sobre.titulo">Sobre nós</h2>
+                    <div data-site-paragrafos="sobre.texto">
+                        <p>A <strong>Grand Cru Copacabana</strong>, localizada na <strong>Rua Barata Ribeiro, 560</strong>, é um espaço dedicado ao vinho, à gastronomia e às boas experiências.</p>
+                        <p>Além de uma ampla seleção de vinhos, espumantes e rótulos de diversas regiões do mundo, contamos com <strong>restaurante integrado</strong>, atendimento especializado e uma programação de <strong>degustações, jantares harmonizados, cursos e eventos especiais</strong>.</p>
+                        <p>Nossa proposta é oferecer muito mais do que uma loja de vinhos: queremos proporcionar uma experiência completa, com boa gastronomia, atendimento próximo e o vinho certo para cada momento.</p>
+                    </div>
+                    <p class="about-tagline"><strong data-site="sobre.frase">Grand Cru Copacabana — loja, restaurante e experiências em um só lugar</strong></p>
                 </div>
                 <div class="about-stats">
                     <div class="stat">
-                        <h3>500+</h3>
-                        <p>Vinhos catalogados</p>
+                        <h3 data-site="sobre.numeros.0.valor">500+</h3>
+                        <p data-site="sobre.numeros.0.rotulo">Vinhos catalogados</p>
                     </div>
                     <div class="stat">
-                        <h3>50+</h3>
-                        <p>Regiões vinícolas</p>
+                        <h3 data-site="sobre.numeros.1.valor">50+</h3>
+                        <p data-site="sobre.numeros.1.rotulo">Regiões vinícolas</p>
                     </div>
                     <div class="stat">
-                        <h3>10K+</h3>
-                        <p>Clientes satisfeitos</p>
+                        <h3 data-site="sobre.numeros.2.valor">10K+</h3>
+                        <p data-site="sobre.numeros.2.rotulo">Clientes satisfeitos</p>
                     </div>
                     <div class="stat">
-                        <h3>4.7</h3>
-                        <p>Nota média do catálogo</p>
+                        <h3 data-site="sobre.numeros.3.valor">4.7</h3>
+                        <p data-site="sobre.numeros.3.rotulo">Nota média do catálogo</p>
                     </div>
                 </div>
             </div>
@@ -280,51 +285,76 @@
             </div>
             <div class="contact-content">
                 <div class="contact-info">
-                    <div class="info-item">
-                        <span class="info-icon">📍</span>
+                    <a class="info-item info-item-link" data-contato-link="maps"
+                        href="https://www.google.com/maps/search/?api=1&amp;query=Grand%20Cru%20Copacabana%2C%20Rua%20Barata%20Ribeiro%2C%20560"
+                        target="_blank" rel="noopener" aria-label="Abrir o endereço da loja no Google Maps">
+                        <span class="info-icon maps-icon" aria-hidden="true">
+                            <!-- Pin do Google Maps (vermelho, azul, amarelo e verde) -->
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <defs><clipPath id="pinMaps"><path d="M12 1.5C7.86 1.5 4.5 4.86 4.5 9c0 5.6 7.5 13.5 7.5 13.5S19.5 14.6 19.5 9c0-4.14-3.36-7.5-7.5-7.5z"/></clipPath></defs>
+                                <g clip-path="url(#pinMaps)">
+                                    <rect width="24" height="24" fill="#34A853"/>
+                                    <polygon points="12,9 12,0 24,0 24,9" fill="#EA4335"/>
+                                    <polygon points="0,0 12,0 12,9 0,9" fill="#4285F4"/>
+                                    <polygon points="0,9 12,9 7,24 0,24" fill="#FBBC04"/>
+                                </g>
+                                <circle cx="12" cy="9" r="2.8" fill="#fff"/>
+                            </svg>
+                        </span>
                         <div>
                             <h4>Endereço</h4>
-                            <p>Rua Barata Ribeiro, 560</p>
+                            <p data-site="contato.endereco">Rua Barata Ribeiro, 560</p>
                         </div>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-icon">📞</span>
+                    </a>
+                    <a class="info-item info-item-link" data-contato-link="whatsapp"
+                        href="https://wa.me/5521989014962" target="_blank" rel="noopener"
+                        aria-label="Conversar com a loja no WhatsApp">
+                        <span class="info-icon whatsapp-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.49-8.42"/></svg>
+                        </span>
                         <div>
-                            <h4>Telefone</h4>
-                            <p>(21) 98901-4962</p>
+                            <h4>WhatsApp</h4>
+                            <p data-site="contato.whatsapp">(21) 98901-4962</p>
                         </div>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-icon">✉️</span>
+                    </a>
+                    <a class="info-item info-item-link" data-contato-link="email"
+                        href="mailto:michelvinhos@gmail.com" aria-label="Enviar um e-mail para a loja">
+                        <span class="info-icon email-icon" aria-hidden="true">
+                            <!-- "M" do Gmail (azul, vermelho, amarelo e verde) -->
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path fill="#4285F4" d="M2 8v10.5A1.5 1.5 0 0 0 3.5 20h3v-8.7z"/>
+                                <path fill="#34A853" d="M17.5 11.3V20h3a1.5 1.5 0 0 0 1.5-1.5V8z"/>
+                                <path fill="#EA4335" d="M6.5 11.3 12 15.4l5.5-4.1V5.6L12 9.7 6.5 5.6z"/>
+                                <path fill="#FBBC04" d="M17.5 5.6v5.7L22 8V6c0-1.85-2.1-2.9-3.6-1.8z"/>
+                                <path fill="#C5221F" d="M2 6v2l4.5 3.3V5.6l-.9-.7C4.1 3.1 2 4.15 2 6z"/>
+                            </svg>
+                        </span>
                         <div>
                             <h4>E-mail</h4>
-                            <p>michelvinhos@gmail.com</p>
+                            <p data-site="contato.email">michelvinhos@gmail.com</p>
                         </div>
-                    </div>
+                    </a>
                     <div class="info-item">
-                        <span class="info-icon">🕑</span>
+                        <span class="info-icon hours-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </span>
                         <div>
                             <h4>Horário</h4>
-                            <p>Segunda a sexta, 10h às 22h<br>Sábado, 10h às 16h</p>
+                            <p data-site-linhas="contato.horario">Segunda a sexta, 10h às 22h<br>Sábado, 10h às 16h</p>
                         </div>
                     </div>
+                    <a class="info-item info-item-link" data-site-instagram data-site-instagram-link
+                        href="https://www.instagram.com/grandcrurio/" target="_blank" rel="noopener"
+                        aria-label="Abrir o Instagram da Grand Cru">
+                        <span class="info-icon instagram-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="22" height="22"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg>
+                        </span>
+                        <div>
+                            <h4>Instagram</h4>
+                            <p data-site-instagram-texto>@grandcrurio</p>
+                        </div>
+                    </a>
                 </div>
-
-                <form class="contact-form" id="contactForm">
-                    <div class="field">
-                        <label for="contatoNome">Nome</label>
-                        <input type="text" id="contatoNome" placeholder="Seu nome" required>
-                    </div>
-                    <div class="field">
-                        <label for="contatoEmail">E-mail</label>
-                        <input type="email" id="contatoEmail" placeholder="voce@email.com" required>
-                    </div>
-                    <div class="field field-full">
-                        <label for="contatoMensagem">Mensagem</label>
-                        <textarea id="contatoMensagem" placeholder="Como podemos ajudar?" rows="5" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Enviar mensagem</button>
-                </form>
             </div>
         </div>
     </section>
@@ -333,11 +363,17 @@
     <section class="newsletter-section">
         <div class="container">
             <div class="newsletter-inner">
-                <h2>Receba nossas ofertas</h2>
-                <p>Dicas de harmonização, chegadas novas e promoções exclusivas — no máximo um e-mail por semana.</p>
+                <h2 data-site="cadastro.titulo">Conclua seu cadastro para receber todas as promoções</h2>
+                <p data-site="cadastro.texto">Dicas de harmonização, chegadas novas e promoções exclusivas — no máximo um e-mail por semana.</p>
                 <form class="newsletter-form" id="newsletterForm">
-                    <input type="email" placeholder="Seu melhor e-mail" required aria-label="E-mail">
-                    <button type="submit" class="btn btn-primary">Inscrever-se</button>
+                    <input type="email" name="email" class="newsletter-email" placeholder="Seu melhor e-mail" required aria-label="E-mail" autocomplete="email">
+                    <input type="text" name="cpf" placeholder="CPF" required aria-label="CPF" inputmode="numeric" maxlength="14" autocomplete="off">
+                    <input type="tel" name="telefone" placeholder="Telefone com DDD" required aria-label="Telefone com DDD" inputmode="numeric" maxlength="15" autocomplete="tel-national">
+                    <label class="newsletter-consent">
+                        <input type="checkbox" name="consentimento" required>
+                        <span>Concordo em receber promoções da Grand Cru Copacabana por e-mail, WhatsApp e SMS, e autorizo o uso destes dados (e-mail, CPF e telefone) para esse fim, conforme a LGPD. Posso cancelar quando quiser.</span>
+                    </label>
+                    <button type="submit" class="btn btn-primary">Cadastrar</button>
                 </form>
             </div>
         </div>
@@ -349,39 +385,27 @@
             <div class="footer-content">
                 <div class="footer-section footer-brand">
                     <a href="#home" class="logo">
-                        <span class="logo-icon">🍷</span>
-                        <span class="logo-text">Vinhos Premium</span>
+                        <img class="logo-img" src="assets/logo-grand-cru.png" alt="Grand Cru" width="389" height="109" loading="lazy">
                     </a>
-                    <p>Curadoria de rótulos do Douro ao Vale do Napa, com entrega para todo o Brasil.</p>
+                    <p data-site="rodape.texto">Curadoria de rótulos do Douro ao Vale do Napa, com entrega para todo o Brasil.</p>
                 </div>
                 <div class="footer-section">
-                    <h4>Sobre</h4>
+                    <h4>Grand Cru</h4>
                     <ul>
                         <li><a href="#sobre">Quem somos</a></li>
-                        <li><a href="#">Blog</a></li>
-                        <li><a href="#">Carreiras</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Suporte</h4>
-                    <ul>
-                        <li><a href="#">Perguntas frequentes</a></li>
                         <li><a href="#contato">Contato</a></li>
-                        <li><a href="#">Política de trocas</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Legal</h4>
-                    <ul>
-                        <li><a href="#">Termos de serviço</a></li>
-                        <li><a href="#">Privacidade</a></li>
-                        <li><a href="#">Cookies</a></li>
+                        <li data-site-instagram>
+                            <a class="footer-instagram" data-site-instagram-link href="https://www.instagram.com/grandcrurio/" target="_blank" rel="noopener">
+                                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></svg>
+                                <span data-site-instagram-texto>@grandcrurio</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Vinhos Premium. Todos os direitos reservados.</p>
-                <p>Beba com moderação · Venda proibida para menores de 18 anos</p>
+                <p>&copy; 2026 <span data-site="nomeLoja">Grand Cru Copacabana</span>. Todos os direitos reservados.</p>
+                <p data-site="rodape.aviso">Beba com moderação · Venda proibida para menores de 18 anos</p>
             </div>
         </div>
     </footer>
@@ -398,6 +422,56 @@
             </div>
             <div class="modal-body">
                 <div id="cartItems" class="cart-items"></div>
+
+                <form class="checkout-customer" id="checkoutCustomer" novalidate>
+                    <p class="checkout-customer-title">Seus dados para o pedido</p>
+                    <div class="checkout-customer-fields">
+                        <div class="field">
+                            <label for="checkoutNome">Nome</label>
+                            <input type="text" id="checkoutNome" name="nome" required maxlength="120" autocomplete="name" placeholder="Seu nome">
+                        </div>
+                        <div class="field">
+                            <label for="checkoutTelefone">Telefone / WhatsApp</label>
+                            <input type="tel" id="checkoutTelefone" name="telefone" required maxlength="15" inputmode="numeric" autocomplete="tel-national" placeholder="(21) 99999-9999">
+                        </div>
+                    </div>
+
+                    <p class="checkout-customer-title">Endereço de entrega</p>
+                    <div class="checkout-customer-fields checkout-address">
+                        <div class="field">
+                            <label for="checkoutCep">CEP</label>
+                            <input type="text" id="checkoutCep" name="cep" required maxlength="9" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000">
+                        </div>
+                        <div class="field">
+                            <label for="checkoutNumero">Número</label>
+                            <input type="text" id="checkoutNumero" name="numero" required maxlength="20" placeholder="123">
+                        </div>
+                        <div class="field field-wide">
+                            <label for="checkoutRua">Rua / Avenida</label>
+                            <input type="text" id="checkoutRua" name="rua" required maxlength="160" autocomplete="address-line1" placeholder="Rua, avenida...">
+                        </div>
+                        <div class="field field-wide">
+                            <label for="checkoutComplemento">Complemento <span class="field-optional">(opcional)</span></label>
+                            <input type="text" id="checkoutComplemento" name="complemento" maxlength="80" autocomplete="address-line2" placeholder="Apto, bloco, referência">
+                        </div>
+                    </div>
+
+                    <p class="checkout-customer-title" id="checkoutPagamentoTitulo">Forma de pagamento</p>
+                    <div class="payment-options" role="radiogroup" aria-labelledby="checkoutPagamentoTitulo">
+                        <label class="payment-option">
+                            <input type="radio" name="pagamento" value="credito" required>
+                            <span>💳 Cartão de crédito</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="pagamento" value="debito">
+                            <span>💳 Cartão de débito</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="pagamento" value="pix">
+                            <span>⚡ Pix</span>
+                        </label>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
                 <div class="cart-total">
@@ -418,181 +492,6 @@
         </div>
     </div>
 
-    <!-- Gestão do catálogo -->
-    <div class="modal" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
-        <div class="modal-content catalog-admin-modal">
-            <div class="modal-header">
-                <div>
-                    <span class="eyebrow">Área administrativa</span>
-                    <h2 id="adminModalTitle">Gerenciar catálogo</h2>
-                    <p id="adminModalSubtitle">Acesso exclusivo para administradores.</p>
-                </div>
-                <div class="modal-header-actions">
-                    <button class="btn btn-ghost btn-sm hidden" id="logoutAdmin" type="button">Sair</button>
-                    <button class="close-btn" id="closeAdmin" aria-label="Fechar">&times;</button>
-                </div>
-            </div>
-
-            <div class="modal-body">
-                <div id="adminLoginView" class="admin-login">
-                    <div class="admin-login-icon" aria-hidden="true">🔐</div>
-                    <h3>Entrar na administração</h3>
-                    <p>Use as credenciais administrativas da loja para gerenciar o catálogo.</p>
-                    <form id="adminLoginForm">
-                        <div class="field">
-                            <label for="adminUsername">Usuário</label>
-                            <input type="text" id="adminUsername" required autocomplete="username">
-                        </div>
-                        <div class="field">
-                            <label for="adminPassword">Senha administrativa</label>
-                            <input type="password" id="adminPassword" required autocomplete="current-password">
-                        </div>
-                        <p id="adminLoginFeedback" class="form-feedback" role="alert" aria-live="polite"></p>
-                        <button class="btn btn-primary btn-block" id="adminLoginButton" type="submit">Entrar</button>
-                    </form>
-                </div>
-
-                <div data-admin-environment role="status"></div>
-                <div id="adminCatalogView" class="admin-layout hidden">
-                    <section class="admin-catalog-panel" aria-labelledby="adminListTitle">
-                    <div class="admin-panel-head">
-                        <div>
-                            <h3 id="adminListTitle">Rótulos cadastrados</h3>
-                            <span id="adminListCount" class="field-hint"></span>
-                        </div>
-                        <button class="btn btn-primary btn-sm" id="newWineBtn" type="button">+ Novo vinho</button>
-                    </div>
-                    <div data-admin-image-tools></div>
-                    <div id="adminWineList" class="admin-wine-list"></div>
-                    </section>
-
-                    <section class="admin-editor-panel" aria-labelledby="wineFormTitle">
-                    <div class="admin-panel-head">
-                        <div>
-                            <h3 id="wineFormTitle">Novo vinho</h3>
-                            <span class="field-hint">Os campos marcados com * são obrigatórios.</span>
-                        </div>
-                    </div>
-
-                    <form id="wineForm" class="wine-form" novalidate>
-                        <input type="hidden" id="wineId">
-
-                        <div class="field field-full">
-                            <label for="wineName">Nome do vinho *</label>
-                            <input type="text" id="wineName" name="nome" required maxlength="160"
-                                placeholder="Ex.: Quinta do Crasto Reserva">
-                        </div>
-
-                        <div class="field">
-                            <label for="wineType">Tipo *</label>
-                            <input type="text" id="wineType" name="tipo" list="tiposVinho" required
-                                maxlength="60" placeholder="Ex.: Tinto">
-                            <datalist id="tiposVinho">
-                                <option value="Tinto"></option>
-                                <option value="Branco"></option>
-                                <option value="Rosé"></option>
-                                <option value="Espumante"></option>
-                                <option value="Sobremesa"></option>
-                            </datalist>
-                        </div>
-
-                        <div class="field">
-                            <label for="wineRegion">Região *</label>
-                            <input type="text" id="wineRegion" name="regiao" list="listaRegioes" required
-                                maxlength="120" placeholder="Ex.: Douro, Portugal">
-                        </div>
-
-                        <div class="field field-full">
-                            <label for="wineGrapes">Uvas</label>
-                            <input type="text" id="wineGrapes" name="uvas" maxlength="200"
-                                placeholder="Ex.: Cabernet Sauvignon, Merlot">
-                            <span class="field-hint">Separe mais de uma uva por vírgula.</span>
-                        </div>
-
-                        <div class="field">
-                            <label for="wineVintage">Safra *</label>
-                            <input type="number" id="wineVintage" name="safra" required min="1000"
-                                max="2100" step="1" inputmode="numeric" placeholder="2022">
-                        </div>
-
-                        <div class="field">
-                            <label for="winePrice">Preço (R$) *</label>
-                            <input type="number" id="winePrice" name="preco" required min="0" max="99999999"
-                                step="0.01" inputmode="decimal" placeholder="89,90">
-                        </div>
-
-                        <div class="field">
-                            <label for="wineRating">Avaliação</label>
-                            <input type="number" id="wineRating" name="avaliacao" min="0" max="5"
-                                step="0.1" inputmode="decimal" value="0" placeholder="4,5">
-                            <span class="field-hint">De 0 a 5 estrelas.</span>
-                        </div>
-
-                        <div class="field">
-                            <label for="wineAlcohol">Teor alcoólico</label>
-                            <input type="text" id="wineAlcohol" name="alcool" maxlength="40"
-                                placeholder="Ex.: 14,5%">
-                        </div>
-
-                        <div class="field field-full">
-                            <label for="wineProduction">País / produção</label>
-                            <input type="text" id="wineProduction" name="producao" maxlength="120"
-                                placeholder="Ex.: Portugal">
-                        </div>
-
-                        <div class="field field-full">
-                            <label for="wineDescription">Descrição *</label>
-                            <textarea id="wineDescription" name="descricao" required maxlength="1000"
-                                placeholder="Conte o que torna este rótulo especial." rows="4"></textarea>
-                        </div>
-
-                        <div class="form-divider">Imagem do rótulo</div>
-
-                        <div class="field field-full">
-                            <div class="image-uploader">
-                                <div class="image-preview" id="wineImagePreview" aria-label="Prévia da imagem do vinho">
-                                    🍷
-                                </div>
-                                <div class="image-controls">
-                                    <label for="wineImageFile" class="file-label">
-                                        Escolher imagem
-                                        <input type="file" id="wineImageFile" accept="image/*">
-                                    </label>
-                                    <input type="url" id="wineImageUrl" name="imagem"
-                                        placeholder="Ou cole a URL da imagem">
-                                    <div class="image-buttons">
-                                        <button class="btn btn-ghost btn-sm" id="removeWineImage" type="button">
-                                            Remover imagem
-                                        </button>
-                                    </div>
-                                    <span class="field-hint" id="wineImageHint">
-                                        JPG, PNG ou WebP. Imagens grandes são reduzidas automaticamente.
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <label class="switch field-full" for="wineFeatured">
-                            <input type="checkbox" id="wineFeatured" name="destaque">
-                            <span class="switch-text">
-                                <strong>Marcar como destaque</strong>
-                                <span>Exibir este vinho na seleção da casa.</span>
-                            </span>
-                        </label>
-
-                        <p id="wineFormFeedback" class="form-feedback field-full" role="alert" aria-live="polite"></p>
-
-                        <div class="admin-form-actions field-full">
-                            <button class="btn btn-secondary" id="cancelWineEdit" type="button">Limpar</button>
-                            <button class="btn btn-primary" id="saveWineBtn" type="submit">Adicionar vinho</button>
-                        </div>
-                    </form>
-                    </section>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Toast -->
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -600,6 +499,5 @@
     <script src="js/carrinho.js"></script>
     <script src="js/vinhos.js"></script>
     <script src="js/app.js"></script>
-    <script src="js/admin-sync.js"></script>
 </body>
 </html>

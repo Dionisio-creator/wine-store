@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 
 echo ===============================================
-echo   Vinhos Premium - modo de teste local
+echo   Grand Cru Copacabana - modo de teste local
 echo ===============================================
 echo.
 echo Isso abre uma copia do site so no seu computador,
@@ -25,7 +25,7 @@ set SESSION_SECRET=chave-local-de-teste
 set PORT=5050
 
 echo Iniciando o site numa janela separada...
-start "Vinhos Premium - servidor local (feche esta janela para PARAR o site)" cmd /k "node server.js"
+start "Grand Cru Copacabana - servidor local (feche esta janela para PARAR o site)" cmd /k "node --watch server.js"
 
 timeout /t 2 /nobreak >nul
 start "" http://localhost:5050

@@ -52,6 +52,14 @@
     box-shadow: var(--shadow-xs);
 }
 
+.logo-img {
+    display: block;
+    height: 40px;
+    width: auto;
+    border-radius: 8px;
+    box-shadow: var(--shadow-xs);
+}
+
 .header-search {
     display: flex;
     align-items: center;
@@ -96,6 +104,17 @@
     align-items: center;
     gap: 0.4rem;
     margin-left: auto;
+}
+
+/* Botão do WhatsApp no topo (ao lado do carrinho), sempre visível */
+.icon-btn.header-whatsapp {
+    background-color: #25d366;
+    color: #fff;
+}
+
+.icon-btn.header-whatsapp:hover {
+    background-color: #1ebe5b;
+    color: #fff;
 }
 
 .icon-btn {
@@ -983,6 +1002,15 @@
     align-items: center;
 }
 
+.about-logo {
+    display: block;
+    width: min(260px, 70%);
+    height: auto;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
 .about-text p {
     font-size: 1.02rem;
     color: var(--text-muted);
@@ -990,6 +1018,88 @@
 
 .about-text p + p {
     margin-top: 1rem;
+}
+
+.about-text strong {
+    color: var(--text);
+}
+
+.info-item a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Bloco do Instagram: o item inteiro é um link que abre o perfil */
+a.info-item-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+a.info-item-link p {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+a.info-item-link:hover p {
+    text-decoration: underline;
+}
+
+.instagram-icon {
+    border: 0;
+    color: #fff;
+    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+    transition: transform var(--transition);
+}
+
+a.info-item-link:hover .instagram-icon {
+    transform: scale(1.06);
+}
+
+/* .info-icon.xxx para vencer o fundo padrão de .info-icon, definido mais abaixo */
+.info-icon.whatsapp-icon {
+    border: 0;
+    color: #fff;
+    background: #25d366;
+}
+
+.info-icon.maps-icon {
+    background: #fff;
+}
+
+.info-icon.hours-icon {
+    border: 0;
+    color: #2a2109;
+    background: var(--gold-500);
+}
+
+.info-icon.email-icon {
+    background: #fff;
+}
+
+a.info-item-link:hover .info-icon {
+    transform: scale(1.06);
+}
+
+.info-icon {
+    transition: transform var(--transition);
+}
+
+.footer-instagram {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.info-item a:hover {
+    color: var(--primary);
+}
+
+.about-text .about-tagline {
+    margin-top: 1.5rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--primary);
+    font-family: var(--font-display, inherit);
+    font-size: 1.1rem;
 }
 
 .about-stats {
@@ -1033,16 +1143,25 @@
     border-top: 1px solid var(--border);
 }
 
-.contact-content {
+.contact-info {
     display: grid;
-    grid-template-columns: 0.85fr 1.15fr;
-    gap: clamp(2rem, 5vw, 4rem);
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
 }
 
-.contact-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+.contact-info .info-item {
+    align-items: center;
+    padding: 1.1rem 1.2rem;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.contact-info a.info-item-link:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-sm);
 }
 
 .info-item {
@@ -1071,26 +1190,6 @@
 .info-item p {
     font-size: 0.9rem;
     color: var(--text-muted);
-}
-
-.contact-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    padding: clamp(1.5rem, 3vw, 2rem);
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xs);
-}
-
-.contact-form .field-full,
-.contact-form button {
-    grid-column: 1 / -1;
-}
-
-.contact-form button {
-    justify-self: start;
 }
 
 /* ============================================
@@ -1124,14 +1223,41 @@
 }
 
 .newsletter-form {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.6rem;
-    max-width: 460px;
+    max-width: 520px;
     margin: 0 auto;
 }
 
+.newsletter-form .newsletter-email,
+.newsletter-form .newsletter-consent,
+.newsletter-form .btn {
+    grid-column: 1 / -1;
+}
+
+.newsletter-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin: 0.2rem 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    text-align: left;
+    cursor: pointer;
+}
+
+.newsletter-consent input {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: var(--gold-500);
+}
+
 .newsletter-form input {
-    flex: 1;
+    min-width: 0;
     border-radius: var(--radius-full);
     background-color: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.24);
@@ -1169,7 +1295,7 @@
 
 .footer-content {
     display: grid;
-    grid-template-columns: 1.4fr repeat(3, 1fr);
+    grid-template-columns: 2fr 1fr;
     gap: 2rem;
     margin-bottom: 2.5rem;
 }
@@ -1227,8 +1353,7 @@
         grid-template-columns: 1fr;
     }
 
-    .about-content,
-    .contact-content {
+    .about-content {
         grid-template-columns: 1fr;
     }
 
@@ -1288,12 +1413,8 @@
         gap: 1rem;
     }
 
-    .contact-form {
-        grid-template-columns: 1fr;
-    }
-
     .newsletter-form {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 
     .about-stats {

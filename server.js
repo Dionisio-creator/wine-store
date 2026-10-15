@@ -14,11 +14,21 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_COOKIE = 'vinhos_admin';
 const ADMIN_SESSION_MS = 8 * 60 * 60 * 1000;
 
+// O Replit fica atrás de um proxy: isso faz req.ip ser o IP do visitante,
+// e não o do proxy (usado pelo limite de cadastros e pedidos).
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '5mb' }));
 app.use('/api', (req, res, next) => {
     res.set('Cache-Control', 'no-store');
     next();
 });
+// Painel administrativo no endereço /admin. O antigo /admin.html (e /admin/)
+// redireciona para cá, para manter um endereço só.
+app.get('/admin', (req, res) => {
+    if (req.path !== '/admin') return res.redirect(301, '/admin');
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+app.get('/admin.html', (req, res) => res.redirect(301, '/admin'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------- SESSÃO ADMINISTRATIVA ----------
@@ -131,6 +141,112 @@ app.get('/api/site-info', (req, res) => {
     });
 });
 
+// ---------- CADASTROS E PEDIDOS ----------
+
+// Limite simples por IP para as rotas públicas que gravam no banco,
+// para ninguém conseguir encher o banco de cadastros ou pedidos falsos.
+function limitarPorIp(maximo, janelaMs) {
+    const acessos = new Map();
+    return (req, res, next) => {
+        const agora = Date.now();
+        const ip = req.ip || 'desconhecido';
+        const recentes = (acessos.get(ip) || []).filter(t => agora - t < janelaMs);
+        if (recentes.length >= maximo) {
+            return res.status(429).json({ erro: 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' });
+        }
+        recentes.push(agora);
+        acessos.set(ip, recentes);
+        if (acessos.size > 5000) acessos.clear();
+        next();
+    };
+}
+
+// ---------- INFORMAÇÕES DO SITE (endereço, contato, sobre nós...) ----------
+
+app.get('/api/site', async (req, res) => {
+    try {
+        res.json(await db.obterInformacoesSite());
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Não foi possível carregar as informações do site.' });
+    }
+});
+
+app.put('/api/admin/site', exigirAdmin, async (req, res) => {
+    try {
+        res.json(await db.salvarInformacoesSite(req.body));
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
+
+app.post('/api/clientes', limitarPorIp(10, 10 * 60 * 1000), async (req, res) => {
+    try {
+        await db.cadastrarCliente(req.body);
+        res.status(201).json({ ok: true });
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
+
+app.post('/api/pedidos', limitarPorIp(20, 10 * 60 * 1000), async (req, res) => {
+    try {
+        const pedido = await db.registrarPedido(
+            req.body?.itens, req.body?.cliente, req.body?.endereco, req.body?.pagamento
+        );
+        res.status(201).json({ id: pedido.id });
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
+
+app.get('/api/admin/clientes', exigirAdmin, async (req, res) => {
+    try {
+        res.json(await db.listarClientes());
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Não foi possível carregar os cadastros.' });
+    }
+});
+
+app.patch('/api/admin/clientes/:id', exigirAdmin, async (req, res) => {
+    try {
+        const cliente = await db.marcarClienteSalvo(Number(req.params.id), req.body?.salvo === true);
+        if (!cliente) return res.status(404).json({ erro: 'Cadastro não encontrado.' });
+        res.json(cliente);
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Não foi possível atualizar o cadastro.' });
+    }
+});
+
+// ?data=AAAA-MM-DD → pedidos daquele dia no horário de Brasília
+app.get('/api/admin/pedidos', exigirAdmin, async (req, res) => {
+    const data = String(req.query.data || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+        return res.status(400).json({ erro: 'Informe a data no formato AAAA-MM-DD.' });
+    }
+    const inicio = new Date(`${data}T00:00:00-03:00`);
+    if (Number.isNaN(inicio.getTime())) return res.status(400).json({ erro: 'Data inválida.' });
+    const fim = new Date(inicio.getTime() + 24 * 60 * 60 * 1000);
+    try {
+        res.json(await db.listarPedidos(inicio, fim));
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Não foi possível carregar os pedidos.' });
+    }
+});
+
+app.patch('/api/admin/pedidos/:id', exigirAdmin, async (req, res) => {
+    try {
+        const pedido = await db.atualizarStatusPedido(Number(req.params.id), req.body?.status);
+        if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
+        res.json(pedido);
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
+
 app.post('/api/admin/importar-imagens', exigirAdmin, async (req, res) => {
     try {
         res.json(await db.importarImagens(req.body?.vinhos));
@@ -236,7 +352,7 @@ app.post('/api/vinhos/restaurar', exigirAdmin, async (req, res) => {
 db.iniciar()
     .then(() => {
         app.listen(PORT, '0.0.0.0', () => {
-            console.log(`Vinhos Premium rodando em http://localhost:${PORT}`);
+            console.log(`Grand Cru Copacabana rodando em http://localhost:${PORT}`);
         });
     })
     .catch(erro => {

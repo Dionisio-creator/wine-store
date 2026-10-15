@@ -3,7 +3,7 @@
 // ============================================
 
 const APP_VERSION = '2.0.0';
-const APP_NAME = 'Vinhos Premium';
+const APP_NAME = 'Grand Cru Copacabana';
 const TEMA_KEY = 'vinhos-tema';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,9 +14,96 @@ document.addEventListener('DOMContentLoaded', () => {
     configurarCategoriaNav();
     configurarFiltrosDropdown();
     configurarCarrossel();
+    carregarInformacoesSite();
 
     console.log(`${APP_NAME} v${APP_VERSION} carregado com sucesso!`);
 });
+
+// ============================================
+// INFORMAÇÕES DO SITE (editadas no admin)
+// ============================================
+// O HTML já vem com os textos padrão; aqui eles são trocados pelo que foi
+// salvo no admin, nos elementos marcados com data-site*.
+
+function valorDaChave(objeto, caminho) {
+    return caminho.split('.').reduce((atual, parte) => atual?.[parte], objeto);
+}
+
+function escaparTexto(texto) {
+    return String(texto)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+// **negrito** e *itálico*, depois de escapar o HTML
+function textoFormatado(texto) {
+    return escaparTexto(texto)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+
+function aplicarInformacoesSite(site) {
+    document.querySelectorAll('[data-site]').forEach(el => {
+        const valor = valorDaChave(site, el.dataset.site);
+        if (typeof valor !== 'string') return;
+        el.textContent = valor;
+    });
+    document.querySelectorAll('[data-site-formatado]').forEach(el => {
+        const valor = valorDaChave(site, el.dataset.siteFormatado);
+        if (typeof valor === 'string') el.innerHTML = textoFormatado(valor);
+    });
+    document.querySelectorAll('[data-site-linhas]').forEach(el => {
+        const valor = valorDaChave(site, el.dataset.siteLinhas);
+        if (typeof valor === 'string') el.innerHTML = valor.split('\n').map(escaparTexto).join('<br>');
+    });
+    document.querySelectorAll('[data-site-paragrafos]').forEach(el => {
+        const valor = valorDaChave(site, el.dataset.siteParagrafos);
+        if (typeof valor !== 'string') return;
+        el.innerHTML = valor.split(/\n\s*\n/)
+            .map(paragrafo => paragrafo.trim())
+            .filter(Boolean)
+            .map(paragrafo => `<p>${textoFormatado(paragrafo).replace(/\n/g, '<br>')}</p>`)
+            .join('');
+    });
+
+    // Instagram: aceita "@perfil", "perfil" ou o link completo
+    const instagram = String(site.contato?.instagram || '').trim()
+        .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').replace(/[/?#].*$/, '');
+    document.querySelectorAll('[data-site-instagram]').forEach(el => el.classList.toggle('hidden', !instagram));
+    if (instagram) {
+        document.querySelectorAll('[data-site-instagram-link]').forEach(el => {
+            el.href = `https://www.instagram.com/${encodeURIComponent(instagram)}/`;
+        });
+        document.querySelectorAll('[data-site-instagram-texto]').forEach(el => {
+            el.textContent = `@${instagram}`;
+        });
+    }
+
+    const whatsapp = String(site.contato?.whatsapp || '').replace(/\D/g, '');
+    if (whatsapp.length >= 10) WHATSAPP_LOJA = whatsapp.startsWith('55') && whatsapp.length > 11 ? whatsapp : `55${whatsapp}`;
+
+    // Blocos clicáveis da seção de contato
+    const links = {
+        // Nome da loja + endereço: o Google Maps encontra a ficha da loja
+        maps: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            [site.nomeLoja, site.contato?.endereco].filter(Boolean).join(', ')
+        )}`,
+        whatsapp: `https://wa.me/${WHATSAPP_LOJA}`,
+        email: `mailto:${site.contato?.email || ''}`
+    };
+    document.querySelectorAll('[data-contato-link]').forEach(el => {
+        el.href = links[el.dataset.contatoLink];
+    });
+}
+
+async function carregarInformacoesSite() {
+    try {
+        const resposta = await fetch('/api/site', { cache: 'no-store' });
+        if (resposta.ok) aplicarInformacoesSite(await resposta.json());
+    } catch {
+        // Sem conexão com o servidor, ficam os textos padrão do HTML
+    }
+}
 
 // ============================================
 // TEMA CLARO / ESCURO
@@ -241,23 +328,94 @@ function configurarCarrossel() {
 // ============================================
 
 function configurarFormularios() {
-    const contactForm = document.getElementById('contactForm');
-    if (contactForm) {
-        contactForm.addEventListener('submit', event => {
-            event.preventDefault();
-            mostrarToast('Mensagem enviada com sucesso!', 'success');
-            contactForm.reset();
-        });
-    }
 
     const newsletterForm = document.getElementById('newsletterForm');
     if (newsletterForm) {
-        newsletterForm.addEventListener('submit', event => {
+        const campoCpf = newsletterForm.elements.cpf;
+        const campoTelefone = newsletterForm.elements.telefone;
+
+        campoCpf.addEventListener('input', () => {
+            campoCpf.value = mascararCpf(campoCpf.value);
+            campoCpf.setCustomValidity('');
+        });
+        campoTelefone.addEventListener('input', () => {
+            campoTelefone.value = mascararTelefone(campoTelefone.value);
+            campoTelefone.setCustomValidity('');
+        });
+
+        newsletterForm.addEventListener('submit', async event => {
             event.preventDefault();
-            mostrarToast('Inscrição confirmada! Verifique seu e-mail.', 'success');
-            newsletterForm.reset();
+            if (!cpfValido(campoCpf.value)) {
+                campoCpf.setCustomValidity('Informe um CPF válido.');
+                campoCpf.reportValidity();
+                return;
+            }
+            const digitosTelefone = campoTelefone.value.replace(/\D/g, '');
+            if (digitosTelefone.length < 10) {
+                campoTelefone.setCustomValidity('Informe o telefone com DDD.');
+                campoTelefone.reportValidity();
+                return;
+            }
+            const botao = newsletterForm.querySelector('button[type="submit"]');
+            botao.disabled = true;
+            try {
+                const resposta = await fetch('/api/clientes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: newsletterForm.elements.email.value,
+                        cpf: campoCpf.value,
+                        telefone: campoTelefone.value,
+                        consentimento: newsletterForm.elements.consentimento.checked
+                    })
+                });
+                if (!resposta.ok) {
+                    const corpo = await resposta.json().catch(() => ({}));
+                    throw new Error(corpo.erro || 'Não foi possível concluir o cadastro. Tente novamente.');
+                }
+                mostrarToast('Cadastro concluído! Você vai receber nossas promoções no seu e-mail.', 'success');
+                newsletterForm.reset();
+            } catch (erro) {
+                mostrarToast(erro.message, 'error');
+            } finally {
+                botao.disabled = false;
+            }
         });
     }
+}
+
+// ============================================
+// CADASTRO (CPF E TELEFONE)
+// ============================================
+
+// 12345678901 → 123.456.789-01
+function mascararCpf(valor) {
+    return valor.replace(/\D/g, '').slice(0, 11)
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+}
+
+// 21999998888 → (21) 99999-8888  |  2133334444 → (21) 3333-4444
+function mascararTelefone(valor) {
+    const d = valor.replace(/\D/g, '').slice(0, 11);
+    if (d.length <= 2) return d.length ? `(${d}` : '';
+    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    const meio = d.length === 11 ? 7 : 6;
+    return `(${d.slice(0, 2)}) ${d.slice(2, meio)}-${d.slice(meio)}`;
+}
+
+// Confere os dois dígitos verificadores do CPF
+function cpfValido(valor) {
+    const d = valor.replace(/\D/g, '');
+    if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+    for (const tamanho of [9, 10]) {
+        let soma = 0;
+        for (let i = 0; i < tamanho; i++) soma += Number(d[i]) * (tamanho + 1 - i);
+        const digito = (soma * 10) % 11 % 10;
+        if (digito !== Number(d[tamanho])) return false;
+    }
+    return true;
 }
 
 // ============================================

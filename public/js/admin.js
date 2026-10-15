@@ -36,7 +36,8 @@ async function requisicao(url, opcoes = {}) {
         ...opcoes,
         headers: {
             ...(opcoes.body ? { 'Content-Type': 'application/json' } : {}),
-            ...(metodo !== 'GET' && estadoAdmin.csrfToken
+            // As rotas /api/admin/* exigem o token também nas consultas (GET)
+            ...(estadoAdmin.csrfToken
                 ? { 'X-CSRF-Token': estadoAdmin.csrfToken }
                 : {}),
             ...(opcoes.headers || {})
@@ -68,6 +69,8 @@ function mostrarLogin(mensagem = '') {
 function mostrarDashboard() {
     $('#loginPanel').classList.add('hidden');
     $('#dashboard').classList.remove('hidden');
+    // Avisa as abas de Clientes e Pedidos (admin-vendas.js) para carregarem
+    document.dispatchEvent(new CustomEvent('admin-autenticado'));
 }
 
 function definirMensagem(id, mensagem = '', tipo = '') {

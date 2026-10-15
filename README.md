@@ -1,4 +1,4 @@
-# 🍷 Vinhos Premium - Site de Vinhos
+# 🍷 Grand Cru Copacabana - Site de Vinhos
 
 Site de loja de vinhos com backend em Node.js/Express e catálogo persistido
 em PostgreSQL — pensado para rodar no Replit, onde o banco é provisionado

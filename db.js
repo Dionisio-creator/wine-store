@@ -54,6 +54,40 @@ const CRIAR_TABELA = `
     );
 `;
 
+// Cadastros feitos pelo formulário "Conclua seu cadastro" da loja.
+// "salvo" marca que o vendedor já passou o cadastro para o outro sistema.
+const CRIAR_TABELA_CLIENTES = `
+    CREATE TABLE IF NOT EXISTS clientes (
+        id SERIAL PRIMARY KEY,
+        email TEXT NOT NULL,
+        cpf TEXT NOT NULL,
+        telefone TEXT NOT NULL,
+        salvo BOOLEAN NOT NULL DEFAULT false,
+        salvo_em TIMESTAMPTZ,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+`;
+
+// Pedidos enviados pelo carrinho (os mesmos que vão para o WhatsApp).
+const CRIAR_TABELA_PEDIDOS = `
+    CREATE TABLE IF NOT EXISTS pedidos (
+        id SERIAL PRIMARY KEY,
+        itens JSONB NOT NULL DEFAULT '[]',
+        total NUMERIC(10,2) NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'novo',
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+`;
+
+// Textos e informações do site editados pelo admin (uma linha por chave).
+const CRIAR_TABELA_CONFIGURACOES = `
+    CREATE TABLE IF NOT EXISTS configuracoes (
+        chave TEXT PRIMARY KEY,
+        valor JSONB NOT NULL,
+        atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+`;
+
 // Adiciona a coluna "uvas" em bancos que já existiam antes dela ser criada.
 const MIGRAR_COLUNA_UVAS = `
     ALTER TABLE ${tabela} ADD COLUMN IF NOT EXISTS uvas TEXT NOT NULL DEFAULT '';
@@ -82,6 +116,15 @@ function linhaParaVinho(linha) {
 async function iniciar() {
     await pool.query(CRIAR_TABELA);
     await pool.query(MIGRAR_COLUNA_UVAS);
+    await pool.query(CRIAR_TABELA_CLIENTES);
+    await pool.query(CRIAR_TABELA_PEDIDOS);
+    await pool.query(CRIAR_TABELA_CONFIGURACOES);
+    // Colunas adicionadas depois da criação das tabelas
+    await pool.query('ALTER TABLE clientes ADD COLUMN IF NOT EXISTS consentimento_em TIMESTAMPTZ');
+    await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_nome TEXT NOT NULL DEFAULT ''`);
+    await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_telefone TEXT NOT NULL DEFAULT ''`);
+    await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS pagamento TEXT NOT NULL DEFAULT ''`);
+    await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS endereco JSONB`);
 
     const { rows } = await pool.query(`SELECT COUNT(*)::int AS total FROM ${tabela}`);
     if (rows[0].total === 0) {
@@ -292,7 +335,234 @@ async function restaurarCatalogo() {
     return listarVinhos();
 }
 
+// ---------- CLIENTES (cadastros da loja) ----------
+
+function cpfValido(cpf) {
+    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+    for (const tamanho of [9, 10]) {
+        let soma = 0;
+        for (let i = 0; i < tamanho; i++) soma += Number(cpf[i]) * (tamanho + 1 - i);
+        if ((soma * 10) % 11 % 10 !== Number(cpf[tamanho])) return false;
+    }
+    return true;
+}
+
+function linhaParaCliente(linha) {
+    return {
+        id: linha.id,
+        email: linha.email,
+        cpf: linha.cpf,
+        telefone: linha.telefone,
+        salvo: linha.salvo,
+        salvoEm: linha.salvo_em,
+        consentimentoEm: linha.consentimento_em,
+        criadoEm: linha.criado_em
+    };
+}
+
+async function cadastrarCliente(dados) {
+    const email = String(dados?.email || '').trim().toLowerCase();
+    const cpf = String(dados?.cpf || '').replace(/\D/g, '');
+    const telefone = String(dados?.telefone || '').replace(/\D/g, '');
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 160) {
+        throw new Error('Informe um e-mail válido.');
+    }
+    if (!cpfValido(cpf)) throw new Error('Informe um CPF válido.');
+    if (telefone.length < 10 || telefone.length > 11) {
+        throw new Error('Informe o telefone com DDD.');
+    }
+    // LGPD: só guarda os dados com o consentimento explícito do cliente
+    if (dados?.consentimento !== true) {
+        throw new Error('É preciso concordar com o uso dos dados para concluir o cadastro.');
+    }
+
+    // O mesmo CPF não vira um cadastro duplicado: se os dados mudaram,
+    // atualiza e volta para "pendente", para o vendedor passar de novo.
+    const { rows } = await pool.query('SELECT * FROM clientes WHERE cpf = $1', [cpf]);
+    if (rows[0]) {
+        if (rows[0].email === email && rows[0].telefone === telefone) {
+            return linhaParaCliente(rows[0]);
+        }
+        const atualizado = await pool.query(
+            `UPDATE clientes SET email = $1, telefone = $2, salvo = false, salvo_em = NULL,
+                consentimento_em = now()
+             WHERE id = $3 RETURNING *`,
+            [email, telefone, rows[0].id]
+        );
+        return linhaParaCliente(atualizado.rows[0]);
+    }
+
+    const criado = await pool.query(
+        `INSERT INTO clientes (email, cpf, telefone, consentimento_em)
+         VALUES ($1, $2, $3, now()) RETURNING *`,
+        [email, cpf, telefone]
+    );
+    return linhaParaCliente(criado.rows[0]);
+}
+
+async function listarClientes() {
+    const { rows } = await pool.query('SELECT * FROM clientes ORDER BY criado_em DESC, id DESC');
+    return rows.map(linhaParaCliente);
+}
+
+async function marcarClienteSalvo(id, salvo) {
+    const { rows } = await pool.query(
+        `UPDATE clientes SET salvo = $1, salvo_em = ${salvo ? 'now()' : 'NULL'}
+         WHERE id = $2 RETURNING *`,
+        [Boolean(salvo), id]
+    );
+    return rows[0] ? linhaParaCliente(rows[0]) : null;
+}
+
+// ---------- PEDIDOS (carrinho → WhatsApp) ----------
+
+const STATUS_PEDIDO = ['novo', 'confirmado', 'cancelado'];
+
+function linhaParaPedido(linha) {
+    return {
+        id: linha.id,
+        itens: linha.itens,
+        total: Number(linha.total),
+        clienteNome: linha.cliente_nome,
+        clienteTelefone: linha.cliente_telefone,
+        pagamento: linha.pagamento,
+        endereco: linha.endereco,
+        status: linha.status,
+        criadoEm: linha.criado_em
+    };
+}
+
+// Os preços vêm sempre do catálogo no banco, nunca do navegador.
+const FORMAS_PAGAMENTO = ['credito', 'debito', 'pix'];
+
+// Endereço de entrega: limpa os campos e confere os obrigatórios
+function validarEndereco(dados) {
+    const texto = (valor, maximo) => String(valor || '').trim().replace(/\s+/g, ' ').slice(0, maximo);
+    const endereco = {
+        cep: String(dados?.cep || '').replace(/\D/g, ''),
+        rua: texto(dados?.rua, 160),
+        numero: texto(dados?.numero, 20),
+        complemento: texto(dados?.complemento, 80)
+    };
+    if (endereco.cep.length !== 8) throw new Error('Informe o CEP.');
+    if (endereco.rua.length < 2) throw new Error('Informe a rua ou avenida.');
+    if (!endereco.numero) throw new Error('Informe o número.');
+    endereco.cep = endereco.cep.replace(/(\d{5})(\d{3})/, '$1-$2');
+    return endereco;
+}
+
+async function registrarPedido(itensRecebidos, cliente, enderecoRecebido, pagamento) {
+    if (!Array.isArray(itensRecebidos) || !itensRecebidos.length || itensRecebidos.length > 50) {
+        throw new Error('O pedido precisa ter de 1 a 50 itens.');
+    }
+    const nome = String(cliente?.nome || '').trim().replace(/\s+/g, ' ');
+    const telefone = String(cliente?.telefone || '').replace(/\D/g, '');
+    if (nome.length < 2 || nome.length > 120) throw new Error('Informe seu nome.');
+    if (telefone.length < 10 || telefone.length > 11) {
+        throw new Error('Informe o telefone com DDD.');
+    }
+    if (!FORMAS_PAGAMENTO.includes(pagamento)) throw new Error('Escolha a forma de pagamento.');
+    const endereco = validarEndereco(enderecoRecebido);
+
+    const itens = [];
+    for (const item of itensRecebidos) {
+        const id = Number(item?.id);
+        const quantidade = Number(item?.quantidade);
+        if (!Number.isInteger(id) || !Number.isInteger(quantidade) || quantidade < 1 || quantidade > 999) {
+            throw new Error('Item do pedido inválido.');
+        }
+        const vinho = await obterVinho(id);
+        if (!vinho) throw new Error('Um dos vinhos do pedido não está mais no catálogo.');
+        itens.push({ id, nome: vinho.nome, preco: vinho.preco, quantidade });
+    }
+
+    const total = itens.reduce((soma, item) => soma + item.preco * item.quantidade, 0);
+    const { rows } = await pool.query(
+        `INSERT INTO pedidos (itens, total, cliente_nome, cliente_telefone, pagamento, endereco)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [JSON.stringify(itens), total.toFixed(2), nome, telefone, pagamento, JSON.stringify(endereco)]
+    );
+    return linhaParaPedido(rows[0]);
+}
+
+// Pedidos feitos entre "inicio" (incluído) e "fim" (não incluído)
+async function listarPedidos(inicio, fim) {
+    const { rows } = await pool.query(
+        `SELECT * FROM pedidos WHERE criado_em >= $1 AND criado_em < $2
+         ORDER BY criado_em DESC, id DESC`,
+        [inicio, fim]
+    );
+    return rows.map(linhaParaPedido);
+}
+
+async function atualizarStatusPedido(id, status) {
+    if (!STATUS_PEDIDO.includes(status)) throw new Error('Status de pedido inválido.');
+    const { rows } = await pool.query(
+        'UPDATE pedidos SET status = $1 WHERE id = $2 RETURNING *',
+        [status, id]
+    );
+    return rows[0] ? linhaParaPedido(rows[0]) : null;
+}
+
+// ---------- INFORMAÇÕES DO SITE ----------
+
+const sitePadrao = require('./site-padrao');
+
+// Encaixa o que veio do admin no formato dos valores padrão: só aceita as
+// chaves que existem lá, com o mesmo tipo, e usa o padrão no que faltar.
+function encaixarNoPadrao(padrao, recebido) {
+    if (Array.isArray(padrao)) {
+        const lista = Array.isArray(recebido) ? recebido : [];
+        return padrao.map((item, i) => encaixarNoPadrao(item, lista[i]));
+    }
+    if (padrao && typeof padrao === 'object') {
+        const objeto = recebido && typeof recebido === 'object' ? recebido : {};
+        const resultado = {};
+        for (const chave of Object.keys(padrao)) {
+            resultado[chave] = encaixarNoPadrao(padrao[chave], objeto[chave]);
+        }
+        return resultado;
+    }
+    if (typeof recebido !== 'string') return padrao;
+    return recebido.replace(/\r\n/g, '\n').trim().slice(0, 3000);
+}
+
+async function obterInformacoesSite() {
+    const { rows } = await pool.query(`SELECT valor FROM configuracoes WHERE chave = 'site'`);
+    return encaixarNoPadrao(sitePadrao, rows[0]?.valor);
+}
+
+async function salvarInformacoesSite(dados) {
+    const site = encaixarNoPadrao(sitePadrao, dados);
+    if (!site.nomeLoja) throw new Error('Informe o nome da loja.');
+    if (site.contato.whatsapp.replace(/\D/g, '').length < 10) {
+        throw new Error('Informe o WhatsApp com DDD — é para ele que os pedidos são enviados.');
+    }
+    const existe = await pool.query(`SELECT 1 FROM configuracoes WHERE chave = 'site'`);
+    if (existe.rows.length) {
+        await pool.query(
+            `UPDATE configuracoes SET valor = $1, atualizado_em = now() WHERE chave = 'site'`,
+            [JSON.stringify(site)]
+        );
+    } else {
+        await pool.query(
+            `INSERT INTO configuracoes (chave, valor) VALUES ('site', $1)`,
+            [JSON.stringify(site)]
+        );
+    }
+    return site;
+}
+
 module.exports = {
+    obterInformacoesSite,
+    salvarInformacoesSite,
+    cadastrarCliente,
+    listarClientes,
+    marcarClienteSalvo,
+    registrarPedido,
+    listarPedidos,
+    atualizarStatusPedido,
     iniciar,
     listarVinhos,
     obterVinho,

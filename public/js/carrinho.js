@@ -110,9 +110,11 @@ function atualizarCarrinhoUI() {
         cartItems.innerHTML = carrinho.map(item => {
             // A imagem vem sempre do catálogo, para o carrinho não guardar base64
             const vinho = catalogoDb.obter(item.id);
-            const imagem = vinho && vinho.imagem
-                ? `<img src="${escaparHtml(vinho.imagem)}" alt="${escaparHtml(item.nome)}">`
-                : '🍷';
+            const imagem = !vinho
+                ? '🍷'
+                : vinho.imagem
+                    ? `<img src="${escaparHtml(vinho.imagem)}" alt="${escaparHtml(item.nome)}">`
+                    : `<img class="garrafa-ilustrada" src="${escaparHtml(garrafaIlustrada(vinho))}" alt="${escaparHtml(item.nome)}">`;
 
             return `
             <div class="cart-item">
@@ -140,6 +142,9 @@ function atualizarCarrinhoUI() {
             `;
         }).join('');
     }
+
+    // Os dados do pedido só aparecem quando há algo no carrinho
+    document.getElementById('checkoutCustomer')?.classList.toggle('hidden', carrinho.length === 0);
 
     // Atualizar total
     cartTotal.textContent = formatarPreco(carrinhoDb.obterTotal());
@@ -192,10 +197,41 @@ function fecharCarrinho() {
     modal.classList.remove('active');
 }
 
-// Número da loja que recebe o pedido pelo WhatsApp (com código do país 55)
-const WHATSAPP_LOJA = '5521989014962';
+// Número da loja que recebe o pedido pelo WhatsApp (com código do país 55).
+// É substituído pelo número salvo no admin (aba "Informações do site").
+let WHATSAPP_LOJA = '5521989014962';
 
-function montarMensagemPedido(carrinho, total) {
+// Nome, telefone e endereço ficam guardados no navegador para a próxima compra
+const CHAVE_DADOS_CLIENTE = 'vinhos-dados-cliente';
+
+const FORMAS_PAGAMENTO = {
+    credito: 'Cartão de crédito',
+    debito: 'Cartão de débito',
+    pix: 'Pix'
+};
+
+// Campos do formulário do carrinho: [id do campo, chave nos dados, obrigatório, aviso]
+const CAMPOS_PEDIDO = [
+    ['checkoutNome', 'nome', true, 'Informe seu nome.'],
+    ['checkoutTelefone', 'telefone', true, 'Informe o telefone com DDD.'],
+    ['checkoutCep', 'cep', true, 'Informe o CEP.'],
+    ['checkoutNumero', 'numero', true, 'Informe o número.'],
+    ['checkoutRua', 'rua', true, 'Informe a rua ou avenida.'],
+    ['checkoutComplemento', 'complemento', false, '']
+];
+
+function mascararCep(valor) {
+    return valor.replace(/\D/g, '').slice(0, 8).replace(/(\d{5})(\d)/, '$1-$2');
+}
+
+function enderecoEmLinhas(endereco) {
+    return [
+        `${endereco.rua}, ${endereco.numero}${endereco.complemento ? ` — ${endereco.complemento}` : ''}`,
+        `CEP ${endereco.cep}`
+    ];
+}
+
+function montarMensagemPedido(carrinho, total, pedido) {
     const linhas = carrinho.map(item =>
         `• ${item.quantidade}x ${item.nome} — ${formatarPreco(item.preco * item.quantidade)}`
     );
@@ -205,8 +241,101 @@ function montarMensagemPedido(carrinho, total) {
         '',
         ...linhas,
         '',
-        `Total: ${formatarPreco(total)}`
+        `Total: ${formatarPreco(total)}`,
+        `Pagamento: ${FORMAS_PAGAMENTO[pedido.pagamento]}`,
+        '',
+        `Nome: ${pedido.cliente.nome}`,
+        `Telefone: ${pedido.cliente.telefone}`,
+        '',
+        'Endereço de entrega:',
+        ...enderecoEmLinhas(pedido.endereco)
     ].join('\n');
+}
+
+// Lê e valida os dados do pedido; devolve null (e avisa o campo) se faltar algo
+function dadosDoPedido() {
+    const valores = {};
+    for (const [id, chave, obrigatorio, aviso] of CAMPOS_PEDIDO) {
+        const campo = document.getElementById(id);
+        const valor = campo.value.trim().replace(/\s+/g, ' ');
+        const invalido =
+            (obrigatorio && valor.length < (chave === 'numero' ? 1 : 2)) ||
+            (chave === 'telefone' && valor.replace(/\D/g, '').length < 10) ||
+            (chave === 'cep' && valor.replace(/\D/g, '').length !== 8);
+        if (invalido) {
+            campo.setCustomValidity(aviso);
+            campo.reportValidity();
+            return null;
+        }
+        valores[chave] = valor;
+    }
+
+    const opcoes = document.querySelector('.payment-options');
+    const pagamento = document.querySelector('input[name="pagamento"]:checked')?.value;
+    if (!pagamento) {
+        opcoes.classList.add('is-invalid');
+        opcoes.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        mostrarToast('Escolha a forma de pagamento.', 'error');
+        return null;
+    }
+
+    const { nome, telefone, ...endereco } = valores;
+    try {
+        localStorage.setItem(CHAVE_DADOS_CLIENTE, JSON.stringify({ ...valores, pagamento }));
+    } catch {}
+    return { cliente: { nome, telefone }, endereco, pagamento };
+}
+
+// Busca a rua pelo CEP (ViaCEP); se falhar, a pessoa digita
+async function preencherPeloCep(cep) {
+    try {
+        const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const dados = await resposta.json();
+        const campoRua = document.getElementById('checkoutRua');
+        if (dados.erro || !dados.logradouro || campoRua.value.trim()) return;
+        campoRua.value = dados.logradouro;
+        campoRua.setCustomValidity('');
+        if (!document.getElementById('checkoutNumero').value) document.getElementById('checkoutNumero').focus();
+    } catch {}
+}
+
+function prepararDadosCliente() {
+    const formulario = document.getElementById('checkoutCustomer');
+    if (!formulario) return;
+
+    try {
+        const salvos = JSON.parse(localStorage.getItem(CHAVE_DADOS_CLIENTE) || 'null');
+        if (salvos) {
+            for (const [id, chave] of CAMPOS_PEDIDO) {
+                if (salvos[chave]) document.getElementById(id).value = salvos[chave];
+            }
+            const opcao = formulario.querySelector(`input[name="pagamento"][value="${salvos.pagamento}"]`);
+            if (opcao) opcao.checked = true;
+        }
+    } catch {}
+
+    for (const [id] of CAMPOS_PEDIDO) {
+        document.getElementById(id).addEventListener('input', evento => evento.target.setCustomValidity(''));
+    }
+    const campoTelefone = document.getElementById('checkoutTelefone');
+    campoTelefone.addEventListener('input', () => {
+        campoTelefone.value = mascararTelefone(campoTelefone.value);
+    });
+    const campoCep = document.getElementById('checkoutCep');
+    campoCep.addEventListener('input', () => {
+        campoCep.value = mascararCep(campoCep.value);
+        const digitos = campoCep.value.replace(/\D/g, '');
+        if (digitos.length === 8) preencherPeloCep(digitos);
+    });
+    formulario.addEventListener('change', evento => {
+        if (evento.target.name === 'pagamento') {
+            formulario.querySelector('.payment-options').classList.remove('is-invalid');
+        }
+    });
+    formulario.addEventListener('submit', evento => {
+        evento.preventDefault();
+        finalizarCompra();
+    });
 }
 
 function finalizarCompra() {
@@ -217,13 +346,28 @@ function finalizarCompra() {
         return;
     }
 
+    const pedido = dadosDoPedido();
+    if (!pedido) return;
+
     const total = carrinhoDb.obterTotal();
-    const mensagem = montarMensagemPedido(carrinho, total);
+    const mensagem = montarMensagemPedido(carrinho, total, pedido);
     const link = `https://wa.me/${WHATSAPP_LOJA}?text=${encodeURIComponent(mensagem)}`;
 
     // Precisa ser chamado direto na resposta ao clique (sem await antes),
     // senão o navegador pode bloquear a aba como pop-up.
     window.open(link, '_blank', 'noopener');
+
+    // Registra o pedido no admin, para os vendedores acompanharem as vendas.
+    // keepalive garante o envio mesmo se a pessoa sair da página.
+    fetch('/api/pedidos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            itens: carrinho.map(item => ({ id: item.id, quantidade: item.quantidade })),
+            ...pedido
+        }),
+        keepalive: true
+    }).catch(() => {});
 
     mostrarToast('Pedido pronto! Confirme o envio na aba do WhatsApp que abriu.', 'success');
 
@@ -263,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cartBtn) cartBtn.addEventListener('click', abrirCarrinho);
     if (closeCart) closeCart.addEventListener('click', fecharCarrinho);
     if (checkoutBtn) checkoutBtn.addEventListener('click', finalizarCompra);
+    prepararDadosCliente();
 
     // Fechar carrinho ao clicar fora
     const cartModal = document.getElementById('cartModal');
