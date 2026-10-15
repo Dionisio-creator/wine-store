@@ -195,8 +195,6 @@ function configurarCarrossel() {
 
     const slides = [...trilha.querySelectorAll('.hero-slide')];
     const pontos = [...document.querySelectorAll('.hero-dot')];
-    const btnPrev = document.getElementById('heroPrev');
-    const btnNext = document.getElementById('heroNext');
     const semAnimacao = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let atual = 0;
@@ -225,9 +223,6 @@ function configurarCarrossel() {
         if (timer) clearInterval(timer);
         timer = null;
     }
-
-    btnNext?.addEventListener('click', () => { proximo(); iniciarAutoplay(); });
-    btnPrev?.addEventListener('click', () => { irPara(atual - 1); iniciarAutoplay(); });
 
     pontos.forEach((ponto, i) => {
         ponto.addEventListener('click', () => { irPara(i); iniciarAutoplay(); });

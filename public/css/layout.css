@@ -410,33 +410,6 @@
     gap: 0.75rem;
 }
 
-.hero-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 2;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: var(--radius-full);
-    background-color: rgba(20, 12, 14, 0.35);
-    backdrop-filter: blur(4px);
-    color: #fff;
-    font-size: 1.4rem;
-    line-height: 1;
-    cursor: pointer;
-    transition: background-color var(--transition), transform var(--transition);
-}
-
-.hero-arrow:hover {
-    background-color: rgba(20, 12, 14, 0.55);
-}
-
-.hero-arrow-prev { left: 20px; }
-.hero-arrow-next { right: 20px; }
-
 .hero-dots {
     position: absolute;
     left: 50%;
@@ -1283,17 +1256,15 @@
     }
 
     .hero-slides {
-        height: clamp(420px, 92vw, 560px);
+        height: clamp(500px, 92vw, 600px);
     }
 
-    .hero-arrow {
-        width: 36px;
-        height: 36px;
-        font-size: 1.15rem;
+    .hero-slide {
+        padding-bottom: 56px;
     }
 
     .hero-dots {
-        bottom: 24px;
+        bottom: 20px;
     }
 
     .hero-stats {
