@@ -48,30 +48,74 @@ document.addEventListener('catalogo-importado', sincronizarCatalogoPublico);
 // ============================================
 
 const QTY_MAXIMA = 24;
+// Precisa bater com a largura de ".qty-carousel-item" no CSS — fixa (em vez
+// de medida via offsetWidth) porque o carrossel às vezes é posicionado antes
+// de estar visível na tela (ex.: dentro do modal de detalhes), quando a
+// medição daria 0.
+const QTY_ITEM_LARGURA = 26;
 const quantidadesSelecionadas = new Map();
 
 function obterQuantidadeSelecionada(id) {
     return quantidadesSelecionadas.get(id) || 1;
 }
 
-function definirQuantidadeSelecionada(id, quantidade) {
-    const limitada = Math.min(QTY_MAXIMA, Math.max(1, quantidade));
+function definirQuantidadeSelecionada(id, quantidade, { rolar = true, suave = true } = {}) {
+    const limitada = Math.min(QTY_MAXIMA, Math.max(1, Math.round(quantidade)));
     quantidadesSelecionadas.set(id, limitada);
-    document.querySelectorAll(`[data-qty-valor="${id}"]`).forEach(span => {
-        span.textContent = limitada;
+
+    document.querySelectorAll(`[data-qty-track="${id}"]`).forEach(track => {
+        track.querySelectorAll('.qty-carousel-item').forEach(item => {
+            item.classList.toggle('is-selected', Number(item.dataset.valor) === limitada);
+        });
+        track.closest('.qty-carousel')?.setAttribute('aria-label', `Quantidade de garrafas: ${limitada}`);
+
+        if (!rolar) return;
+        const alvo = (limitada - 1) * QTY_ITEM_LARGURA;
+        if (Math.round(track.scrollLeft) === alvo) return;
+
+        // Rolagem disparada por código (setas, clique num número) — marca
+        // como "programática" pra o listener de scroll (que detecta o
+        // arrasto do usuário) não confundir essa animação com um arrasto e
+        // sobrescrever o valor que acabamos de definir.
+        track._qtyProgramatico = true;
+        const liberar = () => { track._qtyProgramatico = false; };
+        clearTimeout(track._qtyLiberarTimer);
+        track._qtyLiberarTimer = setTimeout(liberar, suave ? 450 : 0);
+        track.scrollTo({ left: alvo, behavior: suave ? 'smooth' : 'instant' });
     });
+
+    return limitada;
 }
 
 function ajustarQuantidadeSelecionada(id, delta) {
     definirQuantidadeSelecionada(id, obterQuantidadeSelecionada(id) + delta);
 }
 
+// Reaplica a posição de rolagem de cada carrossel de quantidade dentro do
+// escopo informado — necessário depois de recriar os cards (innerHTML), já
+// que o elemento novo sempre nasce rolado para o início.
+function sincronizarCarrosseisQty(escopo) {
+    escopo.querySelectorAll('[data-qty-track]').forEach(track => {
+        const id = Number(track.dataset.qtyTrack);
+        track.scrollLeft = (obterQuantidadeSelecionada(id) - 1) * QTY_ITEM_LARGURA;
+    });
+}
+
 function qtySeletorHTML(id) {
+    const atual = obterQuantidadeSelecionada(id);
+    const itens = Array.from({ length: QTY_MAXIMA }, (_, i) => i + 1).map(numero => `
+        <div class="qty-carousel-item${numero === atual ? ' is-selected' : ''}" data-valor="${numero}">${numero}</div>
+    `).join('');
+
     return `
-        <div class="qty" role="group" aria-label="Quantidade de garrafas">
-            <button type="button" data-qty-acao="menos" data-id="${id}" aria-label="Diminuir quantidade">−</button>
-            <span class="qty-valor" data-qty-valor="${id}">${obterQuantidadeSelecionada(id)}</span>
-            <button type="button" data-qty-acao="mais" data-id="${id}" aria-label="Aumentar quantidade">+</button>
+        <div class="qty-carousel" aria-label="Quantidade de garrafas: ${atual}">
+            <button type="button" class="qty-carousel-arrow" data-qty-acao="menos" data-id="${id}" aria-label="Diminuir quantidade">‹</button>
+            <div class="qty-carousel-track" data-qty-track="${id}">
+                <div class="qty-carousel-pad" aria-hidden="true"></div>
+                ${itens}
+                <div class="qty-carousel-pad" aria-hidden="true"></div>
+            </div>
+            <button type="button" class="qty-carousel-arrow" data-qty-acao="mais" data-id="${id}" aria-label="Aumentar quantidade">›</button>
         </div>
     `;
 }
@@ -404,6 +448,7 @@ function renderizarVinhos(lista = vinhosExibindo) {
     }
 
     container.innerHTML = lista.map(vinho => cardHTML(vinho)).join('');
+    sincronizarCarrosseisQty(container);
 }
 
 function renderizarDestaque() {
@@ -425,6 +470,7 @@ function renderizarDestaque() {
     }
 
     container.innerHTML = destaques.map(vinho => cardHTML(vinho, { compacto: true })).join('');
+    sincronizarCarrosseisQty(container);
 }
 
 // ============================================
@@ -506,6 +552,7 @@ function abrirDetalhes(id) {
     `;
 
     document.getElementById('wineModal').classList.add('active');
+    sincronizarCarrosseisQty(document.getElementById('wineDetail'));
 }
 
 function fecharDetalhes() {
@@ -563,6 +610,13 @@ async function restaurarCatalogo() {
 // ============================================
 
 function tratarAcaoDeVinho(evento) {
+    const itemQty = evento.target.closest('.qty-carousel-item');
+    if (itemQty) {
+        const track = itemQty.closest('[data-qty-track]');
+        if (track) definirQuantidadeSelecionada(Number(track.dataset.qtyTrack), Number(itemQty.dataset.valor));
+        return;
+    }
+
     const botaoQty = evento.target.closest('[data-qty-acao]');
     if (botaoQty) {
         const id = Number(botaoQty.dataset.id);
@@ -1060,6 +1114,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             tratarAcaoDeVinho(evento);
         });
     });
+
+    // Carrossel de quantidade: ao arrastar, acompanha qual número fica no
+    // centro. O evento "scroll" não borbulha, então o listener precisa ir na
+    // fase de captura para pegar o scroll de qualquer carrossel na página.
+    document.addEventListener('scroll', evento => {
+        const track = evento.target.closest?.('[data-qty-track]');
+        if (!track || track._qtyProgramatico || track._qtyRaf) return;
+        track._qtyRaf = true;
+        requestAnimationFrame(() => {
+            track._qtyRaf = false;
+            const indice = Math.round(track.scrollLeft / QTY_ITEM_LARGURA);
+            const valor = Math.min(QTY_MAXIMA, Math.max(1, indice + 1));
+            definirQuantidadeSelecionada(Number(track.dataset.qtyTrack), valor, { rolar: false });
+        });
+    }, true);
 
     // Filtros (delegado no documento, pois os chips são recriados e vivem
     // em dois lugares: a sidebar e o dropdown de filtros do cabeçalho)

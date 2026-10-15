@@ -214,6 +214,79 @@
     color: var(--primary);
 }
 
+/* ============================================
+   CARROSSEL DE QUANTIDADE (garrafas, antes do carrinho)
+   ============================================ */
+
+.qty-carousel {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.qty-carousel-arrow {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background-color: var(--surface);
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.qty-carousel-arrow:hover {
+    background-color: var(--surface-2);
+    color: var(--primary);
+}
+
+.qty-carousel-track {
+    display: flex;
+    width: 78px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background-color: var(--surface);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24%, #000 76%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 24%, #000 76%, transparent 100%);
+}
+
+.qty-carousel-track::-webkit-scrollbar {
+    display: none;
+}
+
+.qty-carousel-pad,
+.qty-carousel-item {
+    flex: 0 0 26px;
+    scroll-snap-align: center;
+}
+
+.qty-carousel-item {
+    display: grid;
+    place-items: center;
+    height: 26px;
+    font-size: 0.78rem;
+    color: var(--text-soft);
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--transition), font-size var(--transition);
+}
+
+.qty-carousel-item.is-selected {
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
 .cart-item-quantity {
     min-width: 26px;
     text-align: center;
