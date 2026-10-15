@@ -104,7 +104,8 @@ function configurarCategoriaNav() {
 function configurarFiltrosDropdown() {
     const trigger = document.getElementById('filtrosTrigger');
     const painel = document.getElementById('filtrosPainel');
-    if (!trigger || !painel) return;
+    const nav = document.getElementById('categoryNav');
+    if (!trigger || !painel || !nav) return;
 
     let fecharTimer = null;
     // Quando aberto por clique, ignora o "mouseleave" — só fecha de novo com
@@ -112,8 +113,26 @@ function configurarFiltrosDropdown() {
     // em sequência logo depois do hover já ter aberto o painel).
     let travadoPorClique = false;
 
+    // O painel fica fora da área com rolagem horizontal do menu (pra não
+    // ser cortado), então sua posição não segue o botão sozinha — aqui a
+    // gente alinha a borda esquerda do painel com a do botão "Vinhos",
+    // evitando que vaze pra fora da tela em telas estreitas.
+    function posicionar() {
+        const retanguloBotao = trigger.getBoundingClientRect();
+        const retanguloNav = nav.getBoundingClientRect();
+        const larguraPainel = painel.offsetWidth || Math.min(340, window.innerWidth * 0.92);
+        const margem = 12;
+
+        let esquerda = retanguloBotao.left - retanguloNav.left;
+        const maximo = retanguloNav.width - larguraPainel - margem;
+        esquerda = Math.max(margem, Math.min(esquerda, maximo));
+
+        painel.style.left = `${esquerda}px`;
+    }
+
     function abrir() {
         clearTimeout(fecharTimer);
+        posicionar();
         painel.classList.add('open');
         trigger.setAttribute('aria-expanded', 'true');
     }
@@ -160,6 +179,9 @@ function configurarFiltrosDropdown() {
         if (evento.key === 'Escape') fechar();
     });
     document.addEventListener('filtros-aplicados', fechar);
+    window.addEventListener('resize', () => {
+        if (painel.classList.contains('open')) posicionar();
+    });
 }
 
 // ============================================
