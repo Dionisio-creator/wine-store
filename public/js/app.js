@@ -216,7 +216,7 @@ function configurarCarrossel() {
     function iniciarAutoplay() {
         if (semAnimacao || slides.length < 2) return;
         parar();
-        timer = setInterval(proximo, 6500);
+        timer = setInterval(proximo, 3000);
     }
 
     function parar() {

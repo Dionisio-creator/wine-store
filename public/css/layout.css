@@ -928,12 +928,14 @@
 
 .wine-actions {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
 }
 
 .wine-actions .btn {
-    flex: 1;
+    flex: 1 1 100%;
     padding-left: 10px;
     padding-right: 10px;
 }
@@ -1344,7 +1346,6 @@
     }
 
     .wine-actions {
-        flex-wrap: wrap;
         gap: 0.3rem;
     }
 
@@ -1355,7 +1356,6 @@
     }
 
     .wine-actions .btn {
-        flex: 1 1 100%;
         font-size: 0.78rem;
         padding-left: 8px;
         padding-right: 8px;
