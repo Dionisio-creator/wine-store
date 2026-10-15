@@ -704,6 +704,15 @@
     border-color: var(--border-strong);
 }
 
+.wine-image-link {
+    cursor: pointer;
+}
+
+.wine-image-link:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: -3px;
+}
+
 .wine-image {
     position: relative;
     aspect-ratio: 4 / 5;

@@ -155,13 +155,21 @@ function imagemDoVinho(vinho, classe = 'wine-image', emojiClasse = 'wine-image-e
     // Sem foto, o fundo muda de cor conforme o tipo do vinho
     const tipo = ` data-tipo="${escaparHtml(vinho.tipo)}"`;
 
+    // No cartão (não no modal de detalhes, que já É a tela de detalhes),
+    // clicar na imagem abre os detalhes do vinho, igual ao nome.
+    const clicavel = classe === 'wine-image';
+    const classeFinal = clicavel ? `${classe} wine-image-link` : classe;
+    const atributosClique = clicavel
+        ? ` data-acao="detalhes" data-id="${vinho.id}" role="button" tabindex="0" aria-label="Ver detalhes de ${escaparHtml(vinho.nome)}"`
+        : '';
+
     if (vinho.imagem) {
-        return `<div class="${classe}"${tipo}>
+        return `<div class="${classeFinal}"${tipo}${atributosClique}>
             <img src="${escaparHtml(vinho.imagem)}" alt="${escaparHtml(vinho.nome)}" loading="lazy">
         </div>`;
     }
 
-    return `<div class="${classe}"${tipo}><div class="${emojiClasse}">🍷</div></div>`;
+    return `<div class="${classeFinal}"${tipo}${atributosClique}><div class="${emojiClasse}">🍷</div></div>`;
 }
 
 // ============================================
@@ -1010,13 +1018,14 @@ async function salvarVinho(evento) {
         atualizarCatalogo();
         renderizarListaAdministracao();
         mostrarToast(editando ? 'Vinho atualizado com sucesso!' : 'Vinho adicionado com sucesso!', 'success');
+        definirFeedbackFormulario(editando ? 'Alterações salvas.' : 'Vinho adicionado ao catálogo.', 'success');
 
         if (editando) {
             preencherEditorVinho(vinho);
         } else {
             prepararNovoVinho();
+            definirFeedbackFormulario('Vinho adicionado ao catálogo.', 'success');
         }
-        definirFeedbackFormulario(editando ? 'Alterações salvas.' : 'Vinho adicionado ao catálogo.', 'success');
     } catch (erro) {
         if (tratarSessaoAdminExpirada(erro)) return;
         definirFeedbackFormulario(erro.message || 'Não foi possível salvar o vinho.', 'error');
@@ -1104,11 +1113,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener('click', tratarAcaoDeVinho);
-        // O nome do vinho usa role="button" (não é um <button> de verdade),
-        // então Enter/Espaço precisam ser tratados manualmente.
+        // O nome e a imagem do vinho usam role="button" (não são um <button>
+        // de verdade), então Enter/Espaço precisam ser tratados manualmente.
         el.addEventListener('keydown', evento => {
             if (evento.key !== 'Enter' && evento.key !== ' ') return;
-            if (!evento.target.classList.contains('wine-name-link')) return;
+            if (!evento.target.classList.contains('wine-name-link') &&
+                !evento.target.classList.contains('wine-image-link')) return;
             evento.preventDefault();
             tratarAcaoDeVinho(evento);
         });
