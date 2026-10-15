@@ -7,9 +7,11 @@
     "scripts": {
         "start": "node server.js",
         "dev": "node --watch server.js",
-        "test": "node --test"
+        "test": "node --test test/catalog.test.js",
+        "test:browser": "playwright test test/catalog.browser.spec.js"
     },
     "dependencies": {
+        "@playwright/test": "^1.62.1",
         "dotenv": "^16.6.1",
         "express": "^5.2.1",
         "pg": "^8.23.0"
