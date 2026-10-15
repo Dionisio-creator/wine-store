@@ -192,23 +192,45 @@ function fecharCarrinho() {
     modal.classList.remove('active');
 }
 
+// Número da loja que recebe o pedido pelo WhatsApp (com código do país 55)
+const WHATSAPP_LOJA = '5521989014962';
+
+function montarMensagemPedido(carrinho, total) {
+    const linhas = carrinho.map(item =>
+        `• ${item.quantidade}x ${item.nome} — ${formatarPreco(item.preco * item.quantidade)}`
+    );
+
+    return [
+        'Olá! Gostaria de finalizar este pedido:',
+        '',
+        ...linhas,
+        '',
+        `Total: ${formatarPreco(total)}`
+    ].join('\n');
+}
+
 function finalizarCompra() {
     const carrinho = carrinhoDb.obterCarrinho();
-    
+
     if (carrinho.length === 0) {
         mostrarToast('Carrinho vazio!', 'error');
         return;
     }
 
     const total = carrinhoDb.obterTotal();
+    const mensagem = montarMensagemPedido(carrinho, total);
+    const link = `https://wa.me/${WHATSAPP_LOJA}?text=${encodeURIComponent(mensagem)}`;
 
-    mostrarToast(`Compra finalizada! Total: ${formatarPreco(total)}`, 'success');
-    
+    // Precisa ser chamado direto na resposta ao clique (sem await antes),
+    // senão o navegador pode bloquear a aba como pop-up.
+    window.open(link, '_blank', 'noopener');
+
+    mostrarToast('Pedido pronto! Confirme o envio na aba do WhatsApp que abriu.', 'success');
+
     setTimeout(() => {
         carrinhoDb.limparCarrinho();
         atualizarCarrinhoUI();
         fecharCarrinho();
-        mostrarToast('Obrigado pela compra!', 'info');
     }, 1500);
 }
 
