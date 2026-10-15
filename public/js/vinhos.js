@@ -44,6 +44,39 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('catalogo-importado', sincronizarCatalogoPublico);
 
 // ============================================
+// QUANTIDADE (garrafas) ANTES DE ADICIONAR AO CARRINHO
+// ============================================
+
+const QTY_MAXIMA = 24;
+const quantidadesSelecionadas = new Map();
+
+function obterQuantidadeSelecionada(id) {
+    return quantidadesSelecionadas.get(id) || 1;
+}
+
+function definirQuantidadeSelecionada(id, quantidade) {
+    const limitada = Math.min(QTY_MAXIMA, Math.max(1, quantidade));
+    quantidadesSelecionadas.set(id, limitada);
+    document.querySelectorAll(`[data-qty-valor="${id}"]`).forEach(span => {
+        span.textContent = limitada;
+    });
+}
+
+function ajustarQuantidadeSelecionada(id, delta) {
+    definirQuantidadeSelecionada(id, obterQuantidadeSelecionada(id) + delta);
+}
+
+function qtySeletorHTML(id) {
+    return `
+        <div class="qty" role="group" aria-label="Quantidade de garrafas">
+            <button type="button" data-qty-acao="menos" data-id="${id}" aria-label="Diminuir quantidade">−</button>
+            <span class="qty-valor" data-qty-valor="${id}">${obterQuantidadeSelecionada(id)}</span>
+            <button type="button" data-qty-acao="mais" data-id="${id}" aria-label="Aumentar quantidade">+</button>
+        </div>
+    `;
+}
+
+// ============================================
 // HELPERS
 // ============================================
 
@@ -335,9 +368,12 @@ function cardHTML(vinho, { compacto = false } = {}) {
                     <span>${vinho.avaliacao.toFixed(1)}</span>
                 </div>
                 <div class="wine-card-footer">
-                    <div class="wine-price">${formatarPreco(vinho.preco)}</div>
-                    <div class="wine-actions">
+                    <div class="wine-price-row">
+                        <div class="wine-price">${formatarPreco(vinho.preco)}</div>
                         <button class="btn btn-secondary btn-sm" data-acao="detalhes" data-id="${vinho.id}">Detalhes</button>
+                    </div>
+                    <div class="wine-actions">
+                        ${qtySeletorHTML(vinho.id)}
                         <button class="btn btn-primary btn-sm btn-add-cart" data-acao="carrinho" data-id="${vinho.id}">Adicionar 🛒</button>
                     </div>
                 </div>
@@ -453,6 +489,7 @@ function abrirDetalhes(id) {
                 <p class="wine-detail-description">${escaparHtml(vinho.descricao)}</p>
 
                 <div class="wine-detail-actions">
+                    ${qtySeletorHTML(vinho.id)}
                     <button class="btn btn-primary" data-acao="carrinho" data-id="${vinho.id}">
                         Adicionar ao carrinho
                     </button>
@@ -526,15 +563,25 @@ async function restaurarCatalogo() {
 // ============================================
 
 function tratarAcaoDeVinho(evento) {
+    const botaoQty = evento.target.closest('[data-qty-acao]');
+    if (botaoQty) {
+        const id = Number(botaoQty.dataset.id);
+        ajustarQuantidadeSelecionada(id, botaoQty.dataset.qtyAcao === 'mais' ? 1 : -1);
+        return;
+    }
+
     const botao = evento.target.closest('[data-acao]');
     if (!botao) return;
 
     const id = Number(botao.dataset.id);
 
     switch (botao.dataset.acao) {
-        case 'carrinho':
-            adicionarAoCarrinho(catalogoDb.obter(id));
+        case 'carrinho': {
+            const quantidade = obterQuantidadeSelecionada(id);
+            adicionarAoCarrinho(catalogoDb.obter(id), quantidade);
+            definirQuantidadeSelecionada(id, 1);
             break;
+        }
         case 'detalhes':
             abrirDetalhes(id);
             break;

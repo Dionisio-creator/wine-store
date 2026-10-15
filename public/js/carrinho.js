@@ -145,15 +145,21 @@ function atualizarCarrinhoUI() {
     cartTotal.textContent = formatarPreco(carrinhoDb.obterTotal());
 }
 
-function adicionarAoCarrinho(vinho) {
+function adicionarAoCarrinho(vinho, quantidade = 1) {
     if (!vinho) {
         mostrarToast('Vinho não encontrado no catálogo', 'error');
         return;
     }
 
-    carrinhoDb.adicionarItem(vinho, 1);
+    const qtd = Math.max(1, Math.round(Number(quantidade) || 1));
+    carrinhoDb.adicionarItem(vinho, qtd);
     atualizarCarrinhoUI();
-    mostrarToast(`${vinho.nome} adicionado ao carrinho!`, 'success');
+    mostrarToast(
+        qtd === 1
+            ? `${vinho.nome} adicionado ao carrinho!`
+            : `${qtd} garrafas de ${vinho.nome} adicionadas ao carrinho!`,
+        'success'
+    );
 }
 
 function removerDoCarrinho(vinhoId) {
