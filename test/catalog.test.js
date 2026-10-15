@@ -149,7 +149,7 @@ test('inicializa uma tabela isolada com o catálogo semeado', async () => {
     assert.equal(corpo.at(-1).nome, sementes.at(-1).nome);
 });
 
-test('cobre leitura, autenticação e o ciclo criar, atualizar, excluir e restaurar', async () => {
+test('cobre leitura, autenticação e o ciclo criar, atualizar e excluir', async () => {
     const semAutorizacao = await api('/api/vinhos', {
         method: 'POST',
         body: JSON.stringify(corpoVinho())
@@ -229,6 +229,22 @@ test('cobre leitura, autenticação e o ciclo criar, atualizar, excluir e restau
     assert.equal(atualizado.corpo.tipo, corpoVinho().tipo);
     assert.equal(atualizado.corpo.imagem, foto, 'Editar preços e textos não deve apagar a foto');
 
+    const imagemAdicionada = await api(`/api/vinhos/${idCriado}`, {
+        method: 'PUT',
+        headers: cabecalhosAdmin(),
+        body: JSON.stringify({ imagem: 'https://example.com/vinho-teste.jpg' })
+    });
+    assert.equal(imagemAdicionada.resposta.status, 200);
+    assert.equal(imagemAdicionada.corpo.imagem, 'https://example.com/vinho-teste.jpg');
+
+    const imagemRemovida = await api(`/api/vinhos/${idCriado}`, {
+        method: 'PUT',
+        headers: cabecalhosAdmin(),
+        body: JSON.stringify({ imagem: null })
+    });
+    assert.equal(imagemRemovida.resposta.status, 200);
+    assert.equal(imagemRemovida.corpo.imagem, null);
+
     const removido = await api(`/api/vinhos/${idCriado}`, {
         method: 'DELETE',
         headers: cabecalhosAdmin()
@@ -237,25 +253,60 @@ test('cobre leitura, autenticação e o ciclo criar, atualizar, excluir e restau
 
     const depoisDeRemover = await api(`/api/vinhos/${idCriado}`);
     assert.equal(depoisDeRemover.resposta.status, 404);
+});
 
-    const outro = await api('/api/vinhos', {
+test('rejeita campos de vinho malformados sem gravar o registro', async () => {
+    const login = await api('/api/admin/login', {
+        method: 'POST',
+        body: JSON.stringify({ usuario, senha })
+    });
+    assert.equal(login.resposta.status, 200);
+    csrfToken = login.corpo.csrfToken;
+    cookie = login.resposta.headers.get('set-cookie').split(';', 1)[0];
+
+    const casos = [
+        [{ nome: '' }, 'Informe o nome do vinho.'],
+        [{ tipo: '' }, 'Informe o tipo do vinho.'],
+        [{ safra: 999 }, 'Informe uma safra válida.'],
+        [{ preco: -1 }, 'Informe um preço válido.'],
+        [{ avaliacao: 5.1 }, 'A avaliação deve estar entre 0 e 5.'],
+        [{ imagem: 'arquivo-sem-url' }, 'Informe uma URL de imagem válida ou envie um arquivo JPG, PNG ou WebP.'],
+        [{ destaque: 'sim' }, 'O destaque deve ser verdadeiro ou falso.']
+    ];
+
+    for (const [alteracoes, mensagem] of casos) {
+        const rejeitado = await api('/api/vinhos', {
+            method: 'POST',
+            headers: cabecalhosAdmin(),
+            body: JSON.stringify(corpoVinho(alteracoes))
+        });
+        assert.equal(rejeitado.resposta.status, 400, `esperava rejeição para ${JSON.stringify(alteracoes)}`);
+        assert.equal(rejeitado.corpo.erro, mensagem);
+    }
+
+    const criado = await api('/api/vinhos', {
         method: 'POST',
         headers: cabecalhosAdmin(),
-        body: JSON.stringify(corpoVinho({ nome: 'Vinho antes da restauração' }))
+        body: JSON.stringify(corpoVinho({ nome: 'Vinho para validar atualização inválida' }))
     });
-    assert.equal(outro.resposta.status, 201);
+    assert.equal(criado.resposta.status, 201);
 
-    const restaurado = await api('/api/vinhos/restaurar', {
-        method: 'POST',
+    const atualizacaoRejeitada = await api(`/api/vinhos/${criado.corpo.id}`, {
+        method: 'PUT',
+        headers: cabecalhosAdmin(),
+        body: JSON.stringify({ safra: 2200 })
+    });
+    assert.equal(atualizacaoRejeitada.resposta.status, 400);
+    assert.equal(atualizacaoRejeitada.corpo.erro, 'Informe uma safra válida.');
+
+    const registroPreservado = await api(`/api/vinhos/${criado.corpo.id}`);
+    assert.equal(registroPreservado.resposta.status, 200);
+    assert.equal(registroPreservado.corpo.nome, 'Vinho para validar atualização inválida');
+    assert.equal(registroPreservado.corpo.safra, 2022);
+
+    const removido = await api(`/api/vinhos/${criado.corpo.id}`, {
+        method: 'DELETE',
         headers: cabecalhosAdmin()
     });
-    assert.equal(restaurado.resposta.status, 200);
-    assert.equal(restaurado.corpo.length, sementes.length);
-    assert.deepEqual(
-        restaurado.corpo.map(vinho => vinho.nome),
-        sementes.map(vinho => vinho.nome)
-    );
-
-    const depoisDeRestaurar = await api(`/api/vinhos/${outro.corpo.id}`);
-    assert.equal(depoisDeRestaurar.resposta.status, 404);
+    assert.equal(removido.resposta.status, 204);
 });

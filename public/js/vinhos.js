@@ -1010,14 +1010,13 @@ async function salvarVinho(evento) {
         atualizarCatalogo();
         renderizarListaAdministracao();
         mostrarToast(editando ? 'Vinho atualizado com sucesso!' : 'Vinho adicionado com sucesso!', 'success');
-        definirFeedbackFormulario(editando ? 'Alterações salvas.' : 'Vinho adicionado ao catálogo.', 'success');
 
         if (editando) {
             preencherEditorVinho(vinho);
         } else {
             prepararNovoVinho();
-            definirFeedbackFormulario('Vinho adicionado ao catálogo.', 'success');
         }
+        definirFeedbackFormulario(editando ? 'Alterações salvas.' : 'Vinho adicionado ao catálogo.', 'success');
     } catch (erro) {
         if (tratarSessaoAdminExpirada(erro)) return;
         definirFeedbackFormulario(erro.message || 'Não foi possível salvar o vinho.', 'error');
