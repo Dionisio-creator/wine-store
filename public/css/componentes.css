@@ -422,6 +422,32 @@
     border-color: var(--danger);
 }
 
+.checkout-promocoes {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.checkout-promocoes input {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: var(--primary);
+}
+
+.checkout-privacidade {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--text-soft);
+}
+
 @media (max-width: 520px) {
     .checkout-customer-fields {
         grid-template-columns: 1fr;
@@ -519,6 +545,12 @@
     background-color: var(--gold-200);
     border-color: transparent;
     color: var(--gold-600);
+}
+
+.tag.tag-discount {
+    background-color: var(--primary);
+    border-color: transparent;
+    color: #fff;
 }
 
 .wine-detail-price {

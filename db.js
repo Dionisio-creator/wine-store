@@ -102,6 +102,8 @@ function linhaParaVinho(linha) {
         uvas: linha.uvas,
         safra: linha.safra,
         preco: Number(linha.preco),
+        // null = sem promoção. Quando existe, é o preço cobrado
+        precoPromocional: linha.preco_promocional == null ? null : Number(linha.preco_promocional),
         descricao: linha.descricao,
         alcool: linha.alcool,
         producao: linha.producao,
@@ -109,9 +111,14 @@ function linhaParaVinho(linha) {
         imagem: linha.imagem,
         reviews: linha.reviews,
         destaque: linha.destaque,
+        // Seções especiais da loja em que o vinho aparece (veja COLECOES)
+        colecoes: Array.isArray(linha.colecoes) ? linha.colecoes : [],
         personalizado: linha.personalizado
     };
 }
+
+// Seções especiais da loja: "natal" = Cesta de Natal, "blackfriday" = Black Friday
+const COLECOES = ['natal', 'blackfriday'];
 
 async function iniciar() {
     await pool.query(CRIAR_TABELA);
@@ -121,6 +128,11 @@ async function iniciar() {
     await pool.query(CRIAR_TABELA_CONFIGURACOES);
     // Colunas adicionadas depois da criação das tabelas
     await pool.query('ALTER TABLE clientes ADD COLUMN IF NOT EXISTS consentimento_em TIMESTAMPTZ');
+    await pool.query(`ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nome TEXT NOT NULL DEFAULT ''`);
+    await pool.query('ALTER TABLE clientes ADD COLUMN IF NOT EXISTS endereco JSONB');
+    await pool.query('ALTER TABLE clientes ADD COLUMN IF NOT EXISTS ultimo_pedido_em TIMESTAMPTZ');
+    await pool.query(`ALTER TABLE ${tabela} ADD COLUMN IF NOT EXISTS preco_promocional NUMERIC(10,2)`);
+    await pool.query(`ALTER TABLE ${tabela} ADD COLUMN IF NOT EXISTS colecoes JSONB NOT NULL DEFAULT '[]'`);
     await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_nome TEXT NOT NULL DEFAULT ''`);
     await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_telefone TEXT NOT NULL DEFAULT ''`);
     await pool.query(`ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS pagamento TEXT NOT NULL DEFAULT ''`);
@@ -183,6 +195,8 @@ async function obterVinho(id) {
 
 // Normaliza e valida os dados vindos da API antes de gravar no banco
 function validar(dados) {
+    // Junta todos os problemas, para a pessoa corrigir tudo de uma vez
+    const erros = [];
     const tipo = String(dados.tipo || '').trim();
     const nome = String(dados.nome || '').trim();
     const regiao = String(dados.regiao || '').trim();
@@ -191,6 +205,9 @@ function validar(dados) {
     const alcool = String(dados.alcool || '—').trim();
     const producao = String(dados.producao || '—').trim();
     const preco = Number(dados.preco);
+    const precoPromocional = dados.precoPromocional == null || dados.precoPromocional === ''
+        ? null
+        : Number(dados.precoPromocional);
     const safra = Number(dados.safra);
     const avaliacao = dados.avaliacao == null || dados.avaliacao === ''
         ? 0
@@ -199,47 +216,64 @@ function validar(dados) {
         ? null
         : String(dados.imagem).trim();
 
-    if (!nome) throw new Error('Informe o nome do vinho.');
-    if (nome.length > 160) throw new Error('O nome deve ter no máximo 160 caracteres.');
-    if (!tipo) throw new Error('Informe o tipo do vinho.');
-    if (tipo.length > 60) throw new Error('O tipo deve ter no máximo 60 caracteres.');
-    if (!regiao) throw new Error('Informe a região do vinho.');
-    if (regiao.length > 120) throw new Error('A região deve ter no máximo 120 caracteres.');
-    if (uvas.length > 200) throw new Error('As uvas devem ter no máximo 200 caracteres.');
-    if (!descricao) throw new Error('Informe uma descrição.');
-    if (descricao.length > 1000) throw new Error('A descrição deve ter no máximo 1000 caracteres.');
+    if (!nome) erros.push('Informe o nome do vinho.');
+    if (nome.length > 160) erros.push('O nome deve ter no máximo 160 caracteres.');
+    if (!tipo) erros.push('Informe o tipo do vinho.');
+    if (tipo.length > 60) erros.push('O tipo deve ter no máximo 60 caracteres.');
+    if (!regiao) erros.push('Informe a região do vinho.');
+    if (regiao.length > 120) erros.push('A região deve ter no máximo 120 caracteres.');
+    if (uvas.length > 200) erros.push('As uvas devem ter no máximo 200 caracteres.');
+    if (!descricao) erros.push('Informe uma descrição.');
+    if (descricao.length > 1000) erros.push('A descrição deve ter no máximo 1000 caracteres.');
     if (!Number.isFinite(preco) || preco < 0 || preco > 99999999) {
-        throw new Error('Informe um preço válido.');
+        erros.push('Informe um preço válido.');
+    }
+    if (precoPromocional !== null) {
+        if (!Number.isFinite(precoPromocional) || precoPromocional <= 0) {
+            erros.push('Informe um preço promocional válido ou deixe o campo vazio.');
+        }
+        if (precoPromocional >= preco) {
+            erros.push('O preço promocional precisa ser menor que o preço normal.');
+        }
     }
     if (!Number.isInteger(safra) || safra < 1000 || safra > 2100) {
-        throw new Error('Informe uma safra válida.');
+        erros.push('Informe uma safra válida.');
     }
     if (!Number.isFinite(avaliacao) || avaliacao < 0 || avaliacao > 5) {
-        throw new Error('A avaliação deve estar entre 0 e 5.');
+        erros.push('A avaliação deve estar entre 0 e 5.');
     }
-    if (alcool.length > 40) throw new Error('O teor alcoólico deve ter no máximo 40 caracteres.');
-    if (producao.length > 120) throw new Error('O país ou produção deve ter no máximo 120 caracteres.');
+    if (alcool.length > 40) erros.push('O teor alcoólico deve ter no máximo 40 caracteres.');
+    if (producao.length > 120) erros.push('O país ou produção deve ter no máximo 120 caracteres.');
     if (typeof dados.destaque !== 'undefined' && typeof dados.destaque !== 'boolean') {
-        throw new Error('O destaque deve ser verdadeiro ou falso.');
+        erros.push('O destaque deve ser verdadeiro ou falso.');
     }
     if (imagem) {
         const ehUrlWeb = /^https?:\/\/\S+$/i.test(imagem);
         const ehImagemEmDados = /^data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/=\s]+$/i.test(imagem);
         if (!ehUrlWeb && !ehImagemEmDados) {
-            throw new Error('Informe uma URL de imagem válida ou envie um arquivo JPG, PNG ou WebP.');
+            erros.push('Informe uma URL de imagem válida ou envie um arquivo JPG, PNG ou WebP.');
         }
         if (imagem.length > 4_500_000) {
-            throw new Error('A imagem é muito grande. Escolha um arquivo menor.');
+            erros.push('A imagem é muito grande. Escolha um arquivo menor.');
         }
     }
 
+    const colecoes = dados.colecoes == null ? [] : dados.colecoes;
+    if (!Array.isArray(colecoes) || colecoes.some(c => !COLECOES.includes(c))) {
+        erros.push('Seção especial inválida.');
+    }
+
+    if (erros.length) throw new Error(erros.join(' '));
+
     return {
+        colecoes: [...new Set(colecoes)],
         nome,
         tipo,
         regiao,
         uvas,
         safra,
         preco,
+        precoPromocional,
         descricao,
         alcool,
         producao,
@@ -253,10 +287,10 @@ async function criarVinho(dados) {
     const v = validar(dados);
     const { rows } = await pool.query(
         `INSERT INTO ${tabela}
-            (nome, tipo, regiao, uvas, safra, preco, descricao, alcool, producao, avaliacao, imagem, reviews, destaque, personalizado)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'[]',$12,true)
+            (nome, tipo, regiao, uvas, safra, preco, preco_promocional, descricao, alcool, producao, avaliacao, imagem, reviews, destaque, colecoes, personalizado)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'[]',$13,$14,true)
          RETURNING *`,
-        [v.nome, v.tipo, v.regiao, v.uvas, v.safra, v.preco, v.descricao, v.alcool, v.producao, v.avaliacao, v.imagem, v.destaque]
+        [v.nome, v.tipo, v.regiao, v.uvas, v.safra, v.preco, v.precoPromocional, v.descricao, v.alcool, v.producao, v.avaliacao, v.imagem, v.destaque, JSON.stringify(v.colecoes)]
     );
     return linhaParaVinho(rows[0]);
 }
@@ -269,10 +303,11 @@ async function atualizarVinho(id, dados) {
     const { rows } = await pool.query(
         `UPDATE ${tabela} SET
             nome = $1, tipo = $2, regiao = $3, uvas = $4, safra = $5, preco = $6, descricao = $7,
-            alcool = $8, producao = $9, avaliacao = $10, imagem = $11, destaque = $12
-         WHERE id = $13
+            alcool = $8, producao = $9, avaliacao = $10, imagem = $11, destaque = $12, preco_promocional = $13,
+            colecoes = $14
+         WHERE id = $15
          RETURNING *`,
-        [v.nome, v.tipo, v.regiao, v.uvas, v.safra, v.preco, v.descricao, v.alcool, v.producao, v.avaliacao, v.imagem, v.destaque, id]
+        [v.nome, v.tipo, v.regiao, v.uvas, v.safra, v.preco, v.descricao, v.alcool, v.producao, v.avaliacao, v.imagem, v.destaque, v.precoPromocional, JSON.stringify(v.colecoes), id]
     );
     return linhaParaVinho(rows[0]);
 }
@@ -319,6 +354,115 @@ async function importarImagens(vinhos) {
     return { importadas, preservadas: vinhos.length - importadas };
 }
 
+// ---------- IMPORTAÇÃO DE CATÁLOGO POR PLANILHA ----------
+//
+// Cada linha chega com os campos do sistema já mapeados pelo admin, ainda
+// como texto da planilha. Vinho com o mesmo nome de um que já existe é
+// atualizado (células vazias mantêm o valor atual); os demais são criados.
+// simular = true só valida e diz o que aconteceria, sem gravar nada.
+
+const MAX_LINHAS_IMPORTACAO = 1000;
+const CAMPOS_TEXTO_IMPORTACAO = ['nome', 'tipo', 'regiao', 'uvas', 'descricao', 'alcool', 'producao', 'imagem'];
+const CAMPOS_NUMERO_IMPORTACAO = ['safra', 'preco', 'precoPromocional', 'avaliacao'];
+
+function normalizarNome(nome) {
+    return String(nome || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR');
+}
+
+// Aceita 250 | 250.5 | "250,50" | "R$ 1.234,56" | "1.234" (milhar).
+// Texto que não é número vira NaN, e validar() aponta o campo.
+function numeroDaPlanilha(valor) {
+    if (typeof valor === 'number') return valor;
+    let texto = String(valor).replace(/R\$|\s|%/gi, '');
+    if (texto.includes(',')) texto = texto.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(texto)) texto = texto.replace(/\./g, '');
+    return texto === '' ? NaN : Number(texto);
+}
+
+// true/false, ou null se não der para entender
+function simOuNao(valor) {
+    const texto = String(valor).trim().toLowerCase();
+    if (['sim', 's', 'x', 'yes', 'y', 'true', 'verdadeiro', '1'].includes(texto)) return true;
+    if (['nao', 'não', 'n', 'no', 'false', 'falso', '0', '-'].includes(texto)) return false;
+    return null;
+}
+
+// Converte as células preenchidas para o formato da API; vazias ficam de fora.
+// Problemas que validar() não enxerga vão para "erros".
+function dadosDaLinha(celulas, erros) {
+    const dados = {};
+    for (const campo of CAMPOS_TEXTO_IMPORTACAO) {
+        const valor = celulas?.[campo];
+        if (valor != null && String(valor).trim() !== '') dados[campo] = String(valor).trim();
+    }
+    for (const campo of CAMPOS_NUMERO_IMPORTACAO) {
+        const valor = celulas?.[campo];
+        if (valor != null && String(valor).trim() !== '') dados[campo] = numeroDaPlanilha(valor);
+    }
+    if (celulas?.destaque != null && String(celulas.destaque).trim() !== '') {
+        const destaque = simOuNao(celulas.destaque);
+        if (destaque === null) erros.push(`Destaque “${celulas.destaque}” não é válido (use sim ou não).`);
+        else dados.destaque = destaque;
+    }
+    return dados;
+}
+
+async function importarVinhos(linhas, simular = true) {
+    if (!Array.isArray(linhas) || !linhas.length) throw new Error('A planilha não tem nenhuma linha de vinho.');
+    if (linhas.length > MAX_LINHAS_IMPORTACAO) {
+        throw new Error(`A planilha tem ${linhas.length} linhas; o máximo é ${MAX_LINHAS_IMPORTACAO} por importação.`);
+    }
+
+    const existentes = new Map((await listarVinhos()).map(v => [normalizarNome(v.nome), v]));
+    const vistos = new Map(); // nome → número da linha, para achar repetidos na planilha
+    const resultados = [];
+
+    for (const [indice, item] of linhas.entries()) {
+        const numeroLinha = Number(item?.linha) || indice + 2;
+        const resultado = { linha: numeroLinha, nome: String(item?.celulas?.nome || '').trim() };
+        try {
+            const erros = [];
+            const dados = dadosDaLinha(item?.celulas, erros);
+            if (!dados.nome) throw new Error('Informe o nome do vinho.');
+
+            const chave = normalizarNome(dados.nome);
+            if (vistos.has(chave)) throw new Error(`Nome repetido na planilha (já está na linha ${vistos.get(chave)}).`);
+            vistos.set(chave, numeroLinha);
+
+            const existente = existentes.get(chave);
+            resultado.acao = existente ? 'atualizar' : 'criar';
+            if (existente) resultado.id = existente.id;
+            // Mesma validação do editor de vinho do admin
+            let vinho;
+            try {
+                vinho = validar(existente ? { ...existente, ...dados } : dados);
+            } catch (erro) {
+                erros.push(erro.message);
+            }
+            if (erros.length) throw new Error(erros.join(' '));
+            resultado.vinho = { ...vinho, imagem: undefined };
+
+            if (!simular) {
+                if (existente) await atualizarVinho(existente.id, dados);
+                else await criarVinho(dados);
+            }
+        } catch (erro) {
+            resultado.acao = 'erro';
+            resultado.erro = erro.message;
+        }
+        resultados.push(resultado);
+    }
+
+    const contar = acao => resultados.filter(r => r.acao === acao).length;
+    return {
+        simulacao: simular,
+        criar: contar('criar'),
+        atualizar: contar('atualizar'),
+        erros: contar('erro'),
+        resultados
+    };
+}
+
 async function restaurarCatalogo() {
     const cliente = await pool.connect();
     try {
@@ -350,55 +494,46 @@ function cpfValido(cpf) {
 function linhaParaCliente(linha) {
     return {
         id: linha.id,
-        email: linha.email,
+        nome: linha.nome,
+        email: linha.email, // só nos cadastros antigos, do formulário que saiu do site
         cpf: linha.cpf,
         telefone: linha.telefone,
+        endereco: linha.endereco,
         salvo: linha.salvo,
         salvoEm: linha.salvo_em,
         consentimentoEm: linha.consentimento_em,
+        ultimoPedidoEm: linha.ultimo_pedido_em,
         criadoEm: linha.criado_em
     };
 }
 
-async function cadastrarCliente(dados) {
-    const email = String(dados?.email || '').trim().toLowerCase();
-    const cpf = String(dados?.cpf || '').replace(/\D/g, '');
-    const telefone = String(dados?.telefone || '').replace(/\D/g, '');
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 160) {
-        throw new Error('Informe um e-mail válido.');
-    }
-    if (!cpfValido(cpf)) throw new Error('Informe um CPF válido.');
-    if (telefone.length < 10 || telefone.length > 11) {
-        throw new Error('Informe o telefone com DDD.');
-    }
-    // LGPD: só guarda os dados com o consentimento explícito do cliente
-    if (dados?.consentimento !== true) {
-        throw new Error('É preciso concordar com o uso dos dados para concluir o cadastro.');
-    }
-
-    // O mesmo CPF não vira um cadastro duplicado: se os dados mudaram,
-    // atualiza e volta para "pendente", para o vendedor passar de novo.
+// Chamado a cada pedido. O mesmo CPF não vira um cadastro duplicado: se
+// nome, telefone ou endereço mudaram, atualiza e volta para "pendente",
+// para o vendedor passar de novo para o outro sistema.
+// promocoes: a pessoa marcou que quer receber promoções (consentimento LGPD).
+async function salvarClienteDoPedido({ nome, cpf, telefone, endereco, promocoes }) {
     const { rows } = await pool.query('SELECT * FROM clientes WHERE cpf = $1', [cpf]);
-    if (rows[0]) {
-        if (rows[0].email === email && rows[0].telefone === telefone) {
-            return linhaParaCliente(rows[0]);
-        }
-        const atualizado = await pool.query(
-            `UPDATE clientes SET email = $1, telefone = $2, salvo = false, salvo_em = NULL,
-                consentimento_em = now()
-             WHERE id = $3 RETURNING *`,
-            [email, telefone, rows[0].id]
+    const existente = rows[0];
+
+    if (existente) {
+        const mudou = existente.nome !== nome || existente.telefone !== telefone ||
+            JSON.stringify(existente.endereco) !== JSON.stringify(endereco);
+        const { rows: atualizado } = await pool.query(
+            `UPDATE clientes SET nome = $1, telefone = $2, endereco = $3, ultimo_pedido_em = now()
+                ${mudou ? ', salvo = false, salvo_em = NULL' : ''}
+                ${promocoes ? ', consentimento_em = now()' : ''}
+             WHERE id = $4 RETURNING *`,
+            [nome, telefone, JSON.stringify(endereco), existente.id]
         );
-        return linhaParaCliente(atualizado.rows[0]);
+        return linhaParaCliente(atualizado[0]);
     }
 
-    const criado = await pool.query(
-        `INSERT INTO clientes (email, cpf, telefone, consentimento_em)
-         VALUES ($1, $2, $3, now()) RETURNING *`,
-        [email, cpf, telefone]
+    const { rows: criado } = await pool.query(
+        `INSERT INTO clientes (nome, email, cpf, telefone, endereco, consentimento_em, ultimo_pedido_em)
+         VALUES ($1, '', $2, $3, $4, ${promocoes ? 'now()' : 'NULL'}, now()) RETURNING *`,
+        [nome, cpf, telefone, JSON.stringify(endereco)]
     );
-    return linhaParaCliente(criado.rows[0]);
+    return linhaParaCliente(criado[0]);
 }
 
 async function listarClientes() {
@@ -452,16 +587,18 @@ function validarEndereco(dados) {
     return endereco;
 }
 
-async function registrarPedido(itensRecebidos, cliente, enderecoRecebido, pagamento) {
+async function registrarPedido(itensRecebidos, cliente, enderecoRecebido, pagamento, promocoes = false) {
     if (!Array.isArray(itensRecebidos) || !itensRecebidos.length || itensRecebidos.length > 50) {
         throw new Error('O pedido precisa ter de 1 a 50 itens.');
     }
     const nome = String(cliente?.nome || '').trim().replace(/\s+/g, ' ');
     const telefone = String(cliente?.telefone || '').replace(/\D/g, '');
+    const cpf = String(cliente?.cpf || '').replace(/\D/g, '');
     if (nome.length < 2 || nome.length > 120) throw new Error('Informe seu nome.');
     if (telefone.length < 10 || telefone.length > 11) {
         throw new Error('Informe o telefone com DDD.');
     }
+    if (!cpfValido(cpf)) throw new Error('Informe um CPF válido.');
     if (!FORMAS_PAGAMENTO.includes(pagamento)) throw new Error('Escolha a forma de pagamento.');
     const endereco = validarEndereco(enderecoRecebido);
 
@@ -474,7 +611,8 @@ async function registrarPedido(itensRecebidos, cliente, enderecoRecebido, pagame
         }
         const vinho = await obterVinho(id);
         if (!vinho) throw new Error('Um dos vinhos do pedido não está mais no catálogo.');
-        itens.push({ id, nome: vinho.nome, preco: vinho.preco, quantidade });
+        // Com promoção, cobra o preço promocional
+        itens.push({ id, nome: vinho.nome, preco: vinho.precoPromocional ?? vinho.preco, quantidade });
     }
 
     const total = itens.reduce((soma, item) => soma + item.preco * item.quantidade, 0);
@@ -483,6 +621,8 @@ async function registrarPedido(itensRecebidos, cliente, enderecoRecebido, pagame
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
         [JSON.stringify(itens), total.toFixed(2), nome, telefone, pagamento, JSON.stringify(endereco)]
     );
+    // O CPF fica só no cadastro do cliente; o pedido guarda nome, telefone e endereço
+    await salvarClienteDoPedido({ nome, cpf, telefone, endereco, promocoes });
     return linhaParaPedido(rows[0]);
 }
 
@@ -539,6 +679,12 @@ async function salvarInformacoesSite(dados) {
     if (site.contato.whatsapp.replace(/\D/g, '').length < 10) {
         throw new Error('Informe o WhatsApp com DDD — é para ele que os pedidos são enviados.');
     }
+    for (const secao of ['natal', 'blackFriday', 'eventos', 'restaurante']) {
+        if (!['sim', 'nao'].includes(site[secao].mostrar)) site[secao].mostrar = 'sim';
+    }
+    if (site.blackFriday.data && !/^\d{4}-\d{2}-\d{2}$/.test(site.blackFriday.data)) {
+        throw new Error('Informe a data da Black Friday no formato AAAA-MM-DD.');
+    }
     const existe = await pool.query(`SELECT 1 FROM configuracoes WHERE chave = 'site'`);
     if (existe.rows.length) {
         await pool.query(
@@ -554,10 +700,204 @@ async function salvarInformacoesSite(dados) {
     return site;
 }
 
+// ---------- IMAGENS DOS BANNERS DO TOPO ----------
+//
+// Ficam no banco (e não em arquivos) porque o Replit apaga arquivos gravados
+// pelo servidor a cada nova publicação. Cada slide guarda a imagem enviada
+// pelo admin (data URL) ou null para usar a imagem padrão do site, e o
+// enquadramento vertical (0 = topo da foto, 100 = base).
+
+const QUANTIDADE_BANNERS = 4;
+const IMAGEM_BANNER = /^data:(image\/(?:jpeg|png|webp));base64,([a-z0-9+/=]+)$/i;
+const TAMANHO_MAX_BANNER = 3 * 1024 * 1024;
+
+function bannerPadrao() {
+    return { imagem: null, posicao: 50, versao: 0 };
+}
+
+function normalizarBanner(banner) {
+    const posicao = Number(banner?.posicao);
+    return {
+        imagem: typeof banner?.imagem === 'string' && IMAGEM_BANNER.test(banner.imagem) ? banner.imagem : null,
+        posicao: Number.isFinite(posicao) ? Math.min(100, Math.max(0, Math.round(posicao))) : 50,
+        versao: Number(banner?.versao) || 0
+    };
+}
+
+async function obterBanners() {
+    const { rows } = await pool.query(`SELECT valor FROM configuracoes WHERE chave = 'banners'`);
+    const salvos = Array.isArray(rows[0]?.valor) ? rows[0].valor : [];
+    return Array.from({ length: QUANTIDADE_BANNERS }, (_, i) => normalizarBanner(salvos[i]));
+}
+
+// alteracao: { imagem?: data URL | null (null = voltar à padrão), posicao?: 0–100 }
+async function salvarBanner(indice, alteracao) {
+    if (!Number.isInteger(indice) || indice < 0 || indice >= QUANTIDADE_BANNERS) {
+        throw new Error('Banner inexistente.');
+    }
+    const banners = await obterBanners();
+    const banner = { ...banners[indice] };
+
+    if (alteracao?.imagem !== undefined) {
+        if (alteracao.imagem === null) {
+            banner.imagem = null;
+        } else {
+            const partes = typeof alteracao.imagem === 'string' && alteracao.imagem.match(IMAGEM_BANNER);
+            if (!partes) throw new Error('Envie uma imagem JPG, PNG ou WEBP.');
+            if (partes[2].length * 0.75 > TAMANHO_MAX_BANNER) throw new Error('Imagem grande demais (máximo 3 MB).');
+            banner.imagem = alteracao.imagem;
+        }
+        banner.versao = Date.now();
+    }
+    if (alteracao?.posicao !== undefined) {
+        banner.posicao = normalizarBanner({ posicao: alteracao.posicao }).posicao;
+    }
+    banners[indice] = banner;
+
+    const existe = await pool.query(`SELECT 1 FROM configuracoes WHERE chave = 'banners'`);
+    if (existe.rows.length) {
+        await pool.query(
+            `UPDATE configuracoes SET valor = $1, atualizado_em = now() WHERE chave = 'banners'`,
+            [JSON.stringify(banners)]
+        );
+    } else {
+        await pool.query(
+            `INSERT INTO configuracoes (chave, valor) VALUES ('banners', $1)`,
+            [JSON.stringify(banners)]
+        );
+    }
+    return banner;
+}
+
+// ---------- OUTRAS IMAGENS DO SITE (ex.: foto do restaurante) ----------
+// Mesmo esquema dos banners: { imagem: data URL | null (= imagem padrão), versao }
+
+// "restaurante" e uma por cesta de Natal ("cesta-<id>")
+function chaveImagemValida(chave) {
+    return chave === 'restaurante' || /^cesta-\d{1,6}$/.test(String(chave));
+}
+
+async function obterImagemSite(chave) {
+    if (!chaveImagemValida(chave)) return null;
+    const { rows } = await pool.query('SELECT valor FROM configuracoes WHERE chave = $1', [`imagem.${chave}`]);
+    const valor = rows[0]?.valor;
+    return {
+        imagem: typeof valor?.imagem === 'string' && IMAGEM_BANNER.test(valor.imagem) ? valor.imagem : null,
+        versao: Number(valor?.versao) || 0
+    };
+}
+
+async function salvarImagemSite(chave, imagem) {
+    if (!chaveImagemValida(chave)) throw new Error('Imagem inexistente.');
+    if (chave.startsWith('cesta-') && !(await obterCesta(Number(chave.slice(6))))) {
+        throw new Error('Cesta não encontrada.');
+    }
+    if (imagem !== null) {
+        const partes = typeof imagem === 'string' && imagem.match(IMAGEM_BANNER);
+        if (!partes) throw new Error('Envie uma imagem JPG, PNG ou WEBP.');
+        if (partes[2].length * 0.75 > TAMANHO_MAX_BANNER) throw new Error('Imagem grande demais (máximo 3 MB).');
+    }
+    const valor = JSON.stringify({ imagem, versao: Date.now() });
+    const existe = await pool.query('SELECT 1 FROM configuracoes WHERE chave = $1', [`imagem.${chave}`]);
+    if (existe.rows.length) {
+        await pool.query('UPDATE configuracoes SET valor = $1, atualizado_em = now() WHERE chave = $2', [valor, `imagem.${chave}`]);
+    } else {
+        await pool.query('INSERT INTO configuracoes (chave, valor) VALUES ($1, $2)', [`imagem.${chave}`, valor]);
+    }
+    return obterImagemSite(chave);
+}
+
+// ---------- CESTAS DE NATAL ----------
+// Uma lista só (chave 'cestas'), na ordem em que aparecem na loja. A foto de
+// cada cesta fica separada, em 'imagem.cesta-<id>', para a lista ser leve.
+
+const MAX_CESTAS = 12;
+
+async function listarCestas() {
+    const { rows } = await pool.query(`SELECT valor FROM configuracoes WHERE chave = 'cestas'`);
+    return Array.isArray(rows[0]?.valor) ? rows[0].valor : [];
+}
+
+async function obterCesta(id) {
+    return (await listarCestas()).find(c => c.id === id) || null;
+}
+
+async function gravarCestas(cestas) {
+    const existe = await pool.query(`SELECT 1 FROM configuracoes WHERE chave = 'cestas'`);
+    if (existe.rows.length) {
+        await pool.query(`UPDATE configuracoes SET valor = $1, atualizado_em = now() WHERE chave = 'cestas'`, [JSON.stringify(cestas)]);
+    } else {
+        await pool.query(`INSERT INTO configuracoes (chave, valor) VALUES ('cestas', $1)`, [JSON.stringify(cestas)]);
+    }
+}
+
+function validarCesta(dados) {
+    const nome = String(dados?.nome ?? '').trim().replace(/\s+/g, ' ');
+    const itens = String(dados?.itens ?? '').replace(/\r\n/g, '\n')
+        .split('\n').map(linha => linha.trim()).filter(Boolean).join('\n');
+    const precoTexto = String(dados?.preco ?? '').trim();
+    const preco = precoTexto === '' ? null : numeroDaPlanilha(precoTexto);
+
+    const erros = [];
+    if (!nome) erros.push('Informe o nome da cesta.');
+    if (nome.length > 80) erros.push('O nome deve ter no máximo 80 caracteres.');
+    if (itens.length > 1500) erros.push('A lista do que vem na cesta deve ter no máximo 1500 caracteres.');
+    if (preco !== null && (!Number.isFinite(preco) || preco < 0 || preco > 999999)) erros.push('Informe um preço válido ou deixe vazio.');
+    if (erros.length) throw new Error(erros.join(' '));
+    return { nome, itens, preco: preco === null ? null : Math.round(preco * 100) / 100 };
+}
+
+async function criarCesta(dados) {
+    const cestas = await listarCestas();
+    if (cestas.length >= MAX_CESTAS) throw new Error(`O máximo é ${MAX_CESTAS} cestas.`);
+    const cesta = { id: cestas.reduce((maior, c) => Math.max(maior, c.id), 0) + 1, ...validarCesta(dados) };
+    await gravarCestas([...cestas, cesta]);
+    return cesta;
+}
+
+async function atualizarCesta(id, dados) {
+    const cestas = await listarCestas();
+    const indice = cestas.findIndex(c => c.id === id);
+    if (indice === -1) return null;
+    cestas[indice] = { id, ...validarCesta({ ...cestas[indice], ...dados }) };
+    await gravarCestas(cestas);
+    return cestas[indice];
+}
+
+async function removerCesta(id) {
+    const cestas = await listarCestas();
+    if (!cestas.some(c => c.id === id)) return false;
+    await gravarCestas(cestas.filter(c => c.id !== id));
+    await pool.query('DELETE FROM configuracoes WHERE chave = $1', [`imagem.cesta-${id}`]);
+    return true;
+}
+
+// Muda a cesta de posição na lista (direcao: -1 sobe, 1 desce)
+async function moverCesta(id, direcao) {
+    const cestas = await listarCestas();
+    const de = cestas.findIndex(c => c.id === id);
+    const para = de + (direcao < 0 ? -1 : 1);
+    if (de === -1) return null;
+    if (para >= 0 && para < cestas.length) {
+        [cestas[de], cestas[para]] = [cestas[para], cestas[de]];
+        await gravarCestas(cestas);
+    }
+    return cestas;
+}
+
 module.exports = {
+    listarCestas,
+    criarCesta,
+    atualizarCesta,
+    removerCesta,
+    moverCesta,
+    obterImagemSite,
+    salvarImagemSite,
+    QUANTIDADE_BANNERS,
+    obterBanners,
+    salvarBanner,
     obterInformacoesSite,
     salvarInformacoesSite,
-    cadastrarCliente,
     listarClientes,
     marcarClienteSalvo,
     registrarPedido,
@@ -569,6 +909,7 @@ module.exports = {
     criarVinho,
     atualizarVinho,
     importarImagens,
+    importarVinhos,
     removerVinho,
     restaurarCatalogo
 };

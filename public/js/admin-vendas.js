@@ -52,6 +52,11 @@ function formatarTelefone(tel) {
         : d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
 }
 
+// Rua, número — complemento · CEP
+function enderecoDoCliente(e) {
+    return `${e.rua}, ${e.numero}${e.complemento ? ` — ${e.complemento}` : ''} · CEP ${e.cep}`;
+}
+
 function estadoVazio(icone, titulo, dica) {
     return `
         <div class="empty-state">
@@ -75,6 +80,10 @@ function trocarAba(aba) {
     });
     if (aba === 'clientes') carregarClientes();
     if (aba === 'pedidos') carregarPedidos();
+    if (aba === 'banners') carregarBanners();
+    if (aba === 'natal') carregarCestas();
+    if (aba === 'blackfriday') renderizarListaColecao(aba);
+    if (aba === 'restaurante') carregarFotoRestaurante();
 }
 
 // ---------- CLIENTES ----------
@@ -88,6 +97,20 @@ async function carregarClientes() {
     }
 }
 
+function termoBuscaCliente() {
+    return estadoVendas.buscaCliente.replace(/[.\-()\s]/g, '').toLowerCase();
+}
+
+// Clientes que estão na tela: filtro (pendentes/salvos/todos) + busca
+function clientesFiltrados() {
+    const termo = termoBuscaCliente();
+    return estadoVendas.clientes.filter(c => {
+        if (estadoVendas.filtroCliente === 'pendentes' && c.salvo) return false;
+        if (estadoVendas.filtroCliente === 'salvos' && !c.salvo) return false;
+        return !termo || `${c.nome} ${c.email} ${c.cpf} ${c.telefone}`.replace(/\s/g, '').toLowerCase().includes(termo);
+    });
+}
+
 function renderizarClientes() {
     const todos = estadoVendas.clientes;
     const pendentes = todos.filter(c => !c.salvo).length;
@@ -96,31 +119,32 @@ function renderizarClientes() {
     badge.hidden = pendentes === 0;
     $('#clientesCount').textContent = todos.length;
 
-    const termo = estadoVendas.buscaCliente.replace(/[.\-()\s]/g, '').toLowerCase();
-    const filtrados = todos.filter(c => {
-        if (estadoVendas.filtroCliente === 'pendentes' && c.salvo) return false;
-        if (estadoVendas.filtroCliente === 'salvos' && !c.salvo) return false;
-        return !termo || `${c.email} ${c.cpf} ${c.telefone}`.toLowerCase().includes(termo);
-    });
+    const termo = termoBuscaCliente();
+    const filtrados = clientesFiltrados();
+    $('#exportarClientesXml').disabled = filtrados.length === 0;
 
     const lista = $('#clientesLista');
     if (!filtrados.length) {
         lista.innerHTML = estadoVendas.filtroCliente === 'pendentes' && !termo
             ? estadoVazio('✅', 'Nenhum cadastro pendente', 'Todos os cadastros já foram passados para o outro sistema.')
-            : estadoVazio('👤', 'Nenhum cadastro encontrado', 'Os cadastros feitos na loja aparecem aqui.');
+            : estadoVazio('👤', 'Nenhum cadastro encontrado', 'Quem faz um pedido no site aparece aqui com o cadastro completo.');
         return;
     }
 
     lista.innerHTML = filtrados.map(c => `
         <article class="record-row ${c.salvo ? 'is-done' : ''}">
             <div class="record-info">
-                <div class="record-title">${escaparHtml(c.email)}</div>
+                <div class="record-title">${escaparHtml(c.nome || c.email)}</div>
                 <div class="record-meta">
                     <span>CPF <strong>${formatarCpf(c.cpf)}</strong></span>
                     <span>Tel. <strong>${formatarTelefone(c.telefone)}</strong></span>
+                    ${c.nome && c.email ? `<span>E-mail <strong>${escaparHtml(c.email)}</strong></span>` : ''}
                 </div>
+                ${c.endereco ? `<div class="record-meta"><span>📍 ${escaparHtml(enderecoDoCliente(c.endereco))}</span></div>` : ''}
                 <div class="record-date">Cadastrado em ${formatarDataHora(c.criadoEm)}${
-                    c.consentimentoEm ? ' · Autorizou o uso dos dados (LGPD)' : ''
+                    c.ultimoPedidoEm ? ` · Último pedido em ${formatarDataHora(c.ultimoPedidoEm)}` : ''
+                }${
+                    c.consentimentoEm ? ' · Aceitou receber promoções (LGPD)' : ''
                 }${
                     c.salvo && c.salvoEm ? ` · <span class="status-pill status-confirmado">✓ Salvo em ${formatarDataHora(c.salvoEm)}</span>` : ''
                 }</div>
@@ -153,13 +177,88 @@ async function marcarCliente(id, salvo) {
 async function copiarCliente(id) {
     const c = estadoVendas.clientes.find(item => item.id === id);
     if (!c) return;
-    const texto = `E-mail: ${c.email}\nCPF: ${formatarCpf(c.cpf)}\nTelefone: ${formatarTelefone(c.telefone)}`;
+    const texto = [
+        c.nome && `Nome: ${c.nome}`,
+        `CPF: ${formatarCpf(c.cpf)}`,
+        `Telefone: ${formatarTelefone(c.telefone)}`,
+        c.email && `E-mail: ${c.email}`,
+        c.endereco && `Endereço: ${enderecoDoCliente(c.endereco)}`,
+        c.consentimentoEm && 'Aceitou receber promoções: sim'
+    ].filter(Boolean).join('\n');
     try {
         await navigator.clipboard.writeText(texto);
         mostrarToast('Dados copiados. Agora é só colar no outro sistema.', 'success');
     } catch {
         mostrarToast('Não foi possível copiar automaticamente.', 'error');
     }
+}
+
+// ---------- EXPORTAR CLIENTES (XML) ----------
+
+// Escapa o texto e remove caracteres de controle, que o XML não aceita
+function textoXml(valor) {
+    return String(valor ?? '')
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+
+function tagXml(nome, valor, recuo) {
+    return valor == null || valor === ''
+        ? `${recuo}<${nome}/>`
+        : `${recuo}<${nome}>${textoXml(valor)}</${nome}>`;
+}
+
+// CPF, telefone e CEP só com números; datas em ISO 8601 (formato padrão para outros sistemas)
+function clienteXml(c) {
+    const r = '    ';
+    const e = c.endereco;
+    return [
+        `  <cliente id="${c.id}">`,
+        tagXml('nome', c.nome, r),
+        tagXml('cpf', c.cpf, r),
+        tagXml('telefone', c.telefone, r),
+        tagXml('email', c.email, r),
+        e ? [
+            `${r}<endereco>`,
+            tagXml('rua', e.rua, r + '  '),
+            tagXml('numero', e.numero, r + '  '),
+            tagXml('complemento', e.complemento, r + '  '),
+            tagXml('cep', String(e.cep || '').replace(/\D/g, ''), r + '  '),
+            `${r}</endereco>`
+        ].join('\n') : `${r}<endereco/>`,
+        tagXml('aceitaPromocoes', c.consentimentoEm ? 'true' : 'false', r),
+        tagXml('consentimentoEm', c.consentimentoEm, r),
+        tagXml('cadastradoEm', c.criadoEm, r),
+        tagXml('ultimoPedidoEm', c.ultimoPedidoEm, r),
+        tagXml('status', c.salvo ? 'salvo' : 'pendente', r),
+        tagXml('salvoEm', c.salvoEm, r),
+        '  </cliente>'
+    ].join('\n');
+}
+
+function exportarClientesXml() {
+    const clientes = clientesFiltrados();
+    if (!clientes.length) {
+        mostrarToast('Nenhum cadastro na lista para exportar.', 'error');
+        return;
+    }
+    const xml = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        `<clientes loja="Grand Cru Copacabana" exportadoEm="${new Date().toISOString()}" total="${clientes.length}">`,
+        ...clientes.map(clienteXml),
+        '</clientes>',
+        ''
+    ].join('\n');
+
+    const filtro = { pendentes: '-pendentes', salvos: '-salvos', todos: '' }[estadoVendas.filtroCliente] || '';
+    const url = URL.createObjectURL(new Blob([xml], { type: 'application/xml;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `clientes${filtro}-${hojeNaLoja()}.xml`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    mostrarToast(`${clientes.length} ${clientes.length === 1 ? 'cadastro exportado' : 'cadastros exportados'} em XML.`, 'success');
 }
 
 // ---------- PEDIDOS ----------
@@ -331,6 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     $('#atualizarClientes').addEventListener('click', carregarClientes);
+    $('#exportarClientesXml').addEventListener('click', exportarClientesXml);
 
     $('#pedidosLista').addEventListener('click', evento => {
         const botao = evento.target.closest('button[data-acao-pedido]');

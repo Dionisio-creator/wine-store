@@ -33,7 +33,7 @@ class CarrinhoBD {
             carrinho.push({
                 id: vinho.id,
                 nome: vinho.nome,
-                preco: vinho.preco,
+                preco: precoAtual(vinho),
                 quantidade: quantidade,
                 tipo: vinho.tipo
             });
@@ -65,6 +65,21 @@ class CarrinhoBD {
         return carrinho;
     }
 
+    // O carrinho fica guardado no navegador: se o preço (ou a promoção) mudou
+    // depois que o vinho foi adicionado, vale o preço atual do catálogo
+    sincronizarPrecos() {
+        const carrinho = this.obterCarrinho();
+        let mudou = false;
+        for (const item of carrinho) {
+            const vinho = catalogoDb.obter(item.id);
+            if (vinho && precoAtual(vinho) !== item.preco) {
+                item.preco = precoAtual(vinho);
+                mudou = true;
+            }
+        }
+        if (mudou) this.salvarCarrinho(carrinho);
+    }
+
     limparCarrinho() {
         localStorage.setItem(this.storageKey, JSON.stringify([]));
     }
@@ -88,6 +103,7 @@ const carrinhoDb = new CarrinhoBD();
 // ============================================
 
 function atualizarCarrinhoUI() {
+    carrinhoDb.sincronizarPrecos();
     const carrinho = carrinhoDb.obterCarrinho();
     const cartCount = document.getElementById('cartCount');
     const cartItems = document.getElementById('cartItems');
@@ -201,7 +217,8 @@ function fecharCarrinho() {
 // É substituído pelo número salvo no admin (aba "Informações do site").
 let WHATSAPP_LOJA = '5521989014962';
 
-// Nome, telefone e endereço ficam guardados no navegador para a próxima compra
+// Nome, telefone e endereço ficam guardados no navegador para a próxima compra.
+// O CPF não: ele vai só para o cadastro da loja (aba Clientes do admin).
 const CHAVE_DADOS_CLIENTE = 'vinhos-dados-cliente';
 
 const FORMAS_PAGAMENTO = {
@@ -214,6 +231,7 @@ const FORMAS_PAGAMENTO = {
 const CAMPOS_PEDIDO = [
     ['checkoutNome', 'nome', true, 'Informe seu nome.'],
     ['checkoutTelefone', 'telefone', true, 'Informe o telefone com DDD.'],
+    ['checkoutCpf', 'cpf', true, 'Informe um CPF válido.'],
     ['checkoutCep', 'cep', true, 'Informe o CEP.'],
     ['checkoutNumero', 'numero', true, 'Informe o número.'],
     ['checkoutRua', 'rua', true, 'Informe a rua ou avenida.'],
@@ -236,19 +254,21 @@ function montarMensagemPedido(carrinho, total, pedido) {
         `• ${item.quantidade}x ${item.nome} — ${formatarPreco(item.preco * item.quantidade)}`
     );
 
+    // Ordem: nome, endereço, vinhos e forma de pagamento
     return [
         'Olá! Gostaria de finalizar este pedido:',
-        '',
-        ...linhas,
-        '',
-        `Total: ${formatarPreco(total)}`,
-        `Pagamento: ${FORMAS_PAGAMENTO[pedido.pagamento]}`,
         '',
         `Nome: ${pedido.cliente.nome}`,
         `Telefone: ${pedido.cliente.telefone}`,
         '',
         'Endereço de entrega:',
-        ...enderecoEmLinhas(pedido.endereco)
+        ...enderecoEmLinhas(pedido.endereco),
+        '',
+        'Vinhos:',
+        ...linhas,
+        `Total: ${formatarPreco(total)}`,
+        '',
+        `Forma de pagamento: ${FORMAS_PAGAMENTO[pedido.pagamento]}`
     ].join('\n');
 }
 
@@ -261,6 +281,7 @@ function dadosDoPedido() {
         const invalido =
             (obrigatorio && valor.length < (chave === 'numero' ? 1 : 2)) ||
             (chave === 'telefone' && valor.replace(/\D/g, '').length < 10) ||
+            (chave === 'cpf' && !cpfValido(valor)) ||
             (chave === 'cep' && valor.replace(/\D/g, '').length !== 8);
         if (invalido) {
             campo.setCustomValidity(aviso);
@@ -279,11 +300,12 @@ function dadosDoPedido() {
         return null;
     }
 
-    const { nome, telefone, ...endereco } = valores;
+    const { nome, telefone, cpf, ...endereco } = valores;
+    const promocoes = document.getElementById('checkoutPromocoes').checked;
     try {
-        localStorage.setItem(CHAVE_DADOS_CLIENTE, JSON.stringify({ ...valores, pagamento }));
+        localStorage.setItem(CHAVE_DADOS_CLIENTE, JSON.stringify({ nome, telefone, ...endereco, pagamento }));
     } catch {}
-    return { cliente: { nome, telefone }, endereco, pagamento };
+    return { cliente: { nome, telefone, cpf }, endereco, pagamento, promocoes };
 }
 
 // Busca a rua pelo CEP (ViaCEP); se falhar, a pessoa digita
@@ -321,6 +343,10 @@ function prepararDadosCliente() {
     campoTelefone.addEventListener('input', () => {
         campoTelefone.value = mascararTelefone(campoTelefone.value);
     });
+    const campoCpf = document.getElementById('checkoutCpf');
+    campoCpf.addEventListener('input', () => {
+        campoCpf.value = mascararCpf(campoCpf.value);
+    });
     const campoCep = document.getElementById('checkoutCep');
     campoCep.addEventListener('input', () => {
         campoCep.value = mascararCep(campoCep.value);
@@ -339,6 +365,7 @@ function prepararDadosCliente() {
 }
 
 function finalizarCompra() {
+    carrinhoDb.sincronizarPrecos();
     const carrinho = carrinhoDb.obterCarrinho();
 
     if (carrinho.length === 0) {

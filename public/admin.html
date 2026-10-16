@@ -52,8 +52,138 @@
                 <button type="button" role="tab" class="admin-tab active" data-tab="catalogo" aria-selected="true" aria-controls="tab-catalogo">🍷 Catálogo</button>
                 <button type="button" role="tab" class="admin-tab" data-tab="clientes" aria-selected="false" aria-controls="tab-clientes">👤 Clientes <span class="count-badge tab-badge" id="clientesPendentesBadge" hidden>0</span></button>
                 <button type="button" role="tab" class="admin-tab" data-tab="pedidos" aria-selected="false" aria-controls="tab-pedidos">🧾 Pedidos <span class="count-badge tab-badge" id="pedidosNovosBadge" hidden>0</span></button>
+                <button type="button" role="tab" class="admin-tab" data-tab="banners" aria-selected="false" aria-controls="tab-banners">🖼️ Banners</button>
+                <button type="button" role="tab" class="admin-tab" data-tab="natal" aria-selected="false" aria-controls="tab-natal">🎄 Natal</button>
+                <button type="button" role="tab" class="admin-tab" data-tab="blackfriday" aria-selected="false" aria-controls="tab-blackfriday">🖤 Black Friday</button>
+                <button type="button" role="tab" class="admin-tab" data-tab="eventos" aria-selected="false" aria-controls="tab-eventos">🎉 Eventos</button>
+                <button type="button" role="tab" class="admin-tab" data-tab="restaurante" aria-selected="false" aria-controls="tab-restaurante">🍽️ Restaurante</button>
                 <button type="button" role="tab" class="admin-tab" data-tab="site" aria-selected="false" aria-controls="tab-site">⚙️ Informações do site</button>
             </nav>
+
+            <!-- ABA: CESTA DE NATAL -->
+            <section class="admin-card admin-tab-panel hidden" id="tab-natal" role="tabpanel" aria-labelledby="natalTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Aba da loja</span>
+                        <h2 id="natalTitle">🎄 Cesta de Natal</h2>
+                        <p class="panel-intro">Cadastre as cestas com foto, preço e o que vem dentro, e edite os textos da seção.</p>
+                    </div>
+                    <a class="btn btn-secondary btn-sm" href="/#natal" target="_blank" rel="noopener">Ver na loja</a>
+                </div>
+                <fieldset class="site-section">
+                    <legend>🧺 Cestas <span class="count-badge" id="cestasContador">0</span></legend>
+                    <p class="field-hint">Cada cesta aparece na loja com a foto, o preço, a lista do que vem dentro e um botão para encomendar pelo WhatsApp. A foto é salva assim que você escolhe; os outros campos, no botão <strong>Salvar cesta</strong>.</p>
+                    <div class="basket-list" id="cestasLista" aria-live="polite"></div>
+                    <button class="btn btn-secondary" id="novaCesta" type="button">+ Nova cesta</button>
+                </fieldset>
+                <form class="site-form" data-form-site="natal" novalidate>
+                    <div data-campos></div>
+                    <div class="site-form-actions">
+                        <p class="form-message" data-mensagem role="alert"></p>
+                        <button class="btn btn-primary" type="submit">Salvar textos</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ABA: BLACK FRIDAY -->
+            <section class="admin-card admin-tab-panel hidden" id="tab-blackfriday" role="tabpanel" aria-labelledby="bfTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Aba da loja</span>
+                        <h2 id="bfTitle">🖤 Black Friday</h2>
+                        <p class="panel-intro">Escolha os vinhos da Black Friday, defina o preço promocional de cada um e edite os textos e a data da contagem regressiva.</p>
+                    </div>
+                    <a class="btn btn-secondary btn-sm" href="/#black-friday" target="_blank" rel="noopener">Ver na loja</a>
+                </div>
+                <fieldset class="site-section">
+                    <legend>🍷 Vinhos da Black Friday <span class="count-badge" data-colecao-contador="blackfriday">0</span></legend>
+                    <p class="field-hint">Marque os vinhos e digite o <strong>preço promocional</strong> (salva ao sair do campo; vazio = sem desconto). Clique na <strong>📷 miniatura</strong> para colocar a foto do vinho — de preferência PNG com fundo transparente, que fica perfeita no card preto e dourado. A foto vale para o vinho em todo o site.</p>
+                    <div class="toolbar">
+                        <label class="search-control">
+                            <span class="visually-hidden">Buscar vinho</span>
+                            <input type="search" placeholder="Buscar vinho" data-colecao-busca="blackfriday">
+                        </label>
+                        <label class="import-filter"><input type="checkbox" data-colecao-so-marcados="blackfriday"> Mostrar só os marcados</label>
+                    </div>
+                    <div class="collection-list" data-colecao-lista="blackfriday" data-com-preco aria-live="polite"></div>
+                </fieldset>
+                <form class="site-form" data-form-site="blackfriday" novalidate>
+                    <div data-campos></div>
+                    <div class="site-form-actions">
+                        <p class="form-message" data-mensagem role="alert"></p>
+                        <button class="btn btn-primary" type="submit">Salvar textos e data</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ABA: EVENTOS -->
+            <section class="admin-card admin-tab-panel hidden" id="tab-eventos" role="tabpanel" aria-labelledby="eventosTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Aba da loja</span>
+                        <h2 id="eventosTitle">🎉 Eventos</h2>
+                        <p class="panel-intro">Monte a agenda de degustações, jantares e cursos. Cada evento ganha um botão de reserva pelo WhatsApp.</p>
+                    </div>
+                    <a class="btn btn-secondary btn-sm" href="/#eventos" target="_blank" rel="noopener">Ver na loja</a>
+                </div>
+                <form class="site-form" data-form-site="eventos" novalidate>
+                    <div data-campos></div>
+                    <div class="site-form-actions">
+                        <p class="form-message" data-mensagem role="alert"></p>
+                        <button class="btn btn-primary" type="submit">Salvar eventos</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ABA: RESTAURANTE -->
+            <section class="admin-card admin-tab-panel hidden" id="tab-restaurante" role="tabpanel" aria-labelledby="restauranteTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Aba da loja</span>
+                        <h2 id="restauranteTitle">🍽️ Restaurante</h2>
+                        <p class="panel-intro">Foto, textos, horário e o botão de reserva do restaurante.</p>
+                    </div>
+                    <a class="btn btn-secondary btn-sm" href="/#restaurante" target="_blank" rel="noopener">Ver na loja</a>
+                </div>
+                <fieldset class="site-section">
+                    <legend>📷 Foto do restaurante</legend>
+                    <div class="photo-editor">
+                        <img class="photo-editor-preview" id="restauranteFoto" alt="Foto do restaurante como aparece na loja">
+                        <div class="photo-editor-info">
+                            <span class="banner-tag" id="restauranteFotoTag">Foto original</span>
+                            <p class="field-hint">Ao escolher a foto, ela já é salva e aparece na loja. Fotos em pé ou deitadas funcionam.</p>
+                            <div class="banner-actions">
+                                <label class="btn btn-primary btn-sm banner-upload">
+                                    Trocar foto
+                                    <input type="file" id="restauranteFotoArquivo" accept="image/jpeg,image/png,image/webp">
+                                </label>
+                                <button type="button" class="btn btn-ghost btn-sm hidden" id="restauranteFotoRestaurar">Voltar à foto original</button>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <form class="site-form" data-form-site="restaurante" novalidate>
+                    <div data-campos></div>
+                    <div class="site-form-actions">
+                        <p class="form-message" data-mensagem role="alert"></p>
+                        <button class="btn btn-primary" type="submit">Salvar textos</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ABA: BANNERS -->
+            <section class="admin-card admin-tab-panel hidden" id="tab-banners" role="tabpanel" aria-labelledby="bannersTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Topo da loja</span>
+                        <h2 id="bannersTitle">Imagens dos banners</h2>
+                        <p class="panel-intro">São as fotos que ficam passando no início do site. Ao escolher uma imagem ela já é salva e aparece na loja.</p>
+                        <p class="field-hint">Prefira fotos <strong>deitadas</strong> (horizontais). Em fotos em pé só aparece uma faixa — use o <strong>enquadramento</strong> para escolher qual parte. Os textos de cada banner ficam em “Informações do site”.</p>
+                    </div>
+                    <a class="btn btn-secondary btn-sm" href="/" target="_blank" rel="noopener">Ver loja</a>
+                </div>
+                <div class="banner-list" id="bannersLista" aria-live="polite"></div>
+            </section>
 
             <!-- ABA: INFORMAÇÕES DO SITE -->
             <section class="admin-card admin-tab-panel hidden" id="tab-site" role="tabpanel" aria-labelledby="siteTitle">
@@ -61,14 +191,14 @@
                     <div>
                         <span class="eyebrow">Conteúdo da loja</span>
                         <h2 id="siteTitle">Informações do site</h2>
-                        <p class="panel-intro">Altere endereço, contatos, o texto do “Sobre nós”, os banners e o rodapé. As mudanças aparecem na loja assim que você salvar.</p>
+                        <p class="panel-intro">Altere endereço, contatos, o texto do “Sobre nós”, os textos dos banners e o rodapé. Natal, Black Friday, Eventos e Restaurante têm abas próprias. As mudanças aparecem na loja assim que você salvar.</p>
                         <p class="field-hint">Dica: nos textos, <code>**palavra**</code> fica em <strong>negrito</strong> e <code>*palavra*</code> fica em <em>itálico</em>. No “Sobre nós”, deixe uma linha em branco entre os parágrafos.</p>
                     </div>
                 </div>
-                <form id="siteForm" class="site-form" novalidate>
-                    <div id="siteCampos"></div>
+                <form id="siteForm" class="site-form" data-form-site="site" novalidate>
+                    <div id="siteCampos" data-campos></div>
                     <div class="site-form-actions">
-                        <p class="form-message" id="siteMensagem" role="alert"></p>
+                        <p class="form-message" id="siteMensagem" data-mensagem role="alert"></p>
                         <a class="btn btn-secondary" href="/" target="_blank" rel="noopener">Ver loja</a>
                         <button class="btn btn-primary" type="submit" id="siteSalvar">Salvar informações</button>
                     </div>
@@ -81,14 +211,17 @@
                     <div>
                         <span class="eyebrow">Cadastros da loja</span>
                         <h2 id="clientesTitle">Clientes <span class="count-badge" id="clientesCount">0</span></h2>
-                        <p class="panel-intro">Depois de passar o cadastro para o outro sistema, aperte <strong>OK</strong> para marcar como salvo.</p>
+                        <p class="panel-intro">Todo cliente que faz um pedido no site entra aqui com nome, CPF, telefone e endereço. Depois de passar o cadastro para o outro sistema, aperte <strong>OK</strong> para marcar como salvo.</p>
                     </div>
-                    <button class="btn btn-secondary btn-sm" id="atualizarClientes" type="button">↻ Atualizar</button>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary btn-sm" id="exportarClientesXml" type="button" title="Exporta os cadastros que estão na lista (respeita o filtro e a busca)" disabled>⬇ Exportar XML</button>
+                        <button class="btn btn-secondary btn-sm" id="atualizarClientes" type="button">↻ Atualizar</button>
+                    </div>
                 </div>
                 <div class="toolbar">
                     <label class="search-control">
                         <span class="visually-hidden">Buscar cadastro</span>
-                        <input id="clientesBusca" type="search" placeholder="Buscar por e-mail, CPF ou telefone">
+                        <input id="clientesBusca" type="search" placeholder="Buscar por nome, CPF ou telefone">
                     </label>
                     <div class="segmented" role="group" aria-label="Filtrar cadastros">
                         <button type="button" class="active" data-filtro-cliente="pendentes">Pendentes</button>
@@ -122,6 +255,72 @@
             <!-- ABA: CATÁLOGO -->
             <div class="admin-tab-panel" id="tab-catalogo" role="tabpanel">
             <div data-admin-image-tools></div>
+
+            <!-- IMPORTAR CATÁLOGO (planilha) -->
+            <section class="admin-card import-card hidden" id="importCard" aria-labelledby="importTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Planilha de produtos</span>
+                        <h2 id="importTitle">Importar catálogo</h2>
+                        <p class="panel-intro">Envie uma planilha <strong>.xlsx</strong> (Excel) ou <strong>.csv</strong> com um vinho por linha e a primeira linha com os nomes das colunas. Vinhos com o mesmo nome de um que já está no catálogo são <strong>atualizados</strong>; os outros são <strong>criados</strong>.</p>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" id="importFechar" type="button">Fechar</button>
+                </div>
+
+                <ol class="import-steps">
+                    <li class="import-step" id="importPasso1">
+                        <h3><span class="import-step-number">1</span> Escolha a planilha</h3>
+                        <div class="import-actions">
+                            <label class="btn btn-primary btn-sm import-file">
+                                Escolher arquivo
+                                <input type="file" id="importArquivo" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            </label>
+                            <button class="btn btn-secondary btn-sm" id="importModelo" type="button">⬇ Baixar planilha modelo</button>
+                            <span class="import-file-name" id="importArquivoNome">Nenhum arquivo escolhido</span>
+                        </div>
+                    </li>
+
+                    <li class="import-step hidden" id="importPasso2">
+                        <h3><span class="import-step-number">2</span> Confira as colunas</h3>
+                        <p class="field-hint">Para cada campo do sistema, escolha a coluna da planilha que tem essa informação. Já ligamos as que têm nomes parecidos. Campos com <strong>*</strong> são obrigatórios para vinhos novos.</p>
+                        <div class="import-mapping" id="importMapeamento"></div>
+                        <div class="import-actions">
+                            <button class="btn btn-primary btn-sm" id="importValidar" type="button">Validar planilha</button>
+                            <span class="form-message" id="importMapeamentoMensagem" role="alert"></span>
+                        </div>
+                    </li>
+
+                    <li class="import-step hidden" id="importPasso3">
+                        <h3><span class="import-step-number">3</span> Resultado da validação</h3>
+                        <div class="import-summary" id="importResumo"></div>
+                        <label class="import-filter">
+                            <input type="checkbox" id="importSoErros"> Mostrar só as linhas com erro
+                        </label>
+                        <div class="import-table-wrap">
+                            <table class="import-table">
+                                <thead>
+                                    <tr>
+                                        <th>Linha</th>
+                                        <th>Situação</th>
+                                        <th>Nome</th>
+                                        <th>Tipo</th>
+                                        <th>Safra</th>
+                                        <th>Preço</th>
+                                        <th>Promoção</th>
+                                        <th>Detalhe</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="importTabela"></tbody>
+                            </table>
+                        </div>
+                        <div class="import-actions">
+                            <button class="btn btn-primary" id="importConfirmar" type="button">Importar</button>
+                            <span class="form-message" id="importMensagem" role="status"></span>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
             <div class="admin-grid">
                 <section class="admin-card catalog-card" aria-labelledby="catalogTitle">
                     <div class="card-heading">
@@ -136,6 +335,7 @@
                             <span class="visually-hidden">Buscar no catálogo</span>
                             <input id="catalogSearch" type="search" placeholder="Buscar por nome, região ou tipo">
                         </label>
+                        <button class="btn btn-secondary btn-sm" id="importarCatalogoBotao" type="button" aria-controls="importCard" aria-expanded="false">📥 Importar catálogo</button>
                         <button class="btn btn-secondary btn-sm" id="restoreButton" type="button">Restaurar originais</button>
                     </div>
                     <div class="wine-list" id="wineList" aria-live="polite"></div>
@@ -177,6 +377,11 @@
                             <input id="winePrice" type="number" min="0" step="0.01" required>
                         </div>
                         <div class="field">
+                            <label for="winePromoPrice">Preço promocional (R$)</label>
+                            <input id="winePromoPrice" type="number" min="0" step="0.01" placeholder="Sem promoção">
+                            <span class="field-hint" id="winePromoHint">Deixe vazio para vender pelo preço normal.</span>
+                        </div>
+                        <div class="field">
                             <label for="wineAlcohol">Teor alcoólico</label>
                             <input id="wineAlcohol" type="text" placeholder="13,5%" maxlength="40">
                         </div>
@@ -206,6 +411,10 @@
                             <input id="wineFeatured" type="checkbox">
                             <span><strong>Vinho em destaque</strong><small>Aparece na seleção principal da loja.</small></span>
                         </label>
+                        <label class="switch">
+                            <input id="wineBlackFriday" type="checkbox" data-colecao="blackfriday">
+                            <span><strong>🖤 Black Friday</strong><small>Aparece na aba Black Friday.</small></span>
+                        </label>
                         <p class="form-message" id="editorMessage" role="alert"></p>
                         <div class="editor-actions field-wide">
                             <button class="btn btn-primary" type="submit" id="saveButton">Salvar vinho</button>
@@ -222,6 +431,10 @@
     <script src="js/admin.js"></script>
     <script src="js/admin-vendas.js"></script>
     <script src="js/admin-site.js"></script>
+    <script src="js/admin-banners.js"></script>
+    <script src="js/admin-especiais.js"></script>
+    <script src="js/planilha.js"></script>
+    <script src="js/admin-importar.js"></script>
     <script src="js/admin-sync.js"></script>
 </body>
 </html>

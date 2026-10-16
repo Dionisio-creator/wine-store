@@ -76,9 +76,53 @@ module.exports = {
         ]
     },
 
-    cadastro: {
-        titulo: 'Conclua seu cadastro para receber todas as promoções',
-        texto: 'Dicas de harmonização, chegadas novas e promoções exclusivas — no máximo um e-mail por semana.'
+    // Abas especiais da loja. "mostrar": 'sim' ou 'nao' (tira a seção e o link do menu).
+    // Os vinhos da Cesta de Natal e da Black Friday são marcados no editor de vinho.
+    natal: {
+        mostrar: 'sim',
+        selo: 'Presentes de fim de ano',
+        titulo: 'Cestas de *Natal*',
+        texto: 'Monte a cesta perfeita para presentear quem você gosta: vinhos selecionados, espumantes e acompanhamentos. Também montamos cestas personalizadas para empresas.',
+        botao: 'Encomendar cesta pelo WhatsApp',
+        mensagemWhatsapp: 'Olá! Quero saber mais sobre as cestas de Natal.'
+    },
+
+    blackFriday: {
+        mostrar: 'sim',
+        selo: 'Está chegando',
+        titulo: '*Black Friday* Grand Cru',
+        texto: 'Os melhores rótulos com descontos que só acontecem uma vez por ano. Fique de olho: as ofertas são por tempo limitado e enquanto durar o estoque.',
+        // AAAA-MM-DD — a contagem regressiva vai até esta data
+        data: '2026-11-27',
+        botao: 'Quero ser avisado das ofertas',
+        mensagemWhatsapp: 'Olá! Quero ser avisado(a) das ofertas da Black Friday.'
+    },
+
+    eventos: {
+        mostrar: 'sim',
+        selo: 'Agenda',
+        titulo: 'Eventos e *degustações*',
+        texto: 'Degustações, jantares harmonizados e cursos para quem quer conhecer mais sobre vinho em boa companhia.',
+        itens: [
+            { data: '', titulo: 'Degustação de tintos do Douro', descricao: 'Cinco rótulos comentados pelo nosso sommelier, com tábua de queijos.' },
+            { data: '', titulo: 'Jantar harmonizado', descricao: 'Menu de quatro tempos preparado pela chef, cada prato com seu vinho.' },
+            { data: '', titulo: '', descricao: '' },
+            { data: '', titulo: '', descricao: '' },
+            { data: '', titulo: '', descricao: '' },
+            { data: '', titulo: '', descricao: '' }
+        ],
+        botao: 'Reservar pelo WhatsApp',
+        mensagemWhatsapp: 'Olá! Quero reservar um lugar no evento:'
+    },
+
+    restaurante: {
+        mostrar: 'sim',
+        selo: 'Bistrô Grand Cru',
+        titulo: 'Nosso *restaurante*',
+        texto: 'Além da loja, temos um bistrô aconchegante para almoço e jantar. Toda semana tem sugestão da chef, um prato diferente para harmonizar com o vinho perfeito, escolhido direto da nossa adega.',
+        horario: 'Almoço: segunda a sexta, a partir das 12h\nJantar: terça a sábado, a partir das 18h',
+        botao: 'Reservar mesa pelo WhatsApp',
+        mensagemWhatsapp: 'Olá! Quero reservar uma mesa no restaurante.'
     },
 
     rodape: {

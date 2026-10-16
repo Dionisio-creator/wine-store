@@ -365,7 +365,8 @@
         linear-gradient(100deg, rgba(20, 12, 14, 0.82) 0%, rgba(20, 12, 14, 0.55) 45%, rgba(20, 12, 14, 0.25) 75%),
         var(--slide-image);
     background-size: cover;
-    background-position: center;
+    /* --slide-position: enquadramento vertical escolhido no admin */
+    background-position: center var(--slide-position, 50%);
 }
 
 .hero-slide.is-active {
@@ -492,6 +493,341 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1.5rem;
+}
+
+/* ============================================
+   ABAS ESPECIAIS: NATAL, BLACK FRIDAY, EVENTOS, RESTAURANTE
+   ============================================ */
+
+.special-section {
+    padding: clamp(56px, 8vw, 88px) 0;
+}
+
+.special-section h2 em {
+    font-style: italic;
+    color: var(--primary);
+}
+
+.special-section .section-head .btn {
+    margin-top: 1.25rem;
+}
+
+/* Natal: fundo levemente dourado */
+.natal-section {
+    background:
+        radial-gradient(60% 80% at 100% 0%, color-mix(in srgb, var(--gold-500) 14%, transparent), transparent 70%),
+        var(--bg-alt);
+    border-top: 1px solid var(--border);
+}
+
+/* Black Friday: sempre escura, nos dois temas */
+.black-friday-section {
+    background:
+        radial-gradient(70% 90% at 90% 10%, rgba(201, 162, 39, 0.18), transparent 60%),
+        linear-gradient(160deg, #141012, #2a0d16);
+    color: #f5ece6;
+}
+
+.black-friday-section .eyebrow,
+.black-friday-section h2 em {
+    color: var(--gold-500);
+}
+
+.black-friday-section h2 {
+    color: #fff;
+}
+
+.black-friday-section .section-sub {
+    color: rgba(245, 236, 230, 0.78);
+}
+
+.black-friday-section .empty-state {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: #f5ece6;
+}
+
+.black-friday-section .empty-state-hint {
+    color: rgba(245, 236, 230, 0.7);
+}
+
+.btn-gold {
+    background-color: var(--gold-500);
+    color: #2a2109;
+}
+
+.btn-gold:hover {
+    background-color: #d9b440;
+}
+
+.countdown {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.25rem;
+}
+
+.countdown:empty {
+    display: none;
+}
+
+.countdown-label {
+    margin-right: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold-500);
+}
+
+.countdown-item {
+    display: grid;
+    place-items: center;
+    min-width: 4.2rem;
+    padding: 0.55rem 0.5rem;
+    border: 1px solid rgba(201, 162, 39, 0.45);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.countdown-item strong {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    line-height: 1;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+.countdown-item small {
+    margin-top: 0.2rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(245, 236, 230, 0.7);
+}
+
+.countdown-live {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gold-500);
+}
+
+/* Link do menu da Black Friday em destaque */
+.category-nav .nav-black-friday {
+    font-weight: 700;
+}
+
+/* Cestas de Natal */
+.baskets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.basket-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.basket-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+}
+
+.basket-image {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: linear-gradient(150deg, var(--wine-700), var(--wine-900));
+}
+
+/* Recorta qualquer foto (em pé ou deitada) no mesmo formato, sem esticar o card */
+.basket-image img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.basket-image-empty {
+    font-size: 4rem;
+}
+
+.basket-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.25rem 1.35rem 1.35rem;
+}
+
+.basket-content h3 {
+    font-size: 1.25rem;
+}
+
+.basket-items-title {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.basket-items {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.92rem;
+}
+
+.basket-items li {
+    position: relative;
+    padding-left: 1.4rem;
+}
+
+.basket-items li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+    color: var(--gold-600);
+}
+
+.basket-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: auto;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+}
+
+.basket-price {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+}
+
+/* Eventos */
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.event-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+}
+
+.event-date {
+    align-self: flex-start;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    background: var(--wine-200);
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.event-card h3 {
+    font-size: 1.2rem;
+}
+
+.event-card p {
+    flex: 1;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
+.event-card .btn {
+    align-self: flex-start;
+    margin-top: 0.4rem;
+}
+
+/* Restaurante */
+.restaurante-section {
+    background-color: var(--bg-alt);
+    border-top: 1px solid var(--border);
+}
+
+.restaurant-content {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(1.75rem, 5vw, 4rem);
+    align-items: center;
+}
+
+.restaurant-image {
+    width: 100%;
+    max-height: 560px;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.restaurant-text p {
+    color: var(--text-muted);
+}
+
+.restaurant-hours {
+    display: flex;
+    gap: 0.75rem;
+    margin: 1.25rem 0 1.5rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.restaurant-hours p {
+    margin: 0;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.restaurant-hours-icon {
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .restaurant-content {
+        grid-template-columns: 1fr;
+    }
+
+    .restaurant-image {
+        max-height: 340px;
+    }
+
+    .countdown-item {
+        min-width: 3.6rem;
+    }
+
+    .countdown-item strong {
+        font-size: 1.35rem;
+    }
 }
 
 /* ============================================
@@ -723,6 +1059,92 @@
     border-color: var(--border-strong);
 }
 
+/* ---------- ESTILOS DO CARD ----------
+   Normal: branco · Destaque: vermelho e dourado · Black Friday: preto e dourado.
+   Tudo dentro do card usa as variáveis de cor do tema, então basta trocá-las aqui. */
+
+.wine-card.is-normal .wine-image {
+    background:
+        radial-gradient(110% 90% at 50% 0%, rgba(201, 162, 39, 0.08), transparent 65%),
+        #ffffff;
+    border-bottom: 1px solid var(--border);
+}
+
+[data-theme='dark'] .wine-card.is-normal .wine-image {
+    background: var(--surface-2);
+}
+
+.wine-card.is-destaque,
+.wine-card.is-blackfriday {
+    --text: #fff6ee;
+    --text-muted: rgba(255, 240, 230, 0.8);
+    --text-soft: rgba(255, 240, 230, 0.62);
+    --border: rgba(201, 162, 39, 0.35);
+    --border-strong: rgba(201, 162, 39, 0.65);
+    --primary: #c9a227;
+    --primary-hover: #dcb84a;
+    --accent: #e2c35a;
+    border: 1.5px solid rgba(201, 162, 39, 0.7);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+}
+
+.wine-card.is-destaque {
+    --surface: #561526;
+    --surface-2: #6b1d2e;
+    background: linear-gradient(170deg, #6b1d2e, #3a0f1b);
+}
+
+.wine-card.is-blackfriday {
+    --surface: #161214;
+    --surface-2: #241e21;
+    background: linear-gradient(170deg, #1d1719, #0c0a0b);
+}
+
+.wine-card.is-destaque .wine-image {
+    background:
+        radial-gradient(120% 100% at 50% 0%, rgba(201, 162, 39, 0.3), transparent 62%),
+        linear-gradient(150deg, #7a2236, #3a0f1b);
+    border-bottom: 1px solid rgba(201, 162, 39, 0.45);
+}
+
+.wine-card.is-blackfriday .wine-image {
+    background:
+        radial-gradient(120% 100% at 50% 0%, rgba(201, 162, 39, 0.32), transparent 62%),
+        linear-gradient(150deg, #262022, #070606);
+    border-bottom: 1px solid rgba(201, 162, 39, 0.45);
+}
+
+.wine-card.is-destaque:hover,
+.wine-card.is-blackfriday:hover {
+    border-color: #c9a227;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+}
+
+/* Botão principal dourado com texto escuro, nos dois temas */
+.wine-card.is-destaque .btn-primary,
+.wine-card.is-blackfriday .btn-primary {
+    color: #2a2109;
+}
+
+.wine-card.is-destaque .wine-price,
+.wine-card.is-blackfriday .wine-price {
+    color: #f3d77a;
+}
+
+/* Selo do card Black Friday */
+.wine-card.is-blackfriday .wine-content::before {
+    content: 'Black Friday';
+    align-self: flex-start;
+    padding: 2px 9px;
+    border: 1px solid rgba(201, 162, 39, 0.7);
+    border-radius: var(--radius-full);
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #e2c35a;
+}
+
 .wine-image-link {
     cursor: pointer;
 }
@@ -804,6 +1226,23 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
+}
+
+/* Percentual de desconto (preço promocional), no canto oposto ao "Destaque" */
+.wine-discount-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    padding: 5px 11px;
+    /* Branco: o fundo das garrafas já é cor de vinho */
+    background-color: #fff;
+    color: var(--wine-700, #7a1f35);
+    border-radius: var(--radius-full);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
 }
 
 .wine-admin-actions {
@@ -974,6 +1413,30 @@
     font-weight: 600;
     color: var(--text);
     white-space: nowrap;
+}
+
+/* Com promoção: preço normal riscado em cima, preço promocional embaixo */
+.wine-price.is-promo,
+.wine-detail-price.is-promo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.wine-price-old {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-soft);
+}
+
+.wine-detail-price .wine-price-old {
+    font-size: 1rem;
+}
+
+.wine-price.is-promo span,
+.wine-detail-price.is-promo span {
+    color: var(--primary);
 }
 
 .wine-price small {
@@ -1193,97 +1656,6 @@ a.info-item-link:hover .info-icon {
 }
 
 /* ============================================
-   NEWSLETTER
-   ============================================ */
-
-.newsletter-section {
-    padding: clamp(48px, 7vw, 80px) 0;
-}
-
-.newsletter-inner {
-    position: relative;
-    overflow: hidden;
-    padding: clamp(2rem, 5vw, 3.5rem);
-    border-radius: var(--radius-lg);
-    background:
-        radial-gradient(80% 140% at 85% 10%, color-mix(in srgb, var(--gold-500) 26%, transparent), transparent 60%),
-        linear-gradient(135deg, var(--wine-800), var(--wine-900));
-    color: #fdf6f2;
-    text-align: center;
-}
-
-.newsletter-inner h2 {
-    color: #fff;
-}
-
-.newsletter-inner p {
-    color: rgba(253, 246, 242, 0.78);
-    max-width: 48ch;
-    margin: 0.6rem auto 2rem;
-}
-
-.newsletter-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.6rem;
-    max-width: 520px;
-    margin: 0 auto;
-}
-
-.newsletter-form .newsletter-email,
-.newsletter-form .newsletter-consent,
-.newsletter-form .btn {
-    grid-column: 1 / -1;
-}
-
-.newsletter-consent {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    margin: 0.2rem 0;
-    color: rgba(255, 255, 255, 0.82);
-    font-size: 0.78rem;
-    line-height: 1.5;
-    text-align: left;
-    cursor: pointer;
-}
-
-.newsletter-consent input {
-    flex: 0 0 auto;
-    width: 16px;
-    height: 16px;
-    margin-top: 2px;
-    accent-color: var(--gold-500);
-}
-
-.newsletter-form input {
-    min-width: 0;
-    border-radius: var(--radius-full);
-    background-color: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.24);
-    color: #fff;
-    padding-left: 18px;
-}
-
-.newsletter-form input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.newsletter-form input:focus {
-    border-color: var(--gold-500);
-    box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.25);
-}
-
-.newsletter-form .btn-primary {
-    background-color: var(--gold-500);
-    color: #2a2109;
-}
-
-.newsletter-form .btn-primary:hover {
-    background-color: var(--gold-200);
-}
-
-/* ============================================
    FOOTER
    ============================================ */
 
@@ -1411,10 +1783,6 @@ a.info-item-link:hover .info-icon {
     .featured-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 1rem;
-    }
-
-    .newsletter-form {
-        grid-template-columns: 1fr;
     }
 
     .about-stats {

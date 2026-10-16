@@ -109,7 +109,10 @@ function renderizarCatalogo() {
             <div class="wine-row-info">
                 <div class="wine-row-name" title="${escaparHtml(vinho.nome)}">${escaparHtml(vinho.nome)}</div>
                 <div class="wine-row-meta">${escaparHtml(vinho.tipo)} · ${escaparHtml(vinho.regiao)} · safra ${escaparHtml(vinho.safra)}</div>
-                <div class="wine-row-price">${formatarPreco(vinho.preco)}${vinho.destaque ? ' · Destaque' : ''}</div>
+                <div class="wine-row-price">${percentualDesconto(vinho)
+                    ? `<s>${formatarPreco(vinho.preco)}</s> ${formatarPreco(precoAtual(vinho))} <span class="wine-row-discount">-${percentualDesconto(vinho)}%</span>`
+                    : formatarPreco(vinho.preco)}${vinho.destaque ? ' · Destaque' : ''}${
+                    (vinho.colecoes || []).includes('blackfriday') ? ' · 🖤 BF' : ''}</div>
             </div>
             <div class="wine-row-actions">
                 <button type="button" data-action="edit" data-id="${vinho.id}">Editar</button>
@@ -130,6 +133,27 @@ function limparFormulario() {
     $('#editorStatus').textContent = 'Preencha os dados';
     $('#saveButton').textContent = 'Salvar vinho';
     definirMensagem('editorMessage');
+    atualizarDicaPromocao();
+}
+
+// Mostra o desconto enquanto o preço promocional é digitado
+function atualizarDicaPromocao() {
+    const dica = $('#winePromoHint');
+    const preco = Number($('#winePrice').value);
+    const campo = $('#winePromoPrice');
+    const promocional = campo.value === '' ? null : Number(campo.value);
+    dica.classList.remove('is-error', 'is-success');
+
+    if (promocional === null) {
+        dica.textContent = 'Deixe vazio para vender pelo preço normal.';
+    } else if (!(preco > 0) || !(promocional > 0) || promocional >= preco) {
+        dica.textContent = 'Precisa ser menor que o preço normal.';
+        dica.classList.add('is-error');
+    } else {
+        const desconto = percentualDesconto({ preco, precoPromocional: promocional });
+        dica.textContent = `${desconto}% de desconto — o card mostra “-${desconto}%”.`;
+        dica.classList.add('is-success');
+    }
 }
 
 function preencherFormulario(vinho) {
@@ -140,6 +164,8 @@ function preencherFormulario(vinho) {
     $('#wineGrapes').value = vinho.uvas || '';
     $('#wineVintage').value = vinho.safra || '';
     $('#winePrice').value = vinho.preco ?? '';
+    $('#winePromoPrice').value = vinho.precoPromocional ?? '';
+    atualizarDicaPromocao();
     $('#wineAlcohol').value = vinho.alcool || '';
     $('#wineProduction').value = vinho.producao || '';
     $('#wineRating').value = vinho.avaliacao ?? 0;
@@ -148,6 +174,9 @@ function preencherFormulario(vinho) {
     $('#wineImage').dataset.imagemAtual = vinho.imagem || '';
     $('#wineImageFile').value = '';
     $('#wineFeatured').checked = Boolean(vinho.destaque);
+    document.querySelectorAll('[data-colecao]').forEach(caixa => {
+        caixa.checked = (vinho.colecoes || []).includes(caixa.dataset.colecao);
+    });
     $('#editorTitle').textContent = 'Editar vinho';
     $('#editorStatus').textContent = `ID ${vinho.id}`;
     $('#saveButton').textContent = 'Salvar alterações';
@@ -168,12 +197,14 @@ function dadosDoFormulario() {
         uvas: $('#wineGrapes').value.trim(),
         safra: $('#wineVintage').value,
         preco: $('#winePrice').value,
+        precoPromocional: $('#winePromoPrice').value,
         alcool: $('#wineAlcohol').value.trim(),
         producao: $('#wineProduction').value.trim(),
         avaliacao: $('#wineRating').value,
         descricao: $('#wineDescription').value.trim(),
         imagem: $('#wineImage').value.trim() || $('#wineImage').dataset.imagemAtual || null,
-        destaque: $('#wineFeatured').checked
+        destaque: $('#wineFeatured').checked,
+        colecoes: [...document.querySelectorAll('[data-colecao]:checked')].map(caixa => caixa.dataset.colecao)
     };
 }
 
@@ -275,6 +306,8 @@ async function iniciarAdmin() {
 
     $('#loginForm').addEventListener('submit', entrar);
     $('#wineForm').addEventListener('submit', salvarVinho);
+    $('#winePrice').addEventListener('input', atualizarDicaPromocao);
+    $('#winePromoPrice').addEventListener('input', atualizarDicaPromocao);
     $('#newWineButton').addEventListener('click', limparFormulario);
     $('#cancelEditButton').addEventListener('click', limparFormulario);
     $('#restoreButton').addEventListener('click', restaurarCatalogo);

@@ -212,6 +212,28 @@
     font-weight: 700;
 }
 
+.wine-row-price s {
+    font-weight: 500;
+    color: var(--text-soft);
+}
+
+.wine-row-discount {
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    background: var(--success, #2f7d4f);
+    color: #fff;
+    font-size: 0.72rem;
+}
+
+#winePromoHint.is-error {
+    color: var(--danger);
+}
+
+#winePromoHint.is-success {
+    color: var(--success, #2f7d4f);
+    font-weight: 600;
+}
+
 .wine-row-actions {
     display: flex;
     flex-wrap: wrap;
@@ -627,6 +649,687 @@
 
 @media (max-width: 640px) {
     .site-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- ABAS NATAL / BLACK FRIDAY / RESTAURANTE ---------- */
+
+.collection-list {
+    display: grid;
+    gap: 0.4rem;
+    max-height: 30rem;
+    overflow: auto;
+    margin-top: 0.5rem;
+}
+
+.collection-row.is-saving {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.collection-photo {
+    position: relative;
+}
+
+.collection-photo-pick {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    overflow: hidden;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    cursor: pointer;
+}
+
+.collection-photo-pick:hover,
+.collection-photo-pick:focus-within {
+    border-color: var(--primary);
+    outline: none;
+}
+
+.collection-photo-pick img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #fff;
+}
+
+.collection-photo-pick input[type='file'] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.collection-photo-empty {
+    font-size: 1.2rem;
+    opacity: 0.6;
+}
+
+.collection-photo-remove {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.collection-photo-remove:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.collection-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+}
+
+.collection-row.is-checked {
+    border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+    background: color-mix(in srgb, var(--wine-200) 45%, var(--surface));
+}
+
+.collection-check {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.collection-check input {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+}
+
+.collection-name {
+    display: grid;
+    min-width: 0;
+}
+
+.collection-name strong,
+.collection-name small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.collection-name strong {
+    font-size: 0.9rem;
+}
+
+.collection-name small {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+}
+
+.collection-price {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.collection-promo {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.collection-promo input {
+    width: 7.5rem;
+    padding: 6px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.85rem;
+}
+
+.collection-discount {
+    min-width: 2.8rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--success);
+}
+
+.basket-list {
+    display: grid;
+    gap: 1rem;
+    margin: 0.75rem 0 1rem;
+}
+
+.basket-card {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    transition: opacity 200ms ease, border-color 200ms ease;
+}
+
+.basket-card.is-dirty {
+    border-color: var(--gold-500);
+}
+
+.basket-card.is-saving {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.basket-photo {
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+}
+
+.basket-photo img,
+.basket-photo-empty {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+}
+
+.basket-photo-empty {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    background: var(--surface-2);
+    border: 1px dashed var(--border-strong);
+    font-size: 3rem;
+}
+
+.basket-photo-empty small {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.basket-photo .btn {
+    justify-content: center;
+}
+
+.basket-fields {
+    display: grid;
+    align-content: start;
+    gap: 0.85rem;
+}
+
+.basket-fields-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 10rem;
+    gap: 0.9rem;
+}
+
+.basket-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.basket-actions .form-message {
+    min-height: 0;
+}
+
+.basket-actions .basket-delete:hover {
+    color: var(--danger);
+}
+
+@media (max-width: 640px) {
+    .basket-card,
+    .basket-fields-row {
+        grid-template-columns: 1fr;
+    }
+
+    .basket-photo {
+        max-width: 240px;
+    }
+}
+
+.photo-editor {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1.25rem;
+    transition: opacity 200ms ease;
+}
+
+.photo-editor.is-saving {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.photo-editor-preview {
+    width: 220px;
+    max-height: 280px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-sm);
+}
+
+.photo-editor-info {
+    display: grid;
+    flex: 1 1 260px;
+    gap: 0.6rem;
+    justify-items: start;
+}
+
+.site-subgroup h4 small {
+    font-weight: 400;
+}
+
+@media (max-width: 640px) {
+    .collection-row {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .collection-promo {
+        grid-column: 2 / -1;
+    }
+}
+
+/* ---------- IMPORTAR CATÁLOGO (PLANILHA) ---------- */
+
+.import-card {
+    margin-bottom: 1.25rem;
+}
+
+.import-steps {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.import-step {
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.import-step h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.import-step-number {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+}
+
+.import-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.85rem;
+}
+
+.import-step > .import-actions:first-of-type {
+    margin-top: 0;
+}
+
+.import-file {
+    position: relative;
+    cursor: pointer;
+}
+
+.import-file input[type='file'] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.import-file:focus-within {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.import-file-name {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.import-mapping {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1.25rem;
+    margin-top: 0.75rem;
+}
+
+.import-map-row {
+    display: grid;
+    grid-template-columns: 11rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.2rem 0.75rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+}
+
+.import-map-row.is-mapped {
+    background: color-mix(in srgb, var(--success) 9%, var(--surface));
+}
+
+.import-map-row label {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.import-map-row select {
+    min-width: 0;
+    padding: 6px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.85rem;
+}
+
+.import-map-example {
+    grid-column: 2;
+    overflow: hidden;
+    font-size: 0.75rem;
+    color: var(--text-soft);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.import-required {
+    color: var(--danger);
+}
+
+.import-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.import-count {
+    display: grid;
+    min-width: 8.5rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.import-count strong {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    line-height: 1.1;
+}
+
+.import-count span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.import-count.is-new strong {
+    color: var(--success);
+}
+
+.import-count.is-update strong {
+    color: var(--primary);
+}
+
+.import-count.is-error strong {
+    color: var(--danger);
+}
+
+.import-warning {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.import-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.9rem 0 0.5rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.import-table-wrap {
+    max-height: 26rem;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.import-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+
+.import-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 0.55rem 0.7rem;
+    background: var(--surface-2);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.import-table td {
+    padding: 0.5rem 0.7rem;
+    border-top: 1px solid var(--border);
+    vertical-align: top;
+}
+
+.import-table tr.is-error td {
+    background: color-mix(in srgb, var(--danger) 6%, transparent);
+}
+
+.import-table tr.is-error td:last-child {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.import-empty {
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.import-status {
+    padding: 2px 9px;
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.import-status-new {
+    background: color-mix(in srgb, var(--success) 15%, transparent);
+    color: var(--success);
+}
+
+.import-status-update {
+    background: var(--wine-200);
+    color: var(--primary);
+}
+
+.import-status-error {
+    background: color-mix(in srgb, var(--danger) 14%, transparent);
+    color: var(--danger);
+}
+
+@media (max-width: 900px) {
+    .import-mapping {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .import-map-row {
+        grid-template-columns: 1fr;
+    }
+
+    .import-map-example {
+        grid-column: 1;
+    }
+}
+
+/* ---------- BANNERS DO TOPO ---------- */
+
+.banner-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.banner-card {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    transition: opacity 200ms ease;
+}
+
+.banner-card.is-saving {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+/* Mesma proporção e escurecimento do banner na loja (computador) */
+.banner-preview {
+    display: flex;
+    align-items: center;
+    aspect-ratio: 16 / 7;
+    padding: 0 6%;
+    background-size: cover;
+    background-color: var(--surface-2);
+}
+
+.banner-preview-title {
+    max-width: 55%;
+    font-family: var(--font-display);
+    font-size: clamp(0.95rem, 1.6vw, 1.3rem);
+    line-height: 1.2;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.banner-info {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem 1.1rem 1.1rem;
+}
+
+.banner-info h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1rem;
+}
+
+.banner-tag {
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.banner-tag.is-custom {
+    background: var(--wine-200);
+    color: var(--primary);
+}
+
+.banner-position {
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.banner-position small {
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.banner-position input[type='range'] {
+    width: 100%;
+    accent-color: var(--primary);
+}
+
+.banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.banner-upload {
+    position: relative;
+    cursor: pointer;
+}
+
+.banner-upload input[type='file'] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.banner-upload:focus-within {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+    .banner-list {
         grid-template-columns: 1fr;
     }
 }

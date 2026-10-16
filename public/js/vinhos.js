@@ -293,7 +293,7 @@ function computarLista() {
         const combinaPais = paises.length === 0 || paises.includes(vinho.producao);
         const combinaUvas = uvas.length === 0 ||
             uvasDoVinho(vinho).some(u => uvasNormalizadas.includes(normalizarUva(u)));
-        const combinaPreco = vinho.preco <= precoMax;
+        const combinaPreco = precoAtual(vinho) <= precoMax;
         const combinaBusca = !termo ||
             vinho.nome.toLowerCase().includes(termo) ||
             vinho.tipo.toLowerCase().includes(termo) ||
@@ -306,9 +306,9 @@ function computarLista() {
 
     const ordem = document.getElementById('sortBy')?.value;
     if (ordem === 'preco-asc') {
-        lista.sort((a, b) => a.preco - b.preco);
+        lista.sort((a, b) => precoAtual(a) - precoAtual(b));
     } else if (ordem === 'preco-desc') {
-        lista.sort((a, b) => b.preco - a.preco);
+        lista.sort((a, b) => precoAtual(b) - precoAtual(a));
     } else if (ordem === 'nome') {
         lista.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
     } else if (ordem === 'avaliacao') {
@@ -323,6 +323,7 @@ function atualizarCatalogo() {
     computarLista();
     renderizarVinhos();
     renderizarDestaque();
+    renderizarColecoes();
 
     const contador = document.getElementById('filterCount');
     if (contador) {
@@ -378,11 +379,32 @@ function limparFiltros() {
 // RENDERIZAÇÃO
 // ============================================
 
-function cardHTML(vinho, { compacto = false } = {}) {
+// Preço do card/detalhe: com promoção, o normal aparece riscado acima
+function precoHTML(vinho, classe) {
+    if (!percentualDesconto(vinho)) {
+        return `<div class="${classe}">${formatarPreco(vinho.preco)}</div>`;
+    }
     return `
-        <article class="wine-card" data-id="${vinho.id}">
+        <div class="${classe} is-promo">
+            <s class="wine-price-old" aria-label="De ${formatarPreco(vinho.preco)}">${formatarPreco(vinho.preco)}</s>
+            <span aria-label="por ${formatarPreco(precoAtual(vinho))}">${formatarPreco(precoAtual(vinho))}</span>
+        </div>`;
+}
+
+// Estilo do card: Black Friday (preto e dourado) > Destaque (vermelho e dourado) > normal (branco)
+function estiloDoCard(vinho) {
+    if ((vinho.colecoes || []).includes('blackfriday')) return 'is-blackfriday';
+    if (vinho.destaque) return 'is-destaque';
+    return 'is-normal';
+}
+
+function cardHTML(vinho, { compacto = false } = {}) {
+    const desconto = percentualDesconto(vinho);
+    return `
+        <article class="wine-card ${estiloDoCard(vinho)}" data-id="${vinho.id}">
             ${imagemDoVinho(vinho)}
             ${vinho.destaque ? '<div class="wine-badge">Destaque</div>' : ''}
+            ${desconto ? `<div class="wine-discount-badge" aria-label="${desconto}% de desconto">-${desconto}%</div>` : ''}
             <div class="wine-content">
                 <div class="wine-meta">
                     <span class="wine-type-dot"></span>
@@ -398,7 +420,7 @@ function cardHTML(vinho, { compacto = false } = {}) {
                 </div>
                 <div class="wine-card-footer">
                     <div class="wine-price-row">
-                        <div class="wine-price">${formatarPreco(vinho.preco)}</div>
+                        ${precoHTML(vinho, 'wine-price')}
                         <button class="btn btn-secondary btn-sm" data-acao="detalhes" data-id="${vinho.id}">Detalhes</button>
                     </div>
                     <div class="wine-actions">
@@ -458,6 +480,31 @@ function renderizarDestaque() {
     sincronizarCarrosseisQty(container);
 }
 
+// Aba Black Friday: vinhos marcados no admin
+// (A aba de Natal mostra cestas, não vinhos: veja renderizarCestas() em app.js.)
+const VAZIO_COLECAO = {
+    blackfriday: ['🖤', 'As ofertas serão reveladas em breve', 'Clique no botão acima para ser avisado(a) assim que começarem.']
+};
+
+function renderizarColecoes() {
+    document.querySelectorAll('.featured-grid[data-colecao]').forEach(container => {
+        const colecao = container.dataset.colecao;
+        const vinhos = catalogoDb.listar().filter(v => (v.colecoes || []).includes(colecao));
+        if (!vinhos.length) {
+            const [icone, texto, dica] = VAZIO_COLECAO[colecao];
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">${icone}</div>
+                    <div class="empty-state-text">${texto}</div>
+                    <div class="empty-state-hint">${dica}</div>
+                </div>`;
+            return;
+        }
+        container.innerHTML = vinhos.map(vinho => cardHTML(vinho, { compacto: true })).join('');
+        sincronizarCarrosseisQty(container);
+    });
+}
+
 // ============================================
 // DETALHES DO VINHO
 // ============================================
@@ -484,13 +531,14 @@ function abrirDetalhes(id) {
                     <span class="tag">${escaparHtml(vinho.tipo)}</span>
                     <span class="tag">${escaparHtml(vinho.regiao)}</span>
                     ${vinho.destaque ? '<span class="tag tag-accent">Destaque</span>' : ''}
+                    ${percentualDesconto(vinho) ? `<span class="tag tag-discount">${percentualDesconto(vinho)}% de desconto</span>` : ''}
                 </div>
                 <h2 class="wine-detail-name">${escaparHtml(vinho.nome)}</h2>
                 <div class="wine-detail-rating">
                     ${renderizarEstrelas(vinho.avaliacao)}
                     <span>${vinho.avaliacao.toFixed(1)} / 5 · ${vinho.reviews.length} comentário(s)</span>
                 </div>
-                <div class="wine-detail-price">${formatarPreco(vinho.preco)}</div>
+                ${precoHTML(vinho, 'wine-detail-price')}
 
                 <div class="wine-detail-info">
                     <div class="detail-info-item">
@@ -622,8 +670,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderizarFiltros();
     atualizarCatalogo();
 
-    // Cards (catálogo, destaques e modal de detalhes)
-    ['winesList', 'featuredGrid', 'wineDetail'].forEach(id => {
+    rolarParaSecaoDoLink();
+
+    // Cards (catálogo, destaques, Black Friday e modal de detalhes)
+    ['winesList', 'featuredGrid', 'blackFridayGrid', 'wineDetail'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener('click', tratarAcaoDeVinho);

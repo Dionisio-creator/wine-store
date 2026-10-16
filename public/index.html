@@ -78,6 +78,18 @@
                 <a href="#destaques" data-nav-destaques="true">
                     <span class="category-nav-icon">⭐</span> Destaques
                 </a>
+                <a href="#natal" data-secao-opcional="natal">
+                    <span class="category-nav-icon">🎄</span> Cesta de Natal
+                </a>
+                <a href="#black-friday" data-secao-opcional="blackFriday" class="nav-black-friday">
+                    <span class="category-nav-icon">🖤</span> Black Friday
+                </a>
+                <a href="#eventos" data-secao-opcional="eventos">
+                    <span class="category-nav-icon">🎉</span> Eventos
+                </a>
+                <a href="#restaurante" data-secao-opcional="restaurante">
+                    <span class="category-nav-icon">🍽️</span> Restaurante
+                </a>
                 <a href="#sobre">Sobre</a>
                 <a href="#contato">Contato</a>
             </div>
@@ -119,7 +131,7 @@
     <!-- Hero em carrossel -->
     <section id="home" class="hero-carousel" aria-roledescription="carrossel">
         <div class="hero-slides" id="heroSlides">
-            <article class="hero-slide is-active" style="--slide-image: url('/assets/banners/vinicola.jpg');">
+            <article class="hero-slide is-active" style="--slide-image: url('/assets/banners/loja-salao.jpg');">
                 <div class="hero-slide-content">
                     <div class="hero-tag">
                         <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
@@ -133,7 +145,7 @@
                 </div>
             </article>
 
-            <article class="hero-slide" style="--slide-image: url('/assets/banners/adega.jpg');">
+            <article class="hero-slide" style="--slide-image: url('/assets/banners/loja-adega-bistro.jpg');">
                 <div class="hero-slide-content">
                     <div class="hero-tag">
                         <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
@@ -147,7 +159,7 @@
                 </div>
             </article>
 
-            <article class="hero-slide" style="--slide-image: url('/assets/banners/taca.jpg');">
+            <article class="hero-slide" style="--slide-image: url('/assets/banners/loja-mesa-posta.jpg');">
                 <div class="hero-slide-content">
                     <div class="hero-tag">
                         <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
@@ -161,7 +173,7 @@
                 </div>
             </article>
 
-            <article class="hero-slide" style="--slide-image: url('/assets/banners/uvas.jpg');">
+            <article class="hero-slide" style="--slide-image: url('/assets/banners/loja-restaurante.jpg');">
                 <div class="hero-slide-content">
                     <div class="hero-tag">
                         <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
@@ -211,6 +223,35 @@
         </div>
     </section>
 
+    <!-- Cesta de Natal (cestas cadastradas no admin, aba Natal) -->
+    <section class="special-section natal-section" id="natal" data-secao-opcional="natal">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow" data-site="natal.selo">Presentes de fim de ano</span>
+                <h2 data-site-formatado="natal.titulo">Cestas de <em>Natal</em></h2>
+                <p class="section-sub" data-site="natal.texto">Monte a cesta perfeita para presentear quem você gosta: vinhos selecionados, espumantes e acompanhamentos. Também montamos cestas personalizadas para empresas.</p>
+                <a class="btn btn-primary" data-whatsapp-mensagem="natal.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
+                    data-site="natal.botao">Encomendar cesta pelo WhatsApp</a>
+            </div>
+            <div class="baskets-grid" id="cestasGrid"></div>
+        </div>
+    </section>
+
+    <!-- Black Friday (vinhos marcados no admin + contagem regressiva) -->
+    <section class="special-section black-friday-section" id="black-friday" data-secao-opcional="blackFriday">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow" data-site="blackFriday.selo">Está chegando</span>
+                <h2 data-site-formatado="blackFriday.titulo"><em>Black Friday</em> Grand Cru</h2>
+                <p class="section-sub" data-site="blackFriday.texto">Os melhores rótulos com descontos que só acontecem uma vez por ano. Fique de olho: as ofertas são por tempo limitado e enquanto durar o estoque.</p>
+                <div class="countdown" id="bfContagem" aria-live="off"></div>
+                <a class="btn btn-gold" data-whatsapp-mensagem="blackFriday.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
+                    data-site="blackFriday.botao">Quero ser avisado das ofertas</a>
+            </div>
+            <div class="featured-grid" id="blackFridayGrid" data-colecao="blackfriday"></div>
+        </div>
+    </section>
+
     <!-- Catálogo -->
     <main id="catalogo" class="main-content">
         <div class="container">
@@ -238,6 +279,38 @@
             </div>
         </div>
     </main>
+
+    <!-- Eventos (lista editada no admin) -->
+    <section class="special-section eventos-section" id="eventos" data-secao-opcional="eventos">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow" data-site="eventos.selo">Agenda</span>
+                <h2 data-site-formatado="eventos.titulo">Eventos e <em>degustações</em></h2>
+                <p class="section-sub" data-site="eventos.texto">Degustações, jantares harmonizados e cursos para quem quer conhecer mais sobre vinho em boa companhia.</p>
+            </div>
+            <div class="events-grid" id="eventosLista"></div>
+        </div>
+    </section>
+
+    <!-- Restaurante -->
+    <section class="special-section restaurante-section" id="restaurante" data-secao-opcional="restaurante">
+        <div class="container">
+            <div class="restaurant-content">
+                <img class="restaurant-image" src="/assets/banners/loja-restaurante.jpg" data-imagem-site="restaurante" alt="Salão do restaurante da Grand Cru Copacabana, com mesas postas" loading="lazy" width="679" height="851">
+                <div class="restaurant-text">
+                    <span class="eyebrow" data-site="restaurante.selo">Bistrô Grand Cru</span>
+                    <h2 data-site-formatado="restaurante.titulo">Nosso <em>restaurante</em></h2>
+                    <p data-site="restaurante.texto">Além da loja, temos um bistrô aconchegante para almoço e jantar. Toda semana tem sugestão da chef, um prato diferente para harmonizar com o vinho perfeito, escolhido direto da nossa adega.</p>
+                    <div class="restaurant-hours">
+                        <span class="restaurant-hours-icon" aria-hidden="true">🕒</span>
+                        <p data-site-linhas="restaurante.horario">Almoço: segunda a sexta, a partir das 12h<br>Jantar: terça a sábado, a partir das 18h</p>
+                    </div>
+                    <a class="btn btn-primary" data-whatsapp-mensagem="restaurante.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
+                        data-site="restaurante.botao">Reservar mesa pelo WhatsApp</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Sobre -->
     <section id="sobre" class="about-section">
@@ -359,26 +432,6 @@
         </div>
     </section>
 
-    <!-- Newsletter -->
-    <section class="newsletter-section">
-        <div class="container">
-            <div class="newsletter-inner">
-                <h2 data-site="cadastro.titulo">Conclua seu cadastro para receber todas as promoções</h2>
-                <p data-site="cadastro.texto">Dicas de harmonização, chegadas novas e promoções exclusivas — no máximo um e-mail por semana.</p>
-                <form class="newsletter-form" id="newsletterForm">
-                    <input type="email" name="email" class="newsletter-email" placeholder="Seu melhor e-mail" required aria-label="E-mail" autocomplete="email">
-                    <input type="text" name="cpf" placeholder="CPF" required aria-label="CPF" inputmode="numeric" maxlength="14" autocomplete="off">
-                    <input type="tel" name="telefone" placeholder="Telefone com DDD" required aria-label="Telefone com DDD" inputmode="numeric" maxlength="15" autocomplete="tel-national">
-                    <label class="newsletter-consent">
-                        <input type="checkbox" name="consentimento" required>
-                        <span>Concordo em receber promoções da Grand Cru Copacabana por e-mail, WhatsApp e SMS, e autorizo o uso destes dados (e-mail, CPF e telefone) para esse fim, conforme a LGPD. Posso cancelar quando quiser.</span>
-                    </label>
-                    <button type="submit" class="btn btn-primary">Cadastrar</button>
-                </form>
-            </div>
-        </div>
-    </section>
-
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -426,13 +479,17 @@
                 <form class="checkout-customer" id="checkoutCustomer" novalidate>
                     <p class="checkout-customer-title">Seus dados para o pedido</p>
                     <div class="checkout-customer-fields">
-                        <div class="field">
+                        <div class="field field-wide">
                             <label for="checkoutNome">Nome</label>
                             <input type="text" id="checkoutNome" name="nome" required maxlength="120" autocomplete="name" placeholder="Seu nome">
                         </div>
                         <div class="field">
                             <label for="checkoutTelefone">Telefone / WhatsApp</label>
                             <input type="tel" id="checkoutTelefone" name="telefone" required maxlength="15" inputmode="numeric" autocomplete="tel-national" placeholder="(21) 99999-9999">
+                        </div>
+                        <div class="field">
+                            <label for="checkoutCpf">CPF</label>
+                            <input type="text" id="checkoutCpf" name="cpf" required maxlength="14" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00">
                         </div>
                     </div>
 
@@ -471,6 +528,12 @@
                             <span>⚡ Pix</span>
                         </label>
                     </div>
+
+                    <label class="checkout-promocoes">
+                        <input type="checkbox" id="checkoutPromocoes" name="promocoes">
+                        <span>Quero receber promoções da Grand Cru Copacabana por WhatsApp e SMS. Posso cancelar quando quiser.</span>
+                    </label>
+                    <p class="checkout-privacidade">Seus dados (nome, CPF, telefone e endereço) ficam no cadastro da loja para atender este e os próximos pedidos, conforme a LGPD.</p>
                 </form>
             </div>
             <div class="modal-footer">

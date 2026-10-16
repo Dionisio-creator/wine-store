@@ -5,6 +5,7 @@
 require('dotenv').config();
 
 const crypto = require('crypto');
+const fs = require('fs/promises');
 const path = require('path');
 const express = require('express');
 const db = require('./db');
@@ -29,6 +30,29 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 app.get('/admin.html', (req, res) => res.redirect(301, '/admin'));
+// A página inicial sai com as imagens dos banners já trocadas pelas que o
+// admin enviou, para a imagem padrão não aparecer piscando antes da nova.
+app.get(['/', '/index.html'], async (req, res, next) => {
+    try {
+        let html = await fs.readFile(path.join(__dirname, 'public', 'index.html'), 'utf8');
+        const banners = await db.obterBanners();
+        banners.forEach((banner, i) => {
+            html = html.replace(
+                `--slide-image: url('${BANNERS_PADRAO[i]}');`,
+                `--slide-image: url('${urlDoBanner(banner, i)}'); --slide-position: ${banner.posicao}%;`
+            );
+        });
+        for (const [chave, padrao] of Object.entries(IMAGENS_PADRAO)) {
+            html = html.replace(`src="${padrao}" data-imagem-site="${chave}"`,
+                `src="${urlDaImagemSite(chave, await db.obterImagemSite(chave))}" data-imagem-site="${chave}"`);
+        }
+        res.set('Cache-Control', 'no-cache');
+        res.type('html').send(html);
+    } catch (erro) {
+        console.error(erro);
+        next(); // sem banco, vai a página com as imagens padrão
+    }
+});
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------- SESSÃO ADMINISTRATIVA ----------
@@ -180,19 +204,179 @@ app.put('/api/admin/site', exigirAdmin, async (req, res) => {
     }
 });
 
-app.post('/api/clientes', limitarPorIp(10, 10 * 60 * 1000), async (req, res) => {
+// ---------- IMAGENS DOS BANNERS DO TOPO ----------
+
+// Imagens que já vêm no site (mesma ordem dos slides em index.html)
+const BANNERS_PADRAO = [
+    '/assets/banners/loja-salao.jpg',
+    '/assets/banners/loja-adega-bistro.jpg',
+    '/assets/banners/loja-mesa-posta.jpg',
+    '/assets/banners/loja-restaurante.jpg'
+];
+
+// ?v= muda a cada nova imagem, então o navegador pode guardar a antiga sem medo
+function urlDoBanner(banner, indice) {
+    return banner.imagem ? `/api/banners/${indice}/imagem?v=${banner.versao}` : BANNERS_PADRAO[indice];
+}
+
+function bannerParaAdmin(banner, indice) {
+    return {
+        indice,
+        url: urlDoBanner(banner, indice),
+        personalizada: Boolean(banner.imagem),
+        posicao: banner.posicao
+    };
+}
+
+// ---------- OUTRAS IMAGENS DO SITE (foto do restaurante) ----------
+
+// Imagem que já vem no site, usada enquanto o admin não envia outra
+const IMAGENS_PADRAO = {
+    restaurante: '/assets/banners/loja-restaurante.jpg'
+};
+
+function urlDaImagemSite(chave, dados) {
+    return dados?.imagem ? `/api/imagens/${chave}?v=${dados.versao}` : IMAGENS_PADRAO[chave];
+}
+
+app.get('/api/imagens/:chave', async (req, res) => {
     try {
-        await db.cadastrarCliente(req.body);
-        res.status(201).json({ ok: true });
+        const dados = await db.obterImagemSite(req.params.chave);
+        const partes = dados?.imagem?.match(/^data:([^;]+);base64,(.+)$/);
+        if (!partes) return res.status(404).end();
+        res.set('Cache-Control', 'public, max-age=31536000, immutable');
+        res.type(partes[1]).send(Buffer.from(partes[2], 'base64'));
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).end();
+    }
+});
+
+app.get('/api/admin/imagens/:chave', exigirAdmin, async (req, res) => {
+    const dados = await db.obterImagemSite(req.params.chave).catch(() => null);
+    if (!dados) return res.status(404).json({ erro: 'Imagem inexistente.' });
+    res.json({ url: urlDaImagemSite(req.params.chave, dados), personalizada: Boolean(dados.imagem) });
+});
+
+// Corpo: { imagem: data URL } para trocar ou { imagem: null } para voltar à padrão
+app.put('/api/admin/imagens/:chave', exigirAdmin, async (req, res) => {
+    try {
+        const imagem = req.body?.imagem === null ? null : req.body?.imagem;
+        const dados = await db.salvarImagemSite(req.params.chave, imagem);
+        res.json({ url: urlDaImagemSite(req.params.chave, dados), personalizada: Boolean(dados.imagem) });
     } catch (erro) {
         res.status(400).json({ erro: erro.message });
     }
 });
 
+// ---------- CESTAS DE NATAL ----------
+
+async function cestaComImagem(cesta) {
+    const imagem = await db.obterImagemSite(`cesta-${cesta.id}`);
+    return {
+        ...cesta,
+        itens: cesta.itens ? cesta.itens.split('\n') : [],
+        imagem: imagem?.imagem ? `/api/imagens/cesta-${cesta.id}?v=${imagem.versao}` : null
+    };
+}
+
+async function listaDeCestas() {
+    return Promise.all((await db.listarCestas()).map(cestaComImagem));
+}
+
+app.get('/api/cestas', async (req, res) => {
+    try {
+        res.json(await listaDeCestas());
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Não foi possível carregar as cestas.' });
+    }
+});
+
+app.post('/api/admin/cestas', exigirAdmin, async (req, res) => {
+    try {
+        res.status(201).json(await cestaComImagem(await db.criarCesta(req.body)));
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
+
+app.put('/api/admin/cestas/:id', exigirAdmin, async (req, res) => {
+    try {
+        const cesta = await db.atualizarCesta(Number(req.params.id), req.body);
+        if (!cesta) return res.status(404).json({ erro: 'Cesta não encontrada.' });
+        res.json(await cestaComImagem(cesta));
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
+
+app.delete('/api/admin/cestas/:id', exigirAdmin, async (req, res) => {
+    try {
+        if (!(await db.removerCesta(Number(req.params.id)))) return res.status(404).json({ erro: 'Cesta não encontrada.' });
+        res.status(204).end();
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Não foi possível excluir a cesta.' });
+    }
+});
+
+// Corpo: { direcao: -1 (sobe) | 1 (desce) }. Devolve a lista na nova ordem.
+app.post('/api/admin/cestas/:id/mover', exigirAdmin, async (req, res) => {
+    try {
+        if (!(await db.moverCesta(Number(req.params.id), Number(req.body?.direcao)))) {
+            return res.status(404).json({ erro: 'Cesta não encontrada.' });
+        }
+        res.json(await listaDeCestas());
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Não foi possível mudar a ordem.' });
+    }
+});
+
+app.get('/api/banners/:indice/imagem', async (req, res) => {
+    try {
+        const banner = (await db.obterBanners())[Number(req.params.indice)];
+        const partes = banner?.imagem?.match(/^data:([^;]+);base64,(.+)$/);
+        if (!partes) return res.status(404).end();
+        res.set('Cache-Control', 'public, max-age=31536000, immutable');
+        res.type(partes[1]).send(Buffer.from(partes[2], 'base64'));
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).end();
+    }
+});
+
+app.get('/api/admin/banners', exigirAdmin, async (req, res) => {
+    try {
+        res.json((await db.obterBanners()).map(bannerParaAdmin));
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Não foi possível carregar os banners.' });
+    }
+});
+
+// Corpo: { imagem: data URL } para trocar, { imagem: null } para voltar à
+// imagem padrão e/ou { posicao: 0–100 } para o enquadramento.
+app.put('/api/admin/banners/:indice', exigirAdmin, async (req, res) => {
+    try {
+        const indice = Number(req.params.indice);
+        const banner = await db.salvarBanner(indice, {
+            imagem: req.body?.imagem,
+            posicao: req.body?.posicao
+        });
+        res.json(bannerParaAdmin(banner, indice));
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
+
+// Cada pedido também cria (ou atualiza, pelo CPF) o cadastro do cliente
 app.post('/api/pedidos', limitarPorIp(20, 10 * 60 * 1000), async (req, res) => {
     try {
         const pedido = await db.registrarPedido(
-            req.body?.itens, req.body?.cliente, req.body?.endereco, req.body?.pagamento
+            req.body?.itens, req.body?.cliente, req.body?.endereco, req.body?.pagamento,
+            req.body?.promocoes === true
         );
         res.status(201).json({ id: pedido.id });
     } catch (erro) {
@@ -250,6 +434,16 @@ app.patch('/api/admin/pedidos/:id', exigirAdmin, async (req, res) => {
 app.post('/api/admin/importar-imagens', exigirAdmin, async (req, res) => {
     try {
         res.json(await db.importarImagens(req.body?.vinhos));
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
+
+// Importação de catálogo por planilha. { linhas: [{ linha, celulas }], simular }
+// simular (padrão) só valida; simular: false grava as linhas válidas.
+app.post('/api/admin/vinhos/importar', exigirAdmin, async (req, res) => {
+    try {
+        res.json(await db.importarVinhos(req.body?.linhas, req.body?.simular !== false));
     } catch (erro) {
         res.status(400).json({ erro: erro.message });
     }

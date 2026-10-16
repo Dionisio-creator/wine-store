@@ -8,13 +8,13 @@ const TEMA_KEY = 'vinhos-tema';
 
 document.addEventListener('DOMContentLoaded', () => {
     configurarTema();
-    configurarFormularios();
     configurarNavegacao();
     configurarEfeitoScroll();
     configurarCategoriaNav();
     configurarFiltrosDropdown();
     configurarCarrossel();
     carregarInformacoesSite();
+    carregarCestas();
 
     console.log(`${APP_NAME} v${APP_VERSION} carregado com sucesso!`);
 });
@@ -94,6 +94,167 @@ function aplicarInformacoesSite(site) {
     document.querySelectorAll('[data-contato-link]').forEach(el => {
         el.href = links[el.dataset.contatoLink];
     });
+
+    // Abas especiais desligadas no admin somem do menu e da página
+    document.querySelectorAll('[data-secao-opcional]').forEach(el => {
+        el.classList.toggle('hidden', site[el.dataset.secaoOpcional]?.mostrar === 'nao');
+    });
+
+    // Botões que abrem o WhatsApp da loja com uma mensagem pronta
+    document.querySelectorAll('[data-whatsapp-mensagem]').forEach(el => {
+        el.href = linkWhatsapp(valorDaChave(site, el.dataset.whatsappMensagem) || '');
+    });
+
+    renderizarEventos(site.eventos);
+    renderizarCestas(); // o botão de encomenda usa o WhatsApp salvo no admin
+    iniciarContagemBlackFriday(site.blackFriday?.data);
+    rolarParaSecaoDoLink();
+}
+
+// Link direto para uma seção (ex.: /#black-friday): o navegador rola assim que
+// a página abre, mas depois os vinhos, os textos do admin e as fotos carregam e
+// empurram a seção para baixo. Chamado a cada uma dessas etapas, até a pessoa
+// rolar por conta própria.
+let rolagemDoLinkAtiva = location.hash.length > 1;
+['wheel', 'touchmove', 'keydown'].forEach(evento =>
+    window.addEventListener(evento, () => { rolagemDoLinkAtiva = false; }, { once: true, passive: true }));
+
+function rolarParaSecaoDoLink() {
+    if (!rolagemDoLinkAtiva) return;
+    const alvo = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (alvo && !alvo.classList.contains('hidden')) alvo.scrollIntoView({ behavior: 'instant', block: 'start' });
+}
+window.addEventListener('load', () => {
+    rolarParaSecaoDoLink();
+    setTimeout(() => { rolarParaSecaoDoLink(); rolagemDoLinkAtiva = false; }, 600);
+});
+
+function linkWhatsapp(mensagem) {
+    return `https://wa.me/${WHATSAPP_LOJA}${mensagem ? `?text=${encodeURIComponent(mensagem)}` : ''}`;
+}
+
+// ============================================
+// CESTAS DE NATAL (cadastradas no admin, aba Natal)
+// ============================================
+
+let cestasDeNatal = null; // null = ainda carregando
+
+async function carregarCestas() {
+    try {
+        const resposta = await fetch('/api/cestas', { cache: 'no-store' });
+        cestasDeNatal = resposta.ok ? await resposta.json() : [];
+    } catch {
+        cestasDeNatal = [];
+    }
+    renderizarCestas();
+    rolarParaSecaoDoLink();
+}
+
+function renderizarCestas() {
+    const grade = document.getElementById('cestasGrid');
+    if (!grade || cestasDeNatal === null) return;
+
+    if (!cestasDeNatal.length) {
+        grade.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🎄</div>
+                <div class="empty-state-text">As cestas de Natal estão sendo montadas</div>
+                <div class="empty-state-hint">Encomende a sua pelo WhatsApp: montamos do jeito que você quiser.</div>
+            </div>`;
+        return;
+    }
+
+    grade.innerHTML = cestasDeNatal.map(c => {
+        const preco = c.preco != null ? formatarPreco(c.preco) : '';
+        const mensagem = `Olá! Quero encomendar a ${c.nome}${preco ? ` (${preco})` : ''}.`;
+        return `
+            <article class="basket-card">
+                <div class="basket-image">
+                    ${c.imagem
+                        ? `<img src="${escaparTexto(c.imagem)}" alt="${escaparTexto(c.nome)}" loading="lazy">`
+                        : '<span class="basket-image-empty" aria-hidden="true">🧺</span>'}
+                </div>
+                <div class="basket-content">
+                    <h3>${escaparTexto(c.nome)}</h3>
+                    ${c.itens.length ? `
+                        <p class="basket-items-title">O que vem na cesta</p>
+                        <ul class="basket-items">${c.itens.map(item => `<li>${escaparTexto(item)}</li>`).join('')}</ul>` : ''}
+                    <div class="basket-footer">
+                        <strong class="basket-price">${preco || 'Preço sob consulta'}</strong>
+                        <a class="btn btn-primary btn-sm" href="${escaparTexto(linkWhatsapp(mensagem))}" target="_blank" rel="noopener">
+                            Encomendar pelo WhatsApp</a>
+                    </div>
+                </div>
+            </article>`;
+    }).join('');
+}
+
+// ============================================
+// EVENTOS (lista editada no admin)
+// ============================================
+
+function renderizarEventos(eventos) {
+    const lista = document.getElementById('eventosLista');
+    if (!lista || !eventos) return;
+    const itens = (eventos.itens || []).filter(e => e.titulo?.trim());
+
+    if (!itens.length) {
+        lista.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">🍷</div>
+                <div class="empty-state-text">Novos eventos em breve</div>
+                <div class="empty-state-hint">Fale com a gente pelo WhatsApp para saber da próxima degustação.</div>
+            </div>`;
+        return;
+    }
+    lista.innerHTML = itens.map(e => `
+        <article class="event-card">
+            ${e.data ? `<div class="event-date">📅 ${escaparTexto(e.data)}</div>` : ''}
+            <h3>${escaparTexto(e.titulo)}</h3>
+            ${e.descricao ? `<p>${escaparTexto(e.descricao).replace(/\n/g, '<br>')}</p>` : ''}
+            <a class="btn btn-secondary btn-sm" target="_blank" rel="noopener"
+               href="${escaparTexto(linkWhatsapp(`${eventos.mensagemWhatsapp || ''} ${e.titulo}${e.data ? ` (${e.data})` : ''}`.trim()))}">
+               ${escaparTexto(eventos.botao || 'Reservar pelo WhatsApp')}</a>
+        </article>`).join('');
+}
+
+// ============================================
+// CONTAGEM REGRESSIVA DA BLACK FRIDAY
+// ============================================
+
+let timerBlackFriday = null;
+
+function iniciarContagemBlackFriday(dataIso) {
+    const caixa = document.getElementById('bfContagem');
+    if (!caixa) return;
+    clearInterval(timerBlackFriday);
+    // Meia-noite do dia, no horário de Brasília
+    const alvo = /^\d{4}-\d{2}-\d{2}$/.test(dataIso || '') ? new Date(`${dataIso}T00:00:00-03:00`) : null;
+    if (!alvo || Number.isNaN(alvo.getTime())) {
+        caixa.innerHTML = '';
+        return;
+    }
+
+    const atualizar = () => {
+        const falta = alvo.getTime() - Date.now();
+        if (falta <= 0) {
+            caixa.innerHTML = '<p class="countdown-live">🔥 As ofertas já estão valendo!</p>';
+            clearInterval(timerBlackFriday);
+            return;
+        }
+        const partes = [
+            [Math.floor(falta / 86400000), 'dias'],
+            [Math.floor(falta / 3600000) % 24, 'horas'],
+            [Math.floor(falta / 60000) % 60, 'min'],
+            [Math.floor(falta / 1000) % 60, 'seg']
+        ];
+        caixa.innerHTML = `
+            <span class="countdown-label">Faltam</span>
+            ${partes.map(([n, rotulo]) => `
+                <span class="countdown-item"><strong>${String(n).padStart(2, '0')}</strong><small>${rotulo}</small></span>`).join('')}`;
+    };
+    atualizar();
+    timerBlackFriday = setInterval(atualizar, 1000);
 }
 
 async function carregarInformacoesSite() {
@@ -324,68 +485,7 @@ function configurarCarrossel() {
 }
 
 // ============================================
-// FORMULÁRIOS INSTITUCIONAIS
-// ============================================
-
-function configurarFormularios() {
-
-    const newsletterForm = document.getElementById('newsletterForm');
-    if (newsletterForm) {
-        const campoCpf = newsletterForm.elements.cpf;
-        const campoTelefone = newsletterForm.elements.telefone;
-
-        campoCpf.addEventListener('input', () => {
-            campoCpf.value = mascararCpf(campoCpf.value);
-            campoCpf.setCustomValidity('');
-        });
-        campoTelefone.addEventListener('input', () => {
-            campoTelefone.value = mascararTelefone(campoTelefone.value);
-            campoTelefone.setCustomValidity('');
-        });
-
-        newsletterForm.addEventListener('submit', async event => {
-            event.preventDefault();
-            if (!cpfValido(campoCpf.value)) {
-                campoCpf.setCustomValidity('Informe um CPF válido.');
-                campoCpf.reportValidity();
-                return;
-            }
-            const digitosTelefone = campoTelefone.value.replace(/\D/g, '');
-            if (digitosTelefone.length < 10) {
-                campoTelefone.setCustomValidity('Informe o telefone com DDD.');
-                campoTelefone.reportValidity();
-                return;
-            }
-            const botao = newsletterForm.querySelector('button[type="submit"]');
-            botao.disabled = true;
-            try {
-                const resposta = await fetch('/api/clientes', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: newsletterForm.elements.email.value,
-                        cpf: campoCpf.value,
-                        telefone: campoTelefone.value,
-                        consentimento: newsletterForm.elements.consentimento.checked
-                    })
-                });
-                if (!resposta.ok) {
-                    const corpo = await resposta.json().catch(() => ({}));
-                    throw new Error(corpo.erro || 'Não foi possível concluir o cadastro. Tente novamente.');
-                }
-                mostrarToast('Cadastro concluído! Você vai receber nossas promoções no seu e-mail.', 'success');
-                newsletterForm.reset();
-            } catch (erro) {
-                mostrarToast(erro.message, 'error');
-            } finally {
-                botao.disabled = false;
-            }
-        });
-    }
-}
-
-// ============================================
-// CADASTRO (CPF E TELEFONE)
+// CPF E TELEFONE (usados no carrinho)
 // ============================================
 
 // 12345678901 → 123.456.789-01

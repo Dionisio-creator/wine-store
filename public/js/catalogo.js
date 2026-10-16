@@ -6,6 +6,21 @@ const IMAGEM_LARGURA_MAX = 900;
 const IMAGEM_QUALIDADE = 0.82;
 
 // ============================================
+// PREÇO PROMOCIONAL
+// ============================================
+
+// Preço cobrado: o promocional, se houver
+function precoAtual(vinho) {
+    return vinho.precoPromocional ?? vinho.preco;
+}
+
+// 200 → 150 = 25 (% de desconto); 0 quando não há promoção
+function percentualDesconto(vinho) {
+    if (vinho.precoPromocional == null || !(vinho.preco > 0)) return 0;
+    return Math.round((1 - vinho.precoPromocional / vinho.preco) * 100);
+}
+
+// ============================================
 // GARRAFA ILUSTRADA (para vinhos sem foto)
 // ============================================
 
@@ -187,7 +202,7 @@ class CatalogoAPI {
     }
 
     precoMaximo() {
-        return this.itens.reduce((maior, v) => Math.max(maior, v.preco), 0);
+        return this.itens.reduce((maior, v) => Math.max(maior, precoAtual(v)), 0);
     }
 }
 
@@ -197,7 +212,15 @@ class CatalogoAPI {
 
 // Lê o arquivo, reduz a largura e devolve um data URL leve o bastante
 // para trafegar no corpo da requisição junto com o resto do vinho.
-function processarImagem(arquivo) {
+// Os banners do topo passam limites maiores (veja admin-banners.js).
+// PNG/WEBP com fundo transparente continuam transparentes (saem em WEBP, ou
+// PNG no navegador que não gera WEBP), para a garrafa recortada ficar bonita
+// nos cards escuros (Destaque e Black Friday). As demais saem em JPEG.
+function processarImagem(arquivo, {
+    larguraMax = IMAGEM_LARGURA_MAX,
+    alturaMax = Infinity,
+    qualidade = IMAGEM_QUALIDADE
+} = {}) {
     return new Promise((resolve, reject) => {
         if (!arquivo.type.startsWith('image/')) {
             reject(new Error('O arquivo selecionado não é uma imagem.'));
@@ -212,7 +235,7 @@ function processarImagem(arquivo) {
 
             img.onerror = () => reject(new Error('Imagem inválida ou corrompida.'));
             img.onload = () => {
-                const escala = Math.min(1, IMAGEM_LARGURA_MAX / img.width);
+                const escala = Math.min(1, larguraMax / img.width, alturaMax / img.height);
                 const largura = Math.round(img.width * escala);
                 const altura = Math.round(img.height * escala);
 
@@ -221,11 +244,14 @@ function processarImagem(arquivo) {
                 canvas.height = altura;
 
                 const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, largura, altura);
+                const transparente = /^image\/(png|webp)$/.test(arquivo.type);
+                if (!transparente) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, largura, altura);
+                }
                 ctx.drawImage(img, 0, 0, largura, altura);
 
-                resolve(canvas.toDataURL('image/jpeg', IMAGEM_QUALIDADE));
+                resolve(canvas.toDataURL(transparente ? 'image/webp' : 'image/jpeg', qualidade));
             };
 
             img.src = leitor.result;
