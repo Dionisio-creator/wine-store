@@ -147,8 +147,18 @@ async function carregarCestas() {
         cestasDeNatal = [];
     }
     renderizarCestas();
+    // Cestas que já estavam no carrinho ganham foto e preço atualizados
+    if (typeof atualizarCarrinhoUI === 'function') atualizarCarrinhoUI();
     rolarParaSecaoDoLink();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('cestasGrid')?.addEventListener('click', evento => {
+        const botao = evento.target.closest('[data-cesta-carrinho]');
+        if (!botao) return;
+        adicionarCestaAoCarrinho(cestasDeNatal?.find(c => c.id === Number(botao.dataset.cestaCarrinho)));
+    });
+});
 
 function renderizarCestas() {
     const grade = document.getElementById('cestasGrid');
@@ -181,9 +191,13 @@ function renderizarCestas() {
                         <ul class="basket-items">${c.itens.map(item => `<li>${escaparTexto(item)}</li>`).join('')}</ul>` : ''}
                     <div class="basket-footer">
                         <strong class="basket-price">${preco || 'Preço sob consulta'}</strong>
-                        <a class="btn btn-primary btn-sm" href="${escaparTexto(linkWhatsapp(mensagem))}" target="_blank" rel="noopener">
-                            Encomendar pelo WhatsApp</a>
+                        ${preco
+                            ? `<button type="button" class="btn btn-primary btn-sm" data-cesta-carrinho="${c.id}">Adicionar 🛒</button>`
+                            : `<a class="btn btn-primary btn-sm" href="${escaparTexto(linkWhatsapp(mensagem))}" target="_blank" rel="noopener">
+                                Encomendar pelo WhatsApp</a>`}
                     </div>
+                    ${preco ? `<a class="basket-whatsapp" href="${escaparTexto(linkWhatsapp(`Olá! Tenho uma dúvida sobre a ${c.nome}.`))}"
+                        target="_blank" rel="noopener">Dúvidas ou quer personalizar? Fale pelo WhatsApp</a>` : ''}
                 </div>
             </article>`;
     }).join('');

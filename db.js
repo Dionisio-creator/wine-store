@@ -603,11 +603,21 @@ async function registrarPedido(itensRecebidos, cliente, enderecoRecebido, pagame
     const endereco = validarEndereco(enderecoRecebido);
 
     const itens = [];
+    let cestas = null; // carregadas só se o pedido tiver alguma
     for (const item of itensRecebidos) {
         const id = Number(item?.id);
         const quantidade = Number(item?.quantidade);
         if (!Number.isInteger(id) || !Number.isInteger(quantidade) || quantidade < 1 || quantidade > 999) {
             throw new Error('Item do pedido inválido.');
+        }
+        // Cesta de Natal: o preço vem do cadastro da cesta, nunca do navegador
+        if (item?.tipo === 'cesta') {
+            cestas ??= await listarCestas();
+            const cesta = cestas.find(c => c.id === id);
+            if (!cesta) throw new Error('Uma das cestas do pedido não está mais disponível.');
+            if (cesta.preco == null) throw new Error(`A ${cesta.nome} é sob consulta: encomende pelo WhatsApp.`);
+            itens.push({ id, tipo: 'cesta', nome: `Cesta de Natal — ${cesta.nome}`, preco: cesta.preco, quantidade });
+            continue;
         }
         const vinho = await obterVinho(id);
         if (!vinho) throw new Error('Um dos vinhos do pedido não está mais no catálogo.');

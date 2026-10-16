@@ -1,6 +1,20 @@
 // ============================================
 // SISTEMA DE CARRINHO DE COMPRAS
 // ============================================
+// O carrinho guarda vinhos e cestas de Natal. Cesta tem "cesta: true";
+// item sem isso é vinho (inclusive os carrinhos salvos antes das cestas).
+// Como um vinho e uma cesta podem ter o mesmo id, cada item é identificado
+// pela chave: "12" (vinho 12) ou "cesta-3" (cesta 3).
+
+function chaveDoItem(item) {
+    return item.cesta ? `cesta-${item.id}` : String(item.id);
+}
+
+function cestaDoCarrinho(item) {
+    return typeof cestasDeNatal !== 'undefined' && Array.isArray(cestasDeNatal)
+        ? cestasDeNatal.find(c => c.id === item.id) || null
+        : null;
+}
 
 class CarrinhoBD {
     constructor() {
@@ -23,57 +37,54 @@ class CarrinhoBD {
         localStorage.setItem(this.storageKey, JSON.stringify(carrinho));
     }
 
-    adicionarItem(vinho, quantidade = 1) {
+    // novoItem: { id, nome, preco, tipo } de um vinho, ou com cesta: true
+    adicionarItem(novoItem, quantidade = 1) {
         const carrinho = this.obterCarrinho();
-        const itemExistente = carrinho.find(item => item.id === vinho.id);
+        const itemExistente = carrinho.find(item => chaveDoItem(item) === chaveDoItem(novoItem));
 
         if (itemExistente) {
             itemExistente.quantidade += quantidade;
         } else {
-            carrinho.push({
-                id: vinho.id,
-                nome: vinho.nome,
-                preco: precoAtual(vinho),
-                quantidade: quantidade,
-                tipo: vinho.tipo
-            });
+            carrinho.push({ ...novoItem, quantidade });
         }
 
         this.salvarCarrinho(carrinho);
         return carrinho;
     }
 
-    removerItem(vinhoId) {
+    removerItem(chave) {
         const carrinho = this.obterCarrinho();
-        const novoCarrinho = carrinho.filter(item => item.id !== vinhoId);
+        const novoCarrinho = carrinho.filter(item => chaveDoItem(item) !== chave);
         this.salvarCarrinho(novoCarrinho);
         return novoCarrinho;
     }
 
-    atualizarQuantidade(vinhoId, quantidade) {
+    atualizarQuantidade(chave, quantidade) {
         const carrinho = this.obterCarrinho();
-        const item = carrinho.find(i => i.id === vinhoId);
-        
+        const item = carrinho.find(i => chaveDoItem(i) === chave);
+
         if (item) {
             if (quantidade <= 0) {
-                return this.removerItem(vinhoId);
+                return this.removerItem(chave);
             }
             item.quantidade = quantidade;
             this.salvarCarrinho(carrinho);
         }
-        
+
         return carrinho;
     }
 
     // O carrinho fica guardado no navegador: se o preço (ou a promoção) mudou
-    // depois que o vinho foi adicionado, vale o preço atual do catálogo
+    // depois que o item foi adicionado, vale o preço atual do catálogo/da cesta
     sincronizarPrecos() {
         const carrinho = this.obterCarrinho();
         let mudou = false;
         for (const item of carrinho) {
-            const vinho = catalogoDb.obter(item.id);
-            if (vinho && precoAtual(vinho) !== item.preco) {
-                item.preco = precoAtual(vinho);
+            const atual = item.cesta
+                ? cestaDoCarrinho(item)?.preco
+                : (catalogoDb.obter(item.id) ? precoAtual(catalogoDb.obter(item.id)) : undefined);
+            if (atual != null && atual !== item.preco) {
+                item.preco = atual;
                 mudou = true;
             }
         }
@@ -124,13 +135,22 @@ function atualizarCarrinhoUI() {
         `;
     } else {
         cartItems.innerHTML = carrinho.map(item => {
-            // A imagem vem sempre do catálogo, para o carrinho não guardar base64
-            const vinho = catalogoDb.obter(item.id);
-            const imagem = !vinho
-                ? '🍷'
-                : vinho.imagem
-                    ? `<img src="${escaparHtml(vinho.imagem)}" alt="${escaparHtml(item.nome)}">`
-                    : `<img class="garrafa-ilustrada" src="${escaparHtml(garrafaIlustrada(vinho))}" alt="${escaparHtml(item.nome)}">`;
+            const chave = chaveDoItem(item);
+            // A imagem vem sempre do catálogo/da cesta, para o carrinho não guardar base64
+            let imagem;
+            if (item.cesta) {
+                const cesta = cestaDoCarrinho(item);
+                imagem = cesta?.imagem
+                    ? `<img class="cart-basket-photo" src="${escaparHtml(cesta.imagem)}" alt="${escaparHtml(item.nome)}">`
+                    : '🧺';
+            } else {
+                const vinho = catalogoDb.obter(item.id);
+                imagem = !vinho
+                    ? '🍷'
+                    : vinho.imagem
+                        ? `<img src="${escaparHtml(vinho.imagem)}" alt="${escaparHtml(item.nome)}">`
+                        : `<img class="garrafa-ilustrada" src="${escaparHtml(garrafaIlustrada(vinho))}" alt="${escaparHtml(item.nome)}">`;
+            }
 
             return `
             <div class="cart-item">
@@ -145,13 +165,13 @@ function atualizarCarrinhoUI() {
                     </div>
                     <div class="cart-item-controls">
                         <div class="qty">
-                            <button onclick="atualizarQuantidadeCarrinho(${item.id}, ${item.quantidade - 1})"
+                            <button onclick="atualizarQuantidadeCarrinho('${chave}', ${item.quantidade - 1})"
                                 aria-label="Diminuir quantidade">−</button>
                             <span class="cart-item-quantity">${item.quantidade}</span>
-                            <button onclick="atualizarQuantidadeCarrinho(${item.id}, ${item.quantidade + 1})"
+                            <button onclick="atualizarQuantidadeCarrinho('${chave}', ${item.quantidade + 1})"
                                 aria-label="Aumentar quantidade">+</button>
                         </div>
-                        <button class="cart-item-remove" onclick="removerDoCarrinho(${item.id})">Remover</button>
+                        <button class="cart-item-remove" onclick="removerDoCarrinho('${chave}')">Remover</button>
                     </div>
                 </div>
             </div>
@@ -173,7 +193,7 @@ function adicionarAoCarrinho(vinho, quantidade = 1) {
     }
 
     const qtd = Math.max(1, Math.round(Number(quantidade) || 1));
-    carrinhoDb.adicionarItem(vinho, qtd);
+    carrinhoDb.adicionarItem({ id: vinho.id, nome: vinho.nome, preco: precoAtual(vinho), tipo: vinho.tipo }, qtd);
     atualizarCarrinhoUI();
     mostrarToast(
         qtd === 1
@@ -183,17 +203,28 @@ function adicionarAoCarrinho(vinho, quantidade = 1) {
     );
 }
 
-function removerDoCarrinho(vinhoId) {
-    carrinhoDb.removerItem(vinhoId);
+// Cesta de Natal (só as que têm preço; as "sob consulta" são pelo WhatsApp)
+function adicionarCestaAoCarrinho(cesta) {
+    if (!cesta || cesta.preco == null) {
+        mostrarToast('Esta cesta é sob consulta: encomende pelo WhatsApp.', 'error');
+        return;
+    }
+    carrinhoDb.adicionarItem({ id: cesta.id, cesta: true, nome: `Cesta de Natal — ${cesta.nome}`, preco: cesta.preco }, 1);
+    atualizarCarrinhoUI();
+    mostrarToast(`${cesta.nome} adicionada ao carrinho!`, 'success');
+}
+
+function removerDoCarrinho(chave) {
+    carrinhoDb.removerItem(String(chave));
     atualizarCarrinhoUI();
     mostrarToast('Item removido do carrinho', 'info');
 }
 
-function atualizarQuantidadeCarrinho(vinhoId, novaQuantidade) {
+function atualizarQuantidadeCarrinho(chave, novaQuantidade) {
     if (novaQuantidade <= 0) {
-        removerDoCarrinho(vinhoId);
+        removerDoCarrinho(chave);
     } else {
-        carrinhoDb.atualizarQuantidade(vinhoId, novaQuantidade);
+        carrinhoDb.atualizarQuantidade(String(chave), novaQuantidade);
         atualizarCarrinhoUI();
     }
 }
@@ -264,7 +295,7 @@ function montarMensagemPedido(carrinho, total, pedido) {
         'Endereço de entrega:',
         ...enderecoEmLinhas(pedido.endereco),
         '',
-        'Vinhos:',
+        carrinho.some(item => item.cesta) ? 'Itens:' : 'Vinhos:',
         ...linhas,
         `Total: ${formatarPreco(total)}`,
         '',
@@ -390,7 +421,11 @@ function finalizarCompra() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            itens: carrinho.map(item => ({ id: item.id, quantidade: item.quantidade })),
+            itens: carrinho.map(item => ({
+                id: item.id,
+                quantidade: item.quantidade,
+                ...(item.cesta ? { tipo: 'cesta' } : {})
+            })),
             ...pedido
         }),
         keepalive: true

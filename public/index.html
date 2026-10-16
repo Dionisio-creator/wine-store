@@ -78,11 +78,11 @@
                 <a href="#destaques" data-nav-destaques="true">
                     <span class="category-nav-icon">⭐</span> Destaques
                 </a>
-                <a href="#natal" data-secao-opcional="natal">
-                    <span class="category-nav-icon">🎄</span> Cesta de Natal
-                </a>
                 <a href="#black-friday" data-secao-opcional="blackFriday" class="nav-black-friday">
                     <span class="category-nav-icon">🖤</span> Black Friday
+                </a>
+                <a href="#natal" data-secao-opcional="natal">
+                    <span class="category-nav-icon">🎄</span> Cesta de Natal
                 </a>
                 <a href="#eventos" data-secao-opcional="eventos">
                     <span class="category-nav-icon">🎉</span> Eventos
@@ -211,47 +211,6 @@
         </div>
     </section>
 
-    <!-- Destaques -->
-    <section class="featured-section" id="destaques">
-        <div class="container">
-            <div class="section-head">
-                <span class="eyebrow">Seleção da casa</span>
-                <h2>Vinhos em destaque</h2>
-                <p class="section-sub">Os rótulos que nossos sommeliers estão recomendando neste mês.</p>
-            </div>
-            <div class="featured-grid" id="featuredGrid"></div>
-        </div>
-    </section>
-
-    <!-- Cesta de Natal (cestas cadastradas no admin, aba Natal) -->
-    <section class="special-section natal-section" id="natal" data-secao-opcional="natal">
-        <div class="container">
-            <div class="section-head">
-                <span class="eyebrow" data-site="natal.selo">Presentes de fim de ano</span>
-                <h2 data-site-formatado="natal.titulo">Cestas de <em>Natal</em></h2>
-                <p class="section-sub" data-site="natal.texto">Monte a cesta perfeita para presentear quem você gosta: vinhos selecionados, espumantes e acompanhamentos. Também montamos cestas personalizadas para empresas.</p>
-                <a class="btn btn-primary" data-whatsapp-mensagem="natal.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
-                    data-site="natal.botao">Encomendar cesta pelo WhatsApp</a>
-            </div>
-            <div class="baskets-grid" id="cestasGrid"></div>
-        </div>
-    </section>
-
-    <!-- Black Friday (vinhos marcados no admin + contagem regressiva) -->
-    <section class="special-section black-friday-section" id="black-friday" data-secao-opcional="blackFriday">
-        <div class="container">
-            <div class="section-head">
-                <span class="eyebrow" data-site="blackFriday.selo">Está chegando</span>
-                <h2 data-site-formatado="blackFriday.titulo"><em>Black Friday</em> Grand Cru</h2>
-                <p class="section-sub" data-site="blackFriday.texto">Os melhores rótulos com descontos que só acontecem uma vez por ano. Fique de olho: as ofertas são por tempo limitado e enquanto durar o estoque.</p>
-                <div class="countdown" id="bfContagem" aria-live="off"></div>
-                <a class="btn btn-gold" data-whatsapp-mensagem="blackFriday.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
-                    data-site="blackFriday.botao">Quero ser avisado das ofertas</a>
-            </div>
-            <div class="featured-grid" id="blackFridayGrid" data-colecao="blackfriday"></div>
-        </div>
-    </section>
-
     <!-- Catálogo -->
     <main id="catalogo" class="main-content">
         <div class="container">
@@ -279,6 +238,47 @@
             </div>
         </div>
     </main>
+
+    <!-- Destaques -->
+    <section class="featured-section" id="destaques">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow">Seleção da casa</span>
+                <h2>Vinhos em destaque</h2>
+                <p class="section-sub">Os rótulos que nossos sommeliers estão recomendando neste mês.</p>
+            </div>
+            <div class="featured-grid" id="featuredGrid"></div>
+        </div>
+    </section>
+
+    <!-- Black Friday (vinhos marcados no admin + contagem regressiva) -->
+    <section class="special-section black-friday-section" id="black-friday" data-secao-opcional="blackFriday">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow" data-site="blackFriday.selo">Está chegando</span>
+                <h2 data-site-formatado="blackFriday.titulo"><em>Black Friday</em> Grand Cru</h2>
+                <p class="section-sub" data-site="blackFriday.texto">Os melhores rótulos com descontos que só acontecem uma vez por ano. Fique de olho: as ofertas são por tempo limitado e enquanto durar o estoque.</p>
+                <div class="countdown" id="bfContagem" aria-live="off"></div>
+                <a class="btn btn-gold" data-whatsapp-mensagem="blackFriday.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
+                    data-site="blackFriday.botao">Quero ser avisado das ofertas</a>
+            </div>
+            <div class="featured-grid" id="blackFridayGrid" data-colecao="blackfriday"></div>
+        </div>
+    </section>
+
+    <!-- Cesta de Natal (cestas cadastradas no admin, aba Natal) -->
+    <section class="special-section natal-section" id="natal" data-secao-opcional="natal">
+        <div class="container">
+            <div class="section-head">
+                <span class="eyebrow" data-site="natal.selo">Presentes de fim de ano</span>
+                <h2 data-site-formatado="natal.titulo">Cestas de <em>Natal</em></h2>
+                <p class="section-sub" data-site="natal.texto">Monte a cesta perfeita para presentear quem você gosta: vinhos selecionados, espumantes e acompanhamentos. Também montamos cestas personalizadas para empresas.</p>
+                <a class="btn btn-primary" data-whatsapp-mensagem="natal.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
+                    data-site="natal.botao">Encomendar cesta pelo WhatsApp</a>
+            </div>
+            <div class="baskets-grid" id="cestasGrid"></div>
+        </div>
+    </section>
 
     <!-- Eventos (lista editada no admin) -->
     <section class="special-section eventos-section" id="eventos" data-secao-opcional="eventos">
