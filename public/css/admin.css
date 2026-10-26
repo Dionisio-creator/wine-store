@@ -1218,6 +1218,61 @@
     }
 }
 
+/* ---------- ESTATÍSTICAS ---------- */
+
+.stats-frame-wrap iframe {
+    display: block;
+    width: 100%;
+    height: min(80vh, 900px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+}
+
+.stats-frame-wrap .field-hint {
+    margin-top: 0.6rem;
+}
+
+.stats-setup {
+    padding: 1.1rem 1.25rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+}
+
+.stats-setup a {
+    color: var(--primary, var(--wine-600));
+    font-weight: 600;
+}
+
+.stats-setup ol {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    padding-left: 1.25rem;
+}
+
+.stats-link-form {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 1.25rem;
+}
+
+.stats-link-row {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.stats-link-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 640px) {
+    .stats-link-row {
+        flex-direction: column;
+    }
+}
+
 /* ---------- BANNERS DO TOPO ---------- */
 
 .banner-list {

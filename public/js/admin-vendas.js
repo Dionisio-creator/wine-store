@@ -81,6 +81,7 @@ function trocarAba(aba) {
     if (aba === 'clientes') carregarClientes();
     if (aba === 'pedidos') carregarPedidos();
     if (aba === 'banners') carregarBanners();
+    if (aba === 'estatisticas') carregarEstatisticas();
     if (aba === 'natal') carregarCestas();
     if (aba === 'blackfriday') renderizarListaColecao(aba);
     if (aba === 'restaurante') carregarFotoRestaurante();

@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <!-- Google tag (gtag.js) — Google Analytics da loja.
+         Só na loja: a área administrativa fica de fora para não contar as visitas da equipe. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NVQ7E02QZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-2NVQ7E02QZ');
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grand Cru Copacabana — Vinhos, restaurante e experiências</title>
@@ -8,7 +18,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,400;0,600;0,700;1,600&family=Nunito+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/layout.css">
@@ -33,12 +43,13 @@
         <div class="header-top">
             <div class="header-top-inner">
                 <a href="#home" class="logo">
-                    <img class="logo-img" src="assets/logo-grand-cru.png" alt="Grand Cru" width="389" height="109">
+                    <img class="logo-img logo-claro" src="assets/logo-grand-cru.png" alt="Grand Cru" width="280" height="56">
+                    <img class="logo-img logo-escuro" src="assets/logo-grand-cru-branco.png" alt="" aria-hidden="true" width="156" height="34">
                 </a>
 
                 <label class="header-search">
                     <span class="visually-hidden">Buscar</span>
-                    <span class="header-search-icon" aria-hidden="true">🔍</span>
+                    <span class="header-search-icon" aria-hidden="true" data-icone="search"></span>
                     <input
                         type="text"
                         id="searchInput"
@@ -48,16 +59,14 @@
                 </label>
 
                 <div class="header-icons">
-                    <button class="icon-btn" id="themeToggle" title="Alternar tema" aria-label="Alternar tema">
-                        🌙
-                    </button>
+                    <button class="icon-btn" id="themeToggle" title="Alternar tema" aria-label="Alternar tema" data-icone="moon"></button>
                     <a class="icon-btn header-whatsapp" data-contato-link="whatsapp"
                         href="https://wa.me/5521989014962" target="_blank" rel="noopener"
                         title="Fale com a loja no WhatsApp" aria-label="Falar com a loja no WhatsApp">
                         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.79h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89 0-3.18-1.24-6.17-3.49-8.42"/></svg>
                     </a>
                     <button class="icon-btn" id="cartBtn" title="Carrinho" aria-label="Abrir carrinho">
-                        🛒 <span class="cart-count hidden" id="cartCount">0</span>
+                        <span data-icone="shopping-cart"></span> <span class="cart-count hidden" id="cartCount">0</span>
                     </button>
                 </div>
             </div>
@@ -68,27 +77,27 @@
             <div class="category-nav-inner">
                 <button type="button" class="nav-dropdown-trigger" id="filtrosTrigger"
                     aria-expanded="false" aria-haspopup="true" aria-controls="filtrosPainel">
-                    <span class="category-nav-icon">🍷</span> Vinhos
+                    <span class="category-nav-icon" data-icone="wine"></span> Vinhos
                     <span class="nav-dropdown-caret" aria-hidden="true">▾</span>
                 </button>
 
                 <a href="#catalogo" data-nav-ordenar="preco-asc">
-                    <span class="category-nav-icon">🏷️</span> Ofertas
+                    <span class="category-nav-icon" data-icone="tag"></span> Ofertas
                 </a>
                 <a href="#destaques" data-nav-destaques="true">
-                    <span class="category-nav-icon">⭐</span> Destaques
+                    <span class="category-nav-icon" data-icone="star"></span> Destaques
                 </a>
                 <a href="#black-friday" data-secao-opcional="blackFriday" class="nav-black-friday">
-                    <span class="category-nav-icon">🖤</span> Black Friday
+                    <span class="category-nav-icon" data-icone="badge-percent"></span> Black Friday
                 </a>
                 <a href="#natal" data-secao-opcional="natal">
-                    <span class="category-nav-icon">🎄</span> Cesta de Natal
+                    <span class="category-nav-icon" data-icone="tree-pine"></span> Cesta de Natal
                 </a>
                 <a href="#eventos" data-secao-opcional="eventos">
-                    <span class="category-nav-icon">🎉</span> Eventos
+                    <span class="category-nav-icon" data-icone="party-popper"></span> Eventos
                 </a>
                 <a href="#restaurante" data-secao-opcional="restaurante">
-                    <span class="category-nav-icon">🍽️</span> Restaurante
+                    <span class="category-nav-icon" data-icone="utensils-crossed"></span> Restaurante
                 </a>
                 <a href="#sobre">Sobre</a>
                 <a href="#contato">Contato</a>
@@ -302,7 +311,7 @@
                     <h2 data-site-formatado="restaurante.titulo">Nosso <em>restaurante</em></h2>
                     <p data-site="restaurante.texto">Além da loja, temos um bistrô aconchegante para almoço e jantar. Toda semana tem sugestão da chef, um prato diferente para harmonizar com o vinho perfeito, escolhido direto da nossa adega.</p>
                     <div class="restaurant-hours">
-                        <span class="restaurant-hours-icon" aria-hidden="true">🕒</span>
+                        <span class="restaurant-hours-icon" aria-hidden="true" data-icone="clock"></span>
                         <p data-site-linhas="restaurante.horario">Almoço: segunda a sexta, a partir das 12h<br>Jantar: terça a sábado, a partir das 18h</p>
                     </div>
                     <a class="btn btn-primary" data-whatsapp-mensagem="restaurante.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
@@ -317,7 +326,8 @@
         <div class="container">
             <div class="about-content">
                 <div class="about-text">
-                    <img class="about-logo" src="assets/logo-grand-cru.png" alt="Grand Cru Copacabana" width="389" height="109" loading="lazy">
+                    <img class="about-logo logo-claro" src="assets/logo-grand-cru.png" alt="Grand Cru Copacabana" width="280" height="56" loading="lazy">
+                    <img class="about-logo logo-escuro" src="assets/logo-grand-cru-branco.png" alt="" aria-hidden="true" width="156" height="34" loading="lazy">
                     <span class="eyebrow" data-site="sobre.selo">Quem somos</span>
                     <h2 data-site="sobre.titulo">Sobre nós</h2>
                     <div data-site-paragrafos="sobre.texto">
@@ -517,15 +527,15 @@
                     <div class="payment-options" role="radiogroup" aria-labelledby="checkoutPagamentoTitulo">
                         <label class="payment-option">
                             <input type="radio" name="pagamento" value="credito" required>
-                            <span>💳 Cartão de crédito</span>
+                            <span><span class="payment-icon" data-icone="credit-card"></span> Cartão de crédito</span>
                         </label>
                         <label class="payment-option">
                             <input type="radio" name="pagamento" value="debito">
-                            <span>💳 Cartão de débito</span>
+                            <span><span class="payment-icon" data-icone="credit-card"></span> Cartão de débito</span>
                         </label>
                         <label class="payment-option">
                             <input type="radio" name="pagamento" value="pix">
-                            <span>⚡ Pix</span>
+                            <span><span class="payment-icon" data-icone="zap"></span> Pix</span>
                         </label>
                     </div>
 
@@ -558,6 +568,7 @@
     <!-- Toast -->
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+    <script src="js/icones.js"></script>
     <script src="js/catalogo.js"></script>
     <script src="js/carrinho.js"></script>
     <script src="js/vinhos.js"></script>

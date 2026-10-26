@@ -7,7 +7,7 @@
     <meta name="description" content="Área administrativa protegida do catálogo Grand Cru Copacabana.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,0..9,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,400;0,600;0,700;1,600&family=Nunito+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
 </head>
@@ -52,6 +52,7 @@
                 <button type="button" role="tab" class="admin-tab active" data-tab="catalogo" aria-selected="true" aria-controls="tab-catalogo">🍷 Catálogo</button>
                 <button type="button" role="tab" class="admin-tab" data-tab="clientes" aria-selected="false" aria-controls="tab-clientes">👤 Clientes <span class="count-badge tab-badge" id="clientesPendentesBadge" hidden>0</span></button>
                 <button type="button" role="tab" class="admin-tab" data-tab="pedidos" aria-selected="false" aria-controls="tab-pedidos">🧾 Pedidos <span class="count-badge tab-badge" id="pedidosNovosBadge" hidden>0</span></button>
+                <button type="button" role="tab" class="admin-tab" data-tab="estatisticas" aria-selected="false" aria-controls="tab-estatisticas">📊 Estatísticas</button>
                 <button type="button" role="tab" class="admin-tab" data-tab="banners" aria-selected="false" aria-controls="tab-banners">🖼️ Banners</button>
                 <button type="button" role="tab" class="admin-tab" data-tab="natal" aria-selected="false" aria-controls="tab-natal">🎄 Natal</button>
                 <button type="button" role="tab" class="admin-tab" data-tab="blackfriday" aria-selected="false" aria-controls="tab-blackfriday">🖤 Black Friday</button>
@@ -59,6 +60,43 @@
                 <button type="button" role="tab" class="admin-tab" data-tab="restaurante" aria-selected="false" aria-controls="tab-restaurante">🍽️ Restaurante</button>
                 <button type="button" role="tab" class="admin-tab" data-tab="site" aria-selected="false" aria-controls="tab-site">⚙️ Informações do site</button>
             </nav>
+
+            <!-- ABA: ESTATÍSTICAS (painel do Looker Studio com os dados do Google Analytics) -->
+            <section class="admin-card admin-tab-panel hidden" id="tab-estatisticas" role="tabpanel" aria-labelledby="estatisticasTitle">
+                <div class="card-heading">
+                    <div>
+                        <span class="eyebrow">Google Analytics</span>
+                        <h2 id="estatisticasTitle">Estatísticas do site</h2>
+                        <p class="panel-intro">Visitas, de onde as pessoas vêm e quais páginas mais olham. Os números vêm do Google e podem levar algumas horas para aparecer.</p>
+                    </div>
+                    <a class="btn btn-secondary btn-sm" href="https://analytics.google.com/" target="_blank" rel="noopener">Abrir Google Analytics</a>
+                </div>
+
+                <div class="stats-frame-wrap" id="estatisticasPainel" hidden>
+                    <iframe id="estatisticasFrame" title="Painel de estatísticas do site" loading="lazy"
+                        allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+                    <p class="field-hint">Não aparece nada? Entre no navegador com a conta Google dona do painel (a mesma do Google Analytics) e recarregue a página.</p>
+                </div>
+
+                <div class="stats-setup" id="estatisticasComoFazer" hidden>
+                    <h3>Como ligar o painel</h3>
+                    <ol>
+                        <li>Abra <a href="https://lookerstudio.google.com/" target="_blank" rel="noopener">lookerstudio.google.com</a> com a mesma conta do Google Analytics.</li>
+                        <li>Clique em <strong>Criar → Relatório</strong>, escolha <strong>Google Analytics</strong> e a propriedade <strong>Site Grand Cru Copacabana</strong>. Clique em <strong>Adicionar</strong>.</li>
+                        <li>Monte os gráficos que quiser e, no menu <strong>Arquivo → Incorporar relatório</strong>, ative <strong>Ativar incorporação</strong>.</li>
+                        <li>Copie o <strong>URL de incorporação</strong> e cole aqui embaixo.</li>
+                    </ol>
+                </div>
+
+                <form id="estatisticasForm" class="stats-link-form" novalidate>
+                    <label for="estatisticasLink">Link do painel do Looker Studio</label>
+                    <div class="stats-link-row">
+                        <input type="url" id="estatisticasLink" placeholder="https://lookerstudio.google.com/embed/reporting/…" autocomplete="off">
+                        <button class="btn btn-primary" type="submit">Salvar link</button>
+                    </div>
+                    <p class="form-message" id="estatisticasMensagem" role="alert"></p>
+                </form>
+            </section>
 
             <!-- ABA: CESTA DE NATAL -->
             <section class="admin-card admin-tab-panel hidden" id="tab-natal" role="tabpanel" aria-labelledby="natalTitle">
@@ -432,6 +470,7 @@
     <script src="js/admin-vendas.js"></script>
     <script src="js/admin-site.js"></script>
     <script src="js/admin-banners.js"></script>
+    <script src="js/admin-estatisticas.js"></script>
     <script src="js/admin-especiais.js"></script>
     <script src="js/planilha.js"></script>
     <script src="js/admin-importar.js"></script>

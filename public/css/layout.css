@@ -56,8 +56,19 @@
     display: block;
     height: 40px;
     width: auto;
-    border-radius: 8px;
-    box-shadow: var(--shadow-xs);
+}
+
+/* Logo sem fundo: vinho no tema claro, branca no tema escuro */
+.logo-escuro {
+    display: none;
+}
+
+[data-theme='dark'] .logo-claro {
+    display: none;
+}
+
+[data-theme='dark'] .logo-escuro {
+    display: block;
 }
 
 .header-search {
@@ -1482,8 +1493,6 @@
     width: min(260px, 70%);
     height: auto;
     margin-bottom: 1.5rem;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
 }
 
 .about-text p {

@@ -30,7 +30,7 @@ com um clique.
   Ofertas, Destaques, Sobre, Contato) que já aplica filtro e rola até a seção
 - **Banner em carrossel**: hero com 4 slides (fotos de vinícola, adega, taça
   e uvas em `public/assets/banners/`), com troca automática, setas e bolinhas
-- **Tipografia**: Fraunces (títulos) + Inter (interface), via Google Fonts
+- **Tipografia**: Josefin Sans (títulos) + Nunito Sans (interface), via Google Fonts
 - **Layout Moderno**: grid responsivo, cards com imagem e chips de filtro
 - **Sem Frameworks de UI**: CSS puro e JavaScript vanilla no front-end
 

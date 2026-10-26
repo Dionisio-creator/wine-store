@@ -49,8 +49,9 @@
     --transition: 200ms cubic-bezier(0.2, 0.7, 0.3, 1);
 
     /* Tipografia */
-    --font-sans: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    --font-display: 'Fraunces', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+    /* Alternativas gratuitas à Brandon Grotesque usada no site da Grand Cru */
+    --font-sans: 'Nunito Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-display: 'Josefin Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
     --header-h: 72px;
     --category-nav-h: 46px;
@@ -96,6 +97,18 @@ html {
     scroll-behavior: smooth;
     scroll-padding-top: calc(var(--header-total-h) + 16px);
     -webkit-text-size-adjust: 100%;
+}
+
+/* Ícones Lucide (js/icones.js): seguem o tamanho e a cor do texto ao redor */
+.icone {
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: -0.125em;
+}
+
+[data-icone] {
+    display: inline-flex;
+    align-items: center;
 }
 
 body {

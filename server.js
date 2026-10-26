@@ -204,6 +204,25 @@ app.put('/api/admin/site', exigirAdmin, async (req, res) => {
     }
 });
 
+// ---------- ESTATÍSTICAS (link do painel do Looker Studio) ----------
+
+app.get('/api/admin/estatisticas', exigirAdmin, async (req, res) => {
+    try {
+        res.json(await db.obterEstatisticas());
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ erro: 'Não foi possível carregar as estatísticas.' });
+    }
+});
+
+app.put('/api/admin/estatisticas', exigirAdmin, async (req, res) => {
+    try {
+        res.json(await db.salvarEstatisticas(req.body));
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
+    }
+});
+
 // ---------- IMAGENS DOS BANNERS DO TOPO ----------
 
 // Imagens que já vêm no site (mesma ordem dos slides em index.html)

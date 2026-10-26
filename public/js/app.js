@@ -167,7 +167,7 @@ function renderizarCestas() {
     if (!cestasDeNatal.length) {
         grade.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">🎄</div>
+                <div class="empty-state-icon">${icone('tree-pine')}</div>
                 <div class="empty-state-text">As cestas de Natal estão sendo montadas</div>
                 <div class="empty-state-hint">Encomende a sua pelo WhatsApp: montamos do jeito que você quiser.</div>
             </div>`;
@@ -182,7 +182,7 @@ function renderizarCestas() {
                 <div class="basket-image">
                     ${c.imagem
                         ? `<img src="${escaparTexto(c.imagem)}" alt="${escaparTexto(c.nome)}" loading="lazy">`
-                        : '<span class="basket-image-empty" aria-hidden="true">🧺</span>'}
+                        : `<span class="basket-image-empty" aria-hidden="true">${icone('shopping-basket')}</span>`}
                 </div>
                 <div class="basket-content">
                     <h3>${escaparTexto(c.nome)}</h3>
@@ -192,7 +192,7 @@ function renderizarCestas() {
                     <div class="basket-footer">
                         <strong class="basket-price">${preco || 'Preço sob consulta'}</strong>
                         ${preco
-                            ? `<button type="button" class="btn btn-primary btn-sm" data-cesta-carrinho="${c.id}">Adicionar 🛒</button>`
+                            ? `<button type="button" class="btn btn-primary btn-sm" data-cesta-carrinho="${c.id}">Adicionar ${icone('shopping-cart')}</button>`
                             : `<a class="btn btn-primary btn-sm" href="${escaparTexto(linkWhatsapp(mensagem))}" target="_blank" rel="noopener">
                                 Encomendar pelo WhatsApp</a>`}
                     </div>
@@ -215,7 +215,7 @@ function renderizarEventos(eventos) {
     if (!itens.length) {
         lista.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">🍷</div>
+                <div class="empty-state-icon">${icone('wine')}</div>
                 <div class="empty-state-text">Novos eventos em breve</div>
                 <div class="empty-state-hint">Fale com a gente pelo WhatsApp para saber da próxima degustação.</div>
             </div>`;
@@ -223,7 +223,7 @@ function renderizarEventos(eventos) {
     }
     lista.innerHTML = itens.map(e => `
         <article class="event-card">
-            ${e.data ? `<div class="event-date">📅 ${escaparTexto(e.data)}</div>` : ''}
+            ${e.data ? `<div class="event-date">${icone('calendar')} ${escaparTexto(e.data)}</div>` : ''}
             <h3>${escaparTexto(e.titulo)}</h3>
             ${e.descricao ? `<p>${escaparTexto(e.descricao).replace(/\n/g, '<br>')}</p>` : ''}
             <a class="btn btn-secondary btn-sm" target="_blank" rel="noopener"
@@ -252,7 +252,7 @@ function iniciarContagemBlackFriday(dataIso) {
     const atualizar = () => {
         const falta = alvo.getTime() - Date.now();
         if (falta <= 0) {
-            caixa.innerHTML = '<p class="countdown-live">🔥 As ofertas já estão valendo!</p>';
+            caixa.innerHTML = `<p class="countdown-live">${icone('flame')} As ofertas já estão valendo!</p>`;
             clearInterval(timerBlackFriday);
             return;
         }
@@ -297,7 +297,7 @@ function aplicarTema(tema) {
 
     const botao = document.getElementById('themeToggle');
     if (botao) {
-        botao.textContent = tema === 'dark' ? '☀️' : '🌙';
+        botao.innerHTML = icone(tema === 'dark' ? 'sun' : 'moon');
         botao.title = tema === 'dark' ? 'Usar tema claro' : 'Usar tema escuro';
     }
 

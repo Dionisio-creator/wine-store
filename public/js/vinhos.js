@@ -425,7 +425,7 @@ function cardHTML(vinho, { compacto = false } = {}) {
                     </div>
                     <div class="wine-actions">
                         ${qtySeletorHTML(vinho.id)}
-                        <button class="btn btn-primary btn-sm btn-add-cart" data-acao="carrinho" data-id="${vinho.id}">Adicionar 🛒</button>
+                        <button class="btn btn-primary btn-sm btn-add-cart" data-acao="carrinho" data-id="${vinho.id}">Adicionar ${icone('shopping-cart')}</button>
                     </div>
                 </div>
             </div>
@@ -446,7 +446,7 @@ function renderizarVinhos(lista = vinhosExibindo) {
     if (lista.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">🍷</div>
+                <div class="empty-state-icon">${icone('wine')}</div>
                 <div class="empty-state-text">Indisponível</div>
                 <div class="empty-state-hint">Não há vinhos que correspondam à sua pesquisa. Ajuste os filtros ou limpe a seleção.</div>
             </div>
@@ -469,7 +469,7 @@ function renderizarDestaque() {
     if (destaques.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-state-icon">✨</div>
+                <div class="empty-state-icon">${icone('sparkles')}</div>
                 <div class="empty-state-text">Nenhum vinho em destaque</div>
             </div>
         `;
@@ -483,7 +483,7 @@ function renderizarDestaque() {
 // Aba Black Friday: vinhos marcados no admin
 // (A aba de Natal mostra cestas, não vinhos: veja renderizarCestas() em app.js.)
 const VAZIO_COLECAO = {
-    blackfriday: ['🖤', 'As ofertas serão reveladas em breve', 'Clique no botão acima para ser avisado(a) assim que começarem.']
+    blackfriday: ['badge-percent', 'As ofertas serão reveladas em breve', 'Clique no botão acima para ser avisado(a) assim que começarem.']
 };
 
 function renderizarColecoes() {
@@ -491,10 +491,10 @@ function renderizarColecoes() {
         const colecao = container.dataset.colecao;
         const vinhos = catalogoDb.listar().filter(v => (v.colecoes || []).includes(colecao));
         if (!vinhos.length) {
-            const [icone, texto, dica] = VAZIO_COLECAO[colecao];
+            const [nomeIcone, texto, dica] = VAZIO_COLECAO[colecao];
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">${icone}</div>
+                    <div class="empty-state-icon">${icone(nomeIcone)}</div>
                     <div class="empty-state-text">${texto}</div>
                     <div class="empty-state-hint">${dica}</div>
                 </div>`;
@@ -647,7 +647,7 @@ function mostrarCarregando() {
 function mostrarErroDeCarregamento() {
     const erro = `
         <div class="empty-state">
-            <div class="empty-state-icon">⚠️</div>
+            <div class="empty-state-icon">${icone('triangle-alert')}</div>
             <div class="empty-state-text">Não foi possível carregar o catálogo</div>
             <div class="empty-state-hint">Verifique sua conexão e recarregue a página.</div>
         </div>

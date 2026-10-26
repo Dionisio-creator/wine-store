@@ -817,6 +817,38 @@ async function salvarImagemSite(chave, imagem) {
     return obterImagemSite(chave);
 }
 
+// ---------- ESTATÍSTICAS (painel do Looker Studio no admin) ----------
+// Guarda só o link do painel; quem vê os números é a conta Google de quem abre o admin.
+
+// Procura o link em qualquer lugar do texto: aceita o link do navegador (…/reporting/ID/page/X/edit),
+// o de "Incorporar" e também o código <iframe> inteiro que o Looker Studio oferece
+const LINK_LOOKER = /https:\/\/(?:lookerstudio|datastudio)\.google\.com\/(?:u\/\d+\/)?(?:embed\/)?reporting\/([\w-]+)(?:\/page\/([\w-]+))?/;
+
+async function obterEstatisticas() {
+    const { rows } = await pool.query('SELECT valor FROM configuracoes WHERE chave = $1', ['estatisticas']);
+    const link = rows[0]?.valor?.link;
+    return { link: typeof link === 'string' ? link : '' };
+}
+
+async function salvarEstatisticas(dados) {
+    const texto = String(dados?.link ?? '').trim();
+    let link = '';
+    if (texto) {
+        // Aceita tanto o link normal do relatório quanto o de "Incorporar"; grava sempre o de incorporar
+        const partes = texto.match(LINK_LOOKER);
+        if (!partes) throw new Error('Cole o link do relatório do Looker Studio (começa com https://lookerstudio.google.com/).');
+        link = `https://lookerstudio.google.com/embed/reporting/${partes[1]}${partes[2] ? `/page/${partes[2]}` : ''}`;
+    }
+    const valor = JSON.stringify({ link });
+    const existe = await pool.query('SELECT 1 FROM configuracoes WHERE chave = $1', ['estatisticas']);
+    if (existe.rows.length) {
+        await pool.query('UPDATE configuracoes SET valor = $1, atualizado_em = now() WHERE chave = $2', [valor, 'estatisticas']);
+    } else {
+        await pool.query('INSERT INTO configuracoes (chave, valor) VALUES ($1, $2)', ['estatisticas', valor]);
+    }
+    return { link };
+}
+
 // ---------- CESTAS DE NATAL ----------
 // Uma lista só (chave 'cestas'), na ordem em que aparecem na loja. A foto de
 // cada cesta fica separada, em 'imagem.cesta-<id>', para a lista ser leve.
@@ -908,6 +940,8 @@ module.exports = {
     salvarBanner,
     obterInformacoesSite,
     salvarInformacoesSite,
+    obterEstatisticas,
+    salvarEstatisticas,
     listarClientes,
     marcarClienteSalvo,
     registrarPedido,

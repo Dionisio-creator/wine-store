@@ -129,7 +129,7 @@ function atualizarCarrinhoUI() {
     if (carrinho.length === 0) {
         cartItems.innerHTML = `
             <div class="cart-empty">
-                <div class="empty-state-icon">🛒</div>
+                <div class="empty-state-icon">${icone('shopping-cart')}</div>
                 <div>Seu carrinho está vazio</div>
             </div>
         `;
@@ -142,11 +142,11 @@ function atualizarCarrinhoUI() {
                 const cesta = cestaDoCarrinho(item);
                 imagem = cesta?.imagem
                     ? `<img class="cart-basket-photo" src="${escaparHtml(cesta.imagem)}" alt="${escaparHtml(item.nome)}">`
-                    : '🧺';
+                    : icone('shopping-basket');
             } else {
                 const vinho = catalogoDb.obter(item.id);
                 imagem = !vinho
-                    ? '🍷'
+                    ? icone('wine')
                     : vinho.imagem
                         ? `<img src="${escaparHtml(vinho.imagem)}" alt="${escaparHtml(item.nome)}">`
                         : `<img class="garrafa-ilustrada" src="${escaparHtml(garrafaIlustrada(vinho))}" alt="${escaparHtml(item.nome)}">`;

@@ -33,6 +33,7 @@ function preparar(filtros, falhar = false) {
         },
         window: { addEventListener() {} }, setInterval() {}, Event,
         mostrarToast: texto => mensagens.push(texto),
+        icone: () => '',
         catalogoDb: {
             listar: () => vinhos,
             async carregar() {
