@@ -10,7 +10,7 @@
 // Uma linha em branco separa parágrafos.
 
 module.exports = {
-    nomeLoja: 'Grand Cru Copacabana',
+    nomeLoja: 'Grand Cru Rio',
 
     contato: {
         endereco: 'Rua Barata Ribeiro, 560',
