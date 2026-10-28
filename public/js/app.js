@@ -297,7 +297,8 @@ function aplicarTema(tema) {
 
     const botao = document.getElementById('themeToggle');
     if (botao) {
-        botao.innerHTML = icone(tema === 'dark' ? 'sun' : 'moon');
+        botao.innerHTML = icone(tema === 'dark' ? 'sun' : 'moon') +
+            `<span>${tema === 'dark' ? 'Tema claro' : 'Tema escuro'}</span>`;
         botao.title = tema === 'dark' ? 'Usar tema claro' : 'Usar tema escuro';
     }
 

@@ -1737,6 +1737,32 @@ a.info-item-link:hover .info-icon {
     color: var(--text-soft);
 }
 
+/* Botão de tema claro/escuro, no rodapé */
+.footer-theme-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: none;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.footer-theme-btn:hover {
+    background-color: var(--surface-2);
+    color: var(--text);
+}
+
+.footer-theme-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+}
+
 /* ============================================
    RESPONSIVIDADE
    ============================================ */
