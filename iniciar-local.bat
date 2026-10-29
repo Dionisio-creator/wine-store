@@ -10,11 +10,21 @@ echo com dados de teste. Nao mexe no site publicado
 echo nem no banco de dados do Replit.
 echo.
 
-if not exist node_modules (
+rem Confere um programa de verdade, nao so a pasta: uma pasta node_modules
+rem vazia (de uma instalacao que falhou) fazia o site quebrar ao iniciar.
+if not exist node_modules\express\package.json (
     echo Primeira vez rodando aqui - instalando os programas necessarios...
-    echo (isso pode demorar um minuto, so acontece essa vez)
+    echo Isso pode demorar um minuto e so acontece essa vez.
     call npm install
     echo.
+)
+
+if not exist node_modules\express\package.json (
+    echo ERRO: nao foi possivel instalar os programas necessarios.
+    echo Verifique sua conexao com a internet e rode este arquivo de novo.
+    echo.
+    pause
+    exit /b 1
 )
 
 set USE_FAKE_DB=true
