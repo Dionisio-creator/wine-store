@@ -92,10 +92,10 @@
                 <a href="#natal" data-secao-opcional="natal">
                     <span class="category-nav-icon" data-icone="tree-pine"></span> Cesta de Natal
                 </a>
-                <a href="#eventos" data-secao-opcional="eventos">
+                <a href="eventos.html" data-secao-opcional="eventos">
                     <span class="category-nav-icon" data-icone="party-popper"></span> Eventos
                 </a>
-                <a href="#restaurante" data-secao-opcional="restaurante">
+                <a href="restaurante.html" data-secao-opcional="restaurante">
                     <span class="category-nav-icon" data-icone="utensils-crossed"></span> Restaurante
                 </a>
                 <a href="#sobre">Sobre</a>
@@ -288,38 +288,6 @@
         </div>
     </section>
 
-    <!-- Eventos (lista editada no admin) -->
-    <section class="special-section eventos-section" id="eventos" data-secao-opcional="eventos">
-        <div class="container">
-            <div class="section-head">
-                <span class="eyebrow" data-site="eventos.selo">Agenda</span>
-                <h2 data-site-formatado="eventos.titulo">Eventos e <em>degustações</em></h2>
-                <p class="section-sub" data-site="eventos.texto">Degustações, jantares harmonizados e cursos para quem quer conhecer mais sobre vinho em boa companhia.</p>
-            </div>
-            <div class="events-grid" id="eventosLista"></div>
-        </div>
-    </section>
-
-    <!-- Restaurante -->
-    <section class="special-section restaurante-section" id="restaurante" data-secao-opcional="restaurante">
-        <div class="container">
-            <div class="restaurant-content">
-                <img class="restaurant-image" src="/assets/banners/loja-restaurante.jpg" data-imagem-site="restaurante" alt="Salão do restaurante da Grand Cru Copacabana, com mesas postas" loading="lazy" width="679" height="851">
-                <div class="restaurant-text">
-                    <span class="eyebrow" data-site="restaurante.selo">Bistrô Grand Cru</span>
-                    <h2 data-site-formatado="restaurante.titulo">Nosso <em>restaurante</em></h2>
-                    <p data-site="restaurante.texto">Além da loja, temos um bistrô aconchegante para almoço e jantar. Toda semana tem sugestão da chef, um prato diferente para harmonizar com o vinho perfeito, escolhido direto da nossa adega.</p>
-                    <div class="restaurant-hours">
-                        <span class="restaurant-hours-icon" aria-hidden="true" data-icone="clock"></span>
-                        <p data-site-linhas="restaurante.horario">Almoço: segunda a sexta, a partir das 12h<br>Jantar: terça a sábado, a partir das 18h</p>
-                    </div>
-                    <a class="btn btn-primary" data-whatsapp-mensagem="restaurante.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
-                        data-site="restaurante.botao">Reservar mesa pelo WhatsApp</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Sobre -->
     <section id="sobre" class="about-section">
         <div class="container">
@@ -479,7 +447,7 @@
             <div class="modal-header">
                 <div>
                     <h2>Seu carrinho</h2>
-                    <p>Revise os itens antes de finalizar.</p>
+                    <p>Confira os itens e envie seu pedido pelo WhatsApp.</p>
                 </div>
                 <button class="close-btn" id="closeCart" aria-label="Fechar">&times;</button>
             </div>
@@ -551,7 +519,10 @@
                     <span>Total</span>
                     <strong id="cartTotal">R$ 0,00</strong>
                 </div>
-                <button class="btn btn-primary" id="checkoutBtn">Finalizar compra</button>
+                <div class="checkout-submit">
+                    <button class="btn btn-primary" id="checkoutBtn" type="button">Enviar pedido pelo WhatsApp</button>
+                    <p class="checkout-whatsapp-hint">O WhatsApp abrirá com seu pedido. Envie a mensagem por lá para concluir.</p>
+                </div>
             </div>
         </div>
     </div>

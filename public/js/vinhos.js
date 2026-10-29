@@ -436,6 +436,7 @@ function cardHTML(vinho, { compacto = false } = {}) {
 function renderizarVinhos(lista = vinhosExibindo) {
     const container = document.getElementById('winesList');
     const contador = document.getElementById('resultsCount');
+    if (!container) return; // páginas sem catálogo (Eventos, Restaurante)
 
     if (contador) {
         contador.textContent = lista.length === 1
@@ -460,6 +461,7 @@ function renderizarVinhos(lista = vinhosExibindo) {
 
 function renderizarDestaque() {
     const container = document.getElementById('featuredGrid');
+    if (!container) return;
     // Todos os destaques aparecem, os mais recentes primeiro — assim um vinho
     // marcado agora surge na vitrine na hora
     const destaques = catalogoDb.listar()
@@ -589,7 +591,7 @@ function abrirDetalhes(id) {
 }
 
 function fecharDetalhes() {
-    document.getElementById('wineModal').classList.remove('active');
+    document.getElementById('wineModal')?.classList.remove('active');
 }
 
 // ============================================
@@ -640,8 +642,10 @@ function mostrarCarregando() {
             <div class="empty-state-text">Carregando catálogo…</div>
         </div>
     `;
-    document.getElementById('winesList').innerHTML = carregando;
-    document.getElementById('featuredGrid').innerHTML = carregando;
+    ['winesList', 'featuredGrid'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = carregando;
+    });
 }
 
 function mostrarErroDeCarregamento() {
@@ -652,8 +656,10 @@ function mostrarErroDeCarregamento() {
             <div class="empty-state-hint">Verifique sua conexão e recarregue a página.</div>
         </div>
     `;
-    document.getElementById('winesList').innerHTML = erro;
-    document.getElementById('featuredGrid').innerHTML = erro;
+    ['winesList', 'featuredGrid'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = erro;
+    });
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -666,6 +672,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         mostrarToast(erro.message, 'error');
         return;
     }
+
+    // Busca ou ordenação vindas de outra página (ex.: /?busca=malbec#catalogo)
+    const parametros = new URLSearchParams(location.search);
+    const searchInput = document.getElementById('searchInput');
+    const sortBy = document.getElementById('sortBy');
+    if (parametros.get('busca') && searchInput) searchInput.value = termoBusca = parametros.get('busca');
+    if (parametros.get('ordenar') && sortBy) sortBy.value = parametros.get('ordenar');
 
     renderizarFiltros();
     atualizarCatalogo();
@@ -727,15 +740,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('sortBy')?.addEventListener('change', atualizarCatalogo);
     document.getElementById('clearFilters')?.addEventListener('click', limparFiltros);
 
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', evento => {
-        termoBusca = evento.target.value;
-        atualizarCatalogo();
-    });
+    if (document.getElementById('winesList')) {
+        searchInput?.addEventListener('input', evento => {
+            termoBusca = evento.target.value;
+            atualizarCatalogo();
+        });
+    } else {
+        // Páginas sem catálogo: Enter leva a busca para a página inicial
+        searchInput?.addEventListener('keydown', evento => {
+            const termo = searchInput.value.trim();
+            if (evento.key !== 'Enter' || !termo) return;
+            location.href = `./?busca=${encodeURIComponent(termo)}#catalogo`;
+        });
+    }
 
     // Modal de detalhes
-    document.getElementById('closeModal').addEventListener('click', fecharDetalhes);
-    document.getElementById('wineModal').addEventListener('click', evento => {
+    document.getElementById('closeModal')?.addEventListener('click', fecharDetalhes);
+    document.getElementById('wineModal')?.addEventListener('click', evento => {
         if (evento.target.id === 'wineModal') fecharDetalhes();
     });
 

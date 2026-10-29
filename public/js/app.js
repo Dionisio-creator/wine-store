@@ -6,6 +6,12 @@ const APP_VERSION = '2.0.0';
 const APP_NAME = 'Grand Cru Copacabana';
 const TEMA_KEY = 'vinhos-tema';
 
+// Eventos e Restaurante viraram páginas próprias: links antigos (/#eventos)
+// continuam funcionando
+if (['#eventos', '#restaurante'].includes(location.hash) && document.getElementById('catalogo')) {
+    location.replace(`${location.hash.slice(1)}.html`);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     configurarTema();
     configurarNavegacao();

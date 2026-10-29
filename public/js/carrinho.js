@@ -395,7 +395,7 @@ function prepararDadosCliente() {
     });
 }
 
-function finalizarCompra() {
+async function finalizarCompra() {
     carrinhoDb.sincronizarPrecos();
     const carrinho = carrinhoDb.obterCarrinho();
 
@@ -415,29 +415,49 @@ function finalizarCompra() {
     // senão o navegador pode bloquear a aba como pop-up.
     window.open(link, '_blank', 'noopener');
 
-    // Registra o pedido no admin, para os vendedores acompanharem as vendas.
-    // keepalive garante o envio mesmo se a pessoa sair da página.
-    fetch('/api/pedidos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            itens: carrinho.map(item => ({
-                id: item.id,
-                quantidade: item.quantidade,
-                ...(item.cesta ? { tipo: 'cesta' } : {})
-            })),
-            ...pedido
-        }),
-        keepalive: true
-    }).catch(() => {});
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.setAttribute('aria-busy', 'true');
+        checkoutBtn.textContent = 'Registrando pedido...';
+    }
 
-    mostrarToast('Pedido pronto! Confirme o envio na aba do WhatsApp que abriu.', 'success');
+    try {
+        // keepalive permite concluir o registro mesmo se a pessoa sair da página.
+        const resposta = await fetch('/api/pedidos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                itens: carrinho.map(item => ({
+                    id: item.id,
+                    quantidade: item.quantidade,
+                    ...(item.cesta ? { tipo: 'cesta' } : {})
+                })),
+                ...pedido
+            }),
+            keepalive: true
+        });
 
-    setTimeout(() => {
+        if (!resposta.ok) {
+            throw new Error(`Erro ${resposta.status} ao registrar o pedido.`);
+        }
+
+        mostrarToast('Pedido registrado na loja. Envie a mensagem na conversa do WhatsApp para concluir.', 'success');
         carrinhoDb.limparCarrinho();
         atualizarCarrinhoUI();
         fecharCarrinho();
-    }, 1500);
+    } catch {
+        mostrarToast(
+            'Não foi possível confirmar o registro do pedido na loja. O carrinho foi mantido. Confira se a mensagem abriu no WhatsApp e fale com a loja para confirmar.',
+            'error'
+        );
+    } finally {
+        if (checkoutBtn) {
+            checkoutBtn.disabled = false;
+            checkoutBtn.removeAttribute('aria-busy');
+            checkoutBtn.textContent = 'Enviar pedido pelo WhatsApp';
+        }
+    }
 }
 
 // ============================================

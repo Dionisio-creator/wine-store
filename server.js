@@ -30,22 +30,27 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 app.get('/admin.html', (req, res) => res.redirect(301, '/admin'));
-// A página inicial sai com as imagens dos banners já trocadas pelas que o
-// admin enviou, para a imagem padrão não aparecer piscando antes da nova.
+// As páginas saem com as imagens (banners, foto do restaurante) já trocadas
+// pelas que o admin enviou, para a imagem padrão não aparecer piscando antes da nova.
+async function htmlComImagensDoAdmin(arquivo) {
+    let html = await fs.readFile(path.join(__dirname, 'public', arquivo), 'utf8');
+    const banners = await db.obterBanners();
+    banners.forEach((banner, i) => {
+        html = html.replace(
+            `--slide-image: url('${BANNERS_PADRAO[i]}');`,
+            `--slide-image: url('${urlDoBanner(banner, i)}'); --slide-position: ${banner.posicao}%;`
+        );
+    });
+    for (const [chave, padrao] of Object.entries(IMAGENS_PADRAO)) {
+        html = html.replace(`src="${padrao}" data-imagem-site="${chave}"`,
+            `src="${urlDaImagemSite(chave, await db.obterImagemSite(chave))}" data-imagem-site="${chave}"`);
+    }
+    return html;
+}
+
 app.get(['/', '/index.html'], async (req, res, next) => {
     try {
-        let html = await fs.readFile(path.join(__dirname, 'public', 'index.html'), 'utf8');
-        const banners = await db.obterBanners();
-        banners.forEach((banner, i) => {
-            html = html.replace(
-                `--slide-image: url('${BANNERS_PADRAO[i]}');`,
-                `--slide-image: url('${urlDoBanner(banner, i)}'); --slide-position: ${banner.posicao}%;`
-            );
-        });
-        for (const [chave, padrao] of Object.entries(IMAGENS_PADRAO)) {
-            html = html.replace(`src="${padrao}" data-imagem-site="${chave}"`,
-                `src="${urlDaImagemSite(chave, await db.obterImagemSite(chave))}" data-imagem-site="${chave}"`);
-        }
+        const html = await htmlComImagensDoAdmin('index.html');
         res.set('Cache-Control', 'no-cache');
         res.type('html').send(html);
     } catch (erro) {
@@ -53,6 +58,24 @@ app.get(['/', '/index.html'], async (req, res, next) => {
         next(); // sem banco, vai a página com as imagens padrão
     }
 });
+
+// Páginas próprias de Eventos e Restaurante. Aba desligada no admin volta
+// para a página inicial.
+for (const pagina of ['eventos', 'restaurante']) {
+    app.get([`/${pagina}`, `/${pagina}.html`], async (req, res) => {
+        const arquivo = path.join(__dirname, 'public', `${pagina}.html`);
+        try {
+            const site = await db.obterInformacoesSite();
+            if (site[pagina]?.mostrar === 'nao') return res.redirect('/');
+            const html = await htmlComImagensDoAdmin(`${pagina}.html`);
+            res.set('Cache-Control', 'no-cache');
+            res.type('html').send(html);
+        } catch (erro) {
+            console.error(erro);
+            res.sendFile(arquivo); // sem banco, vai a página com as imagens padrão
+        }
+    });
+}
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------- SESSÃO ADMINISTRATIVA ----------
