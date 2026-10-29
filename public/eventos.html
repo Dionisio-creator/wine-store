@@ -51,10 +51,11 @@
                     <span class="visually-hidden">Buscar</span>
                     <span class="header-search-icon" aria-hidden="true" data-icone="search"></span>
                     <input
-                        type="text"
+                        type="search"
                         id="searchInput"
                         placeholder="Digite o que você procura..."
                         autocomplete="off"
+                        enterkeyhint="search"
                     >
                 </label>
 
@@ -86,7 +87,7 @@
                 <a href="./#black-friday" data-secao-opcional="blackFriday" class="nav-black-friday">
                     <span class="category-nav-icon" data-icone="badge-percent"></span> Black Friday
                 </a>
-                <a href="./#natal" data-secao-opcional="natal">
+                <a href="natal.html" data-secao-opcional="natal">
                     <span class="category-nav-icon" data-icone="tree-pine"></span> Cesta de Natal
                 </a>
                 <a href="eventos.html" data-secao-opcional="eventos" class="active" aria-current="page">
@@ -111,6 +112,24 @@
                     <p class="section-sub" data-site="eventos.texto">Degustações, jantares harmonizados e cursos para quem quer conhecer mais sobre vinho em boa companhia.</p>
                 </div>
                 <div class="events-grid" id="eventosLista"></div>
+            </div>
+        </section>
+
+        <!-- Como foram os últimos eventos (posts do Instagram cadastrados no admin).
+             Fica escondida até haver pelo menos um link. -->
+        <section class="special-section eventos-passados-section hidden" id="eventosPassadosSecao">
+            <div class="container">
+                <div class="section-head">
+                    <span class="eyebrow">No nosso Instagram</span>
+                    <h2 data-site-formatado="eventos.passadosTitulo">Como foram os <em>últimos eventos</em></h2>
+                    <p class="section-sub" data-site="eventos.passadosTexto">Alguns momentos das nossas degustações e jantares. Acompanhe tudo no nosso Instagram.</p>
+                </div>
+                <div class="instagram-grid" id="eventosPassados"></div>
+                <p class="instagram-mais" data-site-instagram>
+                    <a class="btn btn-secondary" data-site-instagram-link href="https://www.instagram.com/grandcrurio/" target="_blank" rel="noopener">
+                        Ver mais no Instagram
+                    </a>
+                </p>
             </div>
         </section>
     </main>

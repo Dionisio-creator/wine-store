@@ -8,22 +8,15 @@
 const BANNER_IMAGEM = { larguraMax: 1920, alturaMax: 1920, qualidade: 0.85 };
 
 const estadoBanners = {
-    lista: [],
-    titulos: []
+    lista: []
 };
-
-function tituloDoBanner(indice) {
-    const titulo = estadoBanners.titulos[indice];
-    return titulo ? titulo.replace(/\*/g, '') : '';
-}
 
 function bannerHTML(banner) {
     const i = banner.indice;
     return `
         <article class="banner-card" data-indice="${i}">
             <div class="banner-preview" data-banner-preview
-                 style="background-image: linear-gradient(100deg, rgba(20,12,14,.82) 0%, rgba(20,12,14,.55) 45%, rgba(20,12,14,.25) 75%), url('${escaparHtml(banner.url)}'); background-position: center ${banner.posicao}%;">
-                <span class="banner-preview-title">${escaparHtml(tituloDoBanner(i))}</span>
+                 style="background-image: url('${escaparHtml(banner.url)}'); background-position: center ${banner.posicao}%;">
             </div>
             <div class="banner-info">
                 <h3>Banner ${i + 1}
@@ -50,14 +43,15 @@ function renderizarBanners() {
     $('#bannersLista').innerHTML = estadoBanners.lista.map(bannerHTML).join('');
 }
 
+// Redesenha só o cartão que mudou
+function renderizarBanner(indice) {
+    const cartao = document.querySelector(`.banner-card[data-indice="${indice}"]`);
+    if (cartao) cartao.outerHTML = bannerHTML(estadoBanners.lista[indice]);
+}
+
 async function carregarBanners() {
     try {
-        const [lista, site] = await Promise.all([
-            requisicao('/api/admin/banners'),
-            requisicao('/api/site').catch(() => null)
-        ]);
-        estadoBanners.lista = lista;
-        estadoBanners.titulos = (site?.banner?.slides || []).map(slide => slide.titulo);
+        estadoBanners.lista = await requisicao('/api/admin/banners');
         renderizarBanners();
     } catch (erro) {
         mostrarToast(erro.message, 'error');
@@ -72,7 +66,7 @@ async function salvarBanner(indice, alteracao, mensagemOk) {
             method: 'PUT',
             body: JSON.stringify(alteracao)
         });
-        renderizarBanners();
+        renderizarBanner(indice);
         mostrarToast(mensagemOk, 'success');
     } catch (erro) {
         cartao?.classList.remove('is-saving');

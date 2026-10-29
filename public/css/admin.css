@@ -1294,23 +1294,11 @@
     pointer-events: none;
 }
 
-/* Mesma proporção e escurecimento do banner na loja (computador) */
+/* Mesma proporção do banner na loja (computador) */
 .banner-preview {
-    display: flex;
-    align-items: center;
-    aspect-ratio: 16 / 7;
-    padding: 0 6%;
+    aspect-ratio: 3 / 1;
     background-size: cover;
     background-color: var(--surface-2);
-}
-
-.banner-preview-title {
-    max-width: 55%;
-    font-family: var(--font-display);
-    font-size: clamp(0.95rem, 1.6vw, 1.3rem);
-    line-height: 1.2;
-    color: #fff;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 
 .banner-info {

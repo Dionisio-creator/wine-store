@@ -112,7 +112,18 @@ module.exports = {
             { data: '', titulo: '', descricao: '' }
         ],
         botao: 'Reservar pelo WhatsApp',
-        mensagemWhatsapp: 'Olá! Quero reservar um lugar no evento:'
+        mensagemWhatsapp: 'Olá! Quero reservar um lugar no evento:',
+        // "Como foram os últimos eventos": posts do Instagram (link vazio = não mostra)
+        passadosTitulo: 'Como foram os *últimos eventos*',
+        passadosTexto: 'Alguns momentos das nossas degustações e jantares. Acompanhe tudo no nosso Instagram.',
+        passados: [
+            { link: '' },
+            { link: '' },
+            { link: '' },
+            { link: '' },
+            { link: '' },
+            { link: '' }
+        ]
     },
 
     restaurante: {

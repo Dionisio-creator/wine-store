@@ -391,43 +391,53 @@ function precoHTML(vinho, classe) {
         </div>`;
 }
 
-// Estilo do card: Black Friday (preto e dourado) > Destaque (vermelho e dourado) > normal (branco)
+// Estilo do card: Black Friday (preto e dourado) > normal (claro).
+// O destaque usa o card normal; só ganha a etiqueta "Destaque".
 function estiloDoCard(vinho) {
     if ((vinho.colecoes || []).includes('blackfriday')) return 'is-blackfriday';
-    if (vinho.destaque) return 'is-destaque';
     return 'is-normal';
 }
 
-function cardHTML(vinho, { compacto = false } = {}) {
+// Favoritos (coração do card): ficam só no navegador do visitante
+const CHAVE_FAVORITOS = 'favoritos';
+
+function obterFavoritos() {
+    try {
+        return JSON.parse(localStorage.getItem(CHAVE_FAVORITOS)) || [];
+    } catch {
+        return [];
+    }
+}
+
+function alternarFavorito(id, botao) {
+    const favoritos = obterFavoritos();
+    const ativo = !favoritos.includes(id);
+    const novos = ativo ? [...favoritos, id] : favoritos.filter(f => f !== id);
+    try {
+        localStorage.setItem(CHAVE_FAVORITOS, JSON.stringify(novos));
+    } catch { /* navegador sem armazenamento: o coração só muda nesta visita */ }
+    botao.classList.toggle('is-active', ativo);
+    botao.setAttribute('aria-pressed', String(ativo));
+}
+
+function cardHTML(vinho) {
     const desconto = percentualDesconto(vinho);
+    const favorito = obterFavoritos().includes(vinho.id);
     return `
         <article class="wine-card ${estiloDoCard(vinho)}" data-id="${vinho.id}">
             ${imagemDoVinho(vinho)}
-            ${vinho.destaque ? '<div class="wine-badge">Destaque</div>' : ''}
-            ${desconto ? `<div class="wine-discount-badge" aria-label="${desconto}% de desconto">-${desconto}%</div>` : ''}
+            <div class="wine-badges">
+                ${vinho.destaque ? '<div class="wine-badge">Destaque</div>' : ''}
+                ${desconto ? `<div class="wine-discount-badge" aria-label="${desconto}% de desconto">-${desconto}%</div>` : ''}
+            </div>
+            <button type="button" class="wine-fav${favorito ? ' is-active' : ''}" data-acao="favorito" data-id="${vinho.id}"
+                aria-pressed="${favorito}" aria-label="Favoritar ${escaparHtml(vinho.nome)}">${icone('heart')}</button>
             <div class="wine-content">
-                <div class="wine-meta">
-                    <span class="wine-type-dot"></span>
-                    ${escaparHtml(vinho.tipo)} · ${vinho.safra}
-                </div>
                 <h3 class="wine-name wine-name-link" data-acao="detalhes" data-id="${vinho.id}"
-                    role="button" tabindex="0" aria-label="Ver detalhes de ${escaparHtml(vinho.nome)}">${escaparHtml(vinho.nome)}</h3>
-                <div class="wine-info">${escaparHtml(vinho.regiao)} · ${escaparHtml(vinho.alcool)}</div>
-                ${compacto ? '' : `<p class="wine-description">${escaparHtml(vinho.descricao)}</p>`}
-                <div class="wine-rating">
-                    ${renderizarEstrelas(vinho.avaliacao)}
-                    <span>${vinho.avaliacao.toFixed(1)}</span>
-                </div>
-                <div class="wine-card-footer">
-                    <div class="wine-price-row">
-                        ${precoHTML(vinho, 'wine-price')}
-                        <button class="btn btn-secondary btn-sm" data-acao="detalhes" data-id="${vinho.id}">Detalhes</button>
-                    </div>
-                    <div class="wine-actions">
-                        ${qtySeletorHTML(vinho.id)}
-                        <button class="btn btn-primary btn-sm btn-add-cart" data-acao="carrinho" data-id="${vinho.id}">Adicionar ${icone('shopping-cart')}</button>
-                    </div>
-                </div>
+                    role="button" tabindex="0" title="${escaparHtml(vinho.nome)}"
+                    aria-label="Ver detalhes de ${escaparHtml(vinho.nome)}">${escaparHtml(vinho.nome)}</h3>
+                ${precoHTML(vinho, 'wine-price')}
+                <button class="btn wine-buy" data-acao="carrinho" data-id="${vinho.id}">Comprar</button>
             </div>
         </article>
     `;
@@ -478,7 +488,7 @@ function renderizarDestaque() {
         return;
     }
 
-    container.innerHTML = destaques.map(vinho => cardHTML(vinho, { compacto: true })).join('');
+    container.innerHTML = destaques.map(vinho => cardHTML(vinho)).join('');
     sincronizarCarrosseisQty(container);
 }
 
@@ -502,7 +512,7 @@ function renderizarColecoes() {
                 </div>`;
             return;
         }
-        container.innerHTML = vinhos.map(vinho => cardHTML(vinho, { compacto: true })).join('');
+        container.innerHTML = vinhos.map(vinho => cardHTML(vinho)).join('');
         sincronizarCarrosseisQty(container);
     });
 }
@@ -628,6 +638,9 @@ function tratarAcaoDeVinho(evento) {
         case 'detalhes':
             abrirDetalhes(id);
             break;
+        case 'favorito':
+            alternarFavorito(id, botao);
+            break;
     }
 }
 
@@ -744,6 +757,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         searchInput?.addEventListener('input', evento => {
             termoBusca = evento.target.value;
             atualizarCatalogo();
+        });
+        // Enter (ou "Buscar" no teclado do celular): fecha o teclado e mostra
+        // os resultados, que ficam abaixo do banner
+        searchInput?.addEventListener('keydown', evento => {
+            if (evento.key !== 'Enter') return;
+            evento.preventDefault();
+            searchInput.blur();
+            document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' });
         });
     } else {
         // Páginas sem catálogo: Enter leva a busca para a página inicial

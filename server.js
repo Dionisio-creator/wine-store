@@ -59,9 +59,9 @@ app.get(['/', '/index.html'], async (req, res, next) => {
     }
 });
 
-// Páginas próprias de Eventos e Restaurante. Aba desligada no admin volta
-// para a página inicial.
-for (const pagina of ['eventos', 'restaurante']) {
+// Páginas próprias de Eventos, Restaurante e Natal. Aba desligada no admin
+// volta para a página inicial.
+for (const pagina of ['eventos', 'restaurante', 'natal']) {
     app.get([`/${pagina}`, `/${pagina}.html`], async (req, res) => {
         const arquivo = path.join(__dirname, 'public', `${pagina}.html`);
         try {

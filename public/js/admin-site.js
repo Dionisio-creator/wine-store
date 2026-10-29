@@ -31,21 +31,7 @@ const SECOES_SITE = [
                 campos: [{ chave: 'valor', rotulo: 'Número' }, { chave: 'rotulo', rotulo: 'Descrição' }] }
         ]
     },
-    {
-        titulo: '🖼️ Banners do topo',
-        grupos: [
-            { titulo: 'Banner', base: 'banner.slides', quantidade: 4,
-                campos: [
-                    { chave: 'seloDestaque', rotulo: 'Selo — parte em negrito' },
-                    { chave: 'seloTexto', rotulo: 'Selo — complemento' },
-                    { chave: 'titulo', rotulo: 'Título', dica: 'Use *palavra* para o destaque em itálico.' },
-                    { chave: 'texto', rotulo: 'Texto', linhas: 3 },
-                    { chave: 'botao', rotulo: 'Texto do botão' }
-                ] },
-            { titulo: 'Números abaixo dos banners', base: 'banner.numeros', quantidade: 3,
-                campos: [{ chave: 'valor', rotulo: 'Número' }, { chave: 'rotulo', rotulo: 'Descrição' }] }
-        ]
-    },
+    // Os textos dos banners ficam na aba "Banners" (admin-banners.js)
     {
         titulo: '⬇️ Rodapé',
         campos: [
@@ -120,6 +106,19 @@ const SECOES_ABAS = {
                         { chave: 'titulo', rotulo: 'Nome do evento' },
                         { chave: 'data', rotulo: 'Data e horário', dica: 'Ex.: Sexta, 21/11, às 19h' },
                         { chave: 'descricao', rotulo: 'Descrição', linhas: 3 }
+                    ] }
+            ]
+        },
+        {
+            titulo: '📸 Como foram os últimos eventos',
+            campos: [
+                { chave: 'eventos.passadosTitulo', rotulo: 'Título', dica: 'Use *palavra* para o destaque em itálico.' },
+                { chave: 'eventos.passadosTexto', rotulo: 'Texto', linhas: 2 }
+            ],
+            grupos: [
+                { titulo: 'Post', base: 'eventos.passados', quantidade: 6, dica: 'deixe vazio para não mostrar',
+                    campos: [
+                        { chave: 'link', rotulo: 'Link do post do Instagram', dica: 'No Instagram, abra o post, toque em ⋯ e em “Copiar link”. Ex.: https://www.instagram.com/p/ABC123/' }
                     ] }
             ]
         }

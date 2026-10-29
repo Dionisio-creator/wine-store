@@ -2,12 +2,12 @@
 // CAMADA DE BANCO DE DADOS (PostgreSQL)
 // ============================================
 
-// USE_FAKE_DB=true troca o PostgreSQL de verdade por um banco falso em
-// memória (veja scripts/fake-pg.js) — usado só para rodar localmente sem
-// precisar instalar ou configurar um Postgres. No Replit essa variável
-// nunca é definida, então o site publicado sempre usa o banco de verdade.
+// USE_FAKE_DB=true troca o PostgreSQL do Replit por um banco local, gravado
+// numa pasta do computador (veja scripts/banco-local.js) — usado só para
+// rodar localmente sem precisar instalar ou configurar um Postgres. No Replit
+// essa variável nunca é definida, então o site publicado sempre usa o banco de verdade.
 const { Pool } = process.env.USE_FAKE_DB === 'true'
-    ? require('./scripts/fake-pg')
+    ? require('./scripts/banco-local')
     : require('pg');
 const sementes = require('./seed-vinhos');
 
@@ -683,8 +683,26 @@ async function obterInformacoesSite() {
     return encaixarNoPadrao(sitePadrao, rows[0]?.valor);
 }
 
+// Link de post do Instagram (/p/, /reel/ ou /tv/, com ou sem o perfil antes),
+// devolvido no formato limpo, sem parâmetros. null = não é um post.
+const POST_INSTAGRAM = /^https?:\/\/(?:www\.)?instagram\.com\/(?:[A-Za-z0-9_.]+\/)?(p|reel|tv)\/([A-Za-z0-9_-]+)/i;
+
+function linkDoPostInstagram(link) {
+    const partes = String(link || '').trim().match(POST_INSTAGRAM);
+    return partes ? `https://www.instagram.com/${partes[1].toLowerCase()}/${partes[2]}/` : null;
+}
+
 async function salvarInformacoesSite(dados) {
     const site = encaixarNoPadrao(sitePadrao, dados);
+    site.eventos.passados = site.eventos.passados.map(({ link }, i) => {
+        if (!link) return { link: '' };
+        const limpo = linkDoPostInstagram(link);
+        if (!limpo) {
+            throw new Error(`O link do post ${i + 1} em “Como foram os últimos eventos” não é de um post do Instagram. ` +
+                'No Instagram, abra o post, toque em ⋯ e em “Copiar link”.');
+        }
+        return { link: limpo };
+    });
     if (!site.nomeLoja) throw new Error('Informe o nome da loja.');
     if (site.contato.whatsapp.replace(/\D/g, '').length < 10) {
         throw new Error('Informe o WhatsApp com DDD — é para ele que os pedidos são enviados.');

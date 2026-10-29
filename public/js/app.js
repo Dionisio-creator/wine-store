@@ -6,9 +6,9 @@ const APP_VERSION = '2.0.0';
 const APP_NAME = 'Grand Cru Copacabana';
 const TEMA_KEY = 'vinhos-tema';
 
-// Eventos e Restaurante viraram páginas próprias: links antigos (/#eventos)
-// continuam funcionando
-if (['#eventos', '#restaurante'].includes(location.hash) && document.getElementById('catalogo')) {
+// Eventos, Restaurante e Natal viraram páginas próprias: links antigos
+// (/#eventos, /#natal) continuam funcionando
+if (['#eventos', '#restaurante', '#natal'].includes(location.hash) && document.getElementById('catalogo')) {
     location.replace(`${location.hash.slice(1)}.html`);
 }
 
@@ -112,6 +112,7 @@ function aplicarInformacoesSite(site) {
     });
 
     renderizarEventos(site.eventos);
+    renderizarEventosPassados(site.eventos);
     renderizarCestas(); // o botão de encomenda usa o WhatsApp salvo no admin
     iniciarContagemBlackFriday(site.blackFriday?.data);
     rolarParaSecaoDoLink();
@@ -236,6 +237,40 @@ function renderizarEventos(eventos) {
                href="${escaparTexto(linkWhatsapp(`${eventos.mensagemWhatsapp || ''} ${e.titulo}${e.data ? ` (${e.data})` : ''}`.trim()))}">
                ${escaparTexto(eventos.botao || 'Reservar pelo WhatsApp')}</a>
         </article>`).join('');
+}
+
+// Como foram os últimos eventos: o quadro oficial do Instagram para cada post.
+// O admin cola só o link; o script do Instagram (embed.js) troca cada
+// <blockquote> pelo post com foto e legenda. Sem o script (bloqueado ou
+// fora do ar), fica o link "Ver este post no Instagram".
+const POST_INSTAGRAM = /^https:\/\/www\.instagram\.com\/(p|reel|tv)\/[A-Za-z0-9_-]+\/$/;
+
+function renderizarEventosPassados(eventos) {
+    const grade = document.getElementById('eventosPassados');
+    if (!grade || !eventos) return;
+    const links = (eventos.passados || []).map(p => p.link).filter(link => POST_INSTAGRAM.test(link || ''));
+
+    document.getElementById('eventosPassadosSecao')?.classList.toggle('hidden', !links.length);
+    if (!links.length) return;
+
+    grade.innerHTML = links.map(link => `
+        <blockquote class="instagram-media" data-instgrm-permalink="${escaparTexto(link)}?utm_source=ig_embed" data-instgrm-version="14">
+            <a href="${escaparTexto(link)}" target="_blank" rel="noopener">Ver este post no Instagram</a>
+        </blockquote>`).join('');
+    carregarScriptInstagram();
+}
+
+function carregarScriptInstagram() {
+    if (window.instgrm) {
+        window.instgrm.Embeds.process();
+        return;
+    }
+    if (document.getElementById('instagramEmbedJs')) return; // já está carregando
+    const script = document.createElement('script');
+    script.id = 'instagramEmbedJs';
+    script.async = true;
+    script.src = 'https://www.instagram.com/embed.js';
+    document.body.appendChild(script);
 }
 
 // ============================================

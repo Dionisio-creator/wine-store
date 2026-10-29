@@ -51,10 +51,11 @@
                     <span class="visually-hidden">Buscar</span>
                     <span class="header-search-icon" aria-hidden="true" data-icone="search"></span>
                     <input
-                        type="text"
+                        type="search"
                         id="searchInput"
                         placeholder="Digite o que você procura..."
                         autocomplete="off"
+                        enterkeyhint="search"
                     >
                 </label>
 
@@ -89,7 +90,7 @@
                 <a href="#black-friday" data-secao-opcional="blackFriday" class="nav-black-friday">
                     <span class="category-nav-icon" data-icone="badge-percent"></span> Black Friday
                 </a>
-                <a href="#natal" data-secao-opcional="natal">
+                <a href="natal.html" data-secao-opcional="natal">
                     <span class="category-nav-icon" data-icone="tree-pine"></span> Cesta de Natal
                 </a>
                 <a href="eventos.html" data-secao-opcional="eventos">
@@ -138,83 +139,21 @@
 
     <!-- Hero em carrossel -->
     <section id="home" class="hero-carousel" aria-roledescription="carrossel">
+        <h1 class="visually-hidden" data-site="nomeLoja">Grand Cru Rio</h1>
         <div class="hero-slides" id="heroSlides">
-            <article class="hero-slide is-active" style="--slide-image: url('/assets/banners/loja-salao.jpg');">
-                <div class="hero-slide-content">
-                    <div class="hero-tag">
-                        <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
-                        <span><strong data-site="banner.slides.0.seloDestaque">Curadoria própria</strong> · <span data-site="banner.slides.0.seloTexto">seleção de sommeliers</span></span>
-                    </div>
-                    <h1 data-site-formatado="banner.slides.0.titulo">Descubra os melhores <em>vinhos</em> do mundo</h1>
-                    <p data-site="banner.slides.0.texto">Rótulos escolhidos garrafa a garrafa, das encostas do Douro ao Vale do Napa, com curadoria de sommeliers para todos os paladares.</p>
-                    <div class="hero-actions">
-                        <a href="#catalogo" class="btn btn-primary btn-lg" data-site="banner.slides.0.botao">Explorar catálogo</a>
-                    </div>
-                </div>
-            </article>
+            <article class="hero-slide is-active" style="--slide-image: url('/assets/banners/loja-salao.jpg');"></article>
 
-            <article class="hero-slide" style="--slide-image: url('/assets/banners/loja-adega-bistro.jpg');">
-                <div class="hero-slide-content">
-                    <div class="hero-tag">
-                        <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
-                        <span><strong data-site="banner.slides.1.seloDestaque">Envelhecidos com paciência</strong> · <span data-site="banner.slides.1.seloTexto">adegas parceiras</span></span>
-                    </div>
-                    <h1 data-site-formatado="banner.slides.1.titulo">Direto das melhores <em>vinícolas</em> para você</h1>
-                    <p data-site="banner.slides.1.texto">Trabalhamos com produtores que respeitam o tempo de cada safra, do barril à garrafa.</p>
-                    <div class="hero-actions">
-                        <a href="#sobre" class="btn btn-primary btn-lg" data-site="banner.slides.1.botao">Conheça nossa história</a>
-                    </div>
-                </div>
-            </article>
+            <article class="hero-slide" style="--slide-image: url('/assets/banners/loja-adega-bistro.jpg');"></article>
 
-            <article class="hero-slide" style="--slide-image: url('/assets/banners/loja-mesa-posta.jpg');">
-                <div class="hero-slide-content">
-                    <div class="hero-tag">
-                        <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
-                        <span><strong data-site="banner.slides.2.seloDestaque">Harmonize sem erro</strong> · <span data-site="banner.slides.2.seloTexto">guia de sommelier</span></span>
-                    </div>
-                    <h1 data-site-formatado="banner.slides.2.titulo">O vinho certo para cada <em>ocasião</em></h1>
-                    <p data-site="banner.slides.2.texto">Da taça ao prato: sugestões de harmonização para acompanhar o seu jantar.</p>
-                    <div class="hero-actions">
-                        <a href="#catalogo" class="btn btn-primary btn-lg" data-site="banner.slides.2.botao">Ver seleção completa</a>
-                    </div>
-                </div>
-            </article>
+            <article class="hero-slide" style="--slide-image: url('/assets/banners/loja-mesa-posta.jpg');"></article>
 
-            <article class="hero-slide" style="--slide-image: url('/assets/banners/loja-restaurante.jpg');">
-                <div class="hero-slide-content">
-                    <div class="hero-tag">
-                        <span class="logo-icon" style="width:26px;height:26px;font-size:.8rem;">✦</span>
-                        <span><strong data-site="banner.slides.3.seloDestaque">Da uva à garrafa</strong> · <span data-site="banner.slides.3.seloTexto">colheita selecionada</span></span>
-                    </div>
-                    <h1 data-site-formatado="banner.slides.3.titulo">Safras premiadas em cada <em>colheita</em></h1>
-                    <p data-site="banner.slides.3.texto">Uvas selecionadas a mão, em vinhedos que carregam gerações de tradição vinícola.</p>
-                    <div class="hero-actions">
-                        <a href="#catalogo" class="btn btn-primary btn-lg" data-site="banner.slides.3.botao">Explorar catálogo</a>
-                    </div>
-                </div>
-            </article>
+            <article class="hero-slide" style="--slide-image: url('/assets/banners/loja-restaurante.jpg');"></article>
 
             <div class="hero-dots" id="heroDots" role="tablist" aria-label="Selecionar slide">
                 <button class="hero-dot is-active" data-slide="0" role="tab" aria-selected="true" aria-label="Slide 1"></button>
                 <button class="hero-dot" data-slide="1" role="tab" aria-selected="false" aria-label="Slide 2"></button>
                 <button class="hero-dot" data-slide="2" role="tab" aria-selected="false" aria-label="Slide 3"></button>
                 <button class="hero-dot" data-slide="3" role="tab" aria-selected="false" aria-label="Slide 4"></button>
-            </div>
-        </div>
-
-        <div class="hero-stats">
-            <div class="hero-stat">
-                <strong data-site="banner.numeros.0.valor">15+</strong>
-                <span data-site="banner.numeros.0.rotulo">anos de mercado</span>
-            </div>
-            <div class="hero-stat">
-                <strong data-site="banner.numeros.1.valor">50+</strong>
-                <span data-site="banner.numeros.1.rotulo">regiões vinícolas</span>
-            </div>
-            <div class="hero-stat">
-                <strong data-site="banner.numeros.2.valor">10k+</strong>
-                <span data-site="banner.numeros.2.rotulo">clientes atendidos</span>
             </div>
         </div>
     </section>
@@ -271,20 +210,6 @@
                     data-site="blackFriday.botao">Quero ser avisado das ofertas</a>
             </div>
             <div class="featured-grid" id="blackFridayGrid" data-colecao="blackfriday"></div>
-        </div>
-    </section>
-
-    <!-- Cesta de Natal (cestas cadastradas no admin, aba Natal) -->
-    <section class="special-section natal-section" id="natal" data-secao-opcional="natal">
-        <div class="container">
-            <div class="section-head">
-                <span class="eyebrow" data-site="natal.selo">Presentes de fim de ano</span>
-                <h2 data-site-formatado="natal.titulo">Cestas de <em>Natal</em></h2>
-                <p class="section-sub" data-site="natal.texto">Monte a cesta perfeita para presentear quem você gosta: vinhos selecionados, espumantes e acompanhamentos. Também montamos cestas personalizadas para empresas.</p>
-                <a class="btn btn-primary" data-whatsapp-mensagem="natal.mensagemWhatsapp" href="https://wa.me/5521989014962" target="_blank" rel="noopener"
-                    data-site="natal.botao">Encomendar cesta pelo WhatsApp</a>
-            </div>
-            <div class="baskets-grid" id="cestasGrid"></div>
         </div>
     </section>
 
