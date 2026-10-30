@@ -707,9 +707,10 @@ async function salvarInformacoesSite(dados) {
     if (site.contato.whatsapp.replace(/\D/g, '').length < 10) {
         throw new Error('Informe o WhatsApp com DDD — é para ele que os pedidos são enviados.');
     }
-    for (const secao of ['natal', 'blackFriday', 'eventos', 'restaurante']) {
+    for (const secao of ['ofertas', 'destaques', 'natal', 'blackFriday', 'eventos', 'restaurante']) {
         if (!['sim', 'nao'].includes(site[secao].mostrar)) site[secao].mostrar = 'sim';
     }
+    if (!['sim', 'nao'].includes(site.verificacaoIdade.ativo)) site.verificacaoIdade.ativo = 'sim';
     if (site.blackFriday.data && !/^\d{4}-\d{2}-\d{2}$/.test(site.blackFriday.data)) {
         throw new Error('Informe a data da Black Friday no formato AAAA-MM-DD.');
     }
@@ -734,22 +735,46 @@ async function salvarInformacoesSite(dados) {
 // pelo servidor a cada nova publicação. Cada slide guarda a imagem enviada
 // pelo admin (data URL) ou null para usar a imagem padrão do site, e o
 // enquadramento vertical (0 = topo da foto, 100 = base).
+// A versão para celular é opcional: imagemCelular null = o celular usa a
+// imagem do computador; posicaoCelular null = usa o enquadramento do computador.
 
 const QUANTIDADE_BANNERS = 4;
 const IMAGEM_BANNER = /^data:(image\/(?:jpeg|png|webp));base64,([a-z0-9+/=]+)$/i;
 const TAMANHO_MAX_BANNER = 3 * 1024 * 1024;
 
 function bannerPadrao() {
-    return { imagem: null, posicao: 50, versao: 0 };
+    return { imagem: null, posicao: 50, versao: 0, imagemCelular: null, posicaoCelular: null, versaoCelular: 0 };
+}
+
+function imagemValidaOuNull(imagem) {
+    return typeof imagem === 'string' && IMAGEM_BANNER.test(imagem) ? imagem : null;
+}
+
+function posicaoValida(valor, padrao) {
+    const posicao = Number(valor);
+    return valor !== null && valor !== '' && Number.isFinite(posicao)
+        ? Math.min(100, Math.max(0, Math.round(posicao)))
+        : padrao;
 }
 
 function normalizarBanner(banner) {
-    const posicao = Number(banner?.posicao);
     return {
-        imagem: typeof banner?.imagem === 'string' && IMAGEM_BANNER.test(banner.imagem) ? banner.imagem : null,
-        posicao: Number.isFinite(posicao) ? Math.min(100, Math.max(0, Math.round(posicao))) : 50,
-        versao: Number(banner?.versao) || 0
+        imagem: imagemValidaOuNull(banner?.imagem),
+        posicao: posicaoValida(banner?.posicao, 50),
+        versao: Number(banner?.versao) || 0,
+        imagemCelular: imagemValidaOuNull(banner?.imagemCelular),
+        posicaoCelular: posicaoValida(banner?.posicaoCelular, null),
+        versaoCelular: Number(banner?.versaoCelular) || 0
     };
+}
+
+// data URL enviada pelo admin, conferida; null continua null (= voltar ao padrão)
+function imagemDoBannerRecebida(imagem) {
+    if (imagem === null) return null;
+    const partes = typeof imagem === 'string' && imagem.match(IMAGEM_BANNER);
+    if (!partes) throw new Error('Envie uma imagem JPG, PNG ou WEBP.');
+    if (partes[2].length * 0.75 > TAMANHO_MAX_BANNER) throw new Error('Imagem grande demais (máximo 3 MB).');
+    return imagem;
 }
 
 async function obterBanners() {
@@ -758,7 +783,8 @@ async function obterBanners() {
     return Array.from({ length: QUANTIDADE_BANNERS }, (_, i) => normalizarBanner(salvos[i]));
 }
 
-// alteracao: { imagem?: data URL | null (null = voltar à padrão), posicao?: 0–100 }
+// alteracao: { imagem?: data URL | null (null = voltar à padrão), posicao?: 0–100,
+//   imagemCelular?: data URL | null (null = usar a do computador), posicaoCelular?: 0–100 | null }
 async function salvarBanner(indice, alteracao) {
     if (!Number.isInteger(indice) || indice < 0 || indice >= QUANTIDADE_BANNERS) {
         throw new Error('Banner inexistente.');
@@ -767,18 +793,18 @@ async function salvarBanner(indice, alteracao) {
     const banner = { ...banners[indice] };
 
     if (alteracao?.imagem !== undefined) {
-        if (alteracao.imagem === null) {
-            banner.imagem = null;
-        } else {
-            const partes = typeof alteracao.imagem === 'string' && alteracao.imagem.match(IMAGEM_BANNER);
-            if (!partes) throw new Error('Envie uma imagem JPG, PNG ou WEBP.');
-            if (partes[2].length * 0.75 > TAMANHO_MAX_BANNER) throw new Error('Imagem grande demais (máximo 3 MB).');
-            banner.imagem = alteracao.imagem;
-        }
+        banner.imagem = imagemDoBannerRecebida(alteracao.imagem);
         banner.versao = Date.now();
     }
     if (alteracao?.posicao !== undefined) {
-        banner.posicao = normalizarBanner({ posicao: alteracao.posicao }).posicao;
+        banner.posicao = posicaoValida(alteracao.posicao, 50);
+    }
+    if (alteracao?.imagemCelular !== undefined) {
+        banner.imagemCelular = imagemDoBannerRecebida(alteracao.imagemCelular);
+        banner.versaoCelular = Date.now();
+    }
+    if (alteracao?.posicaoCelular !== undefined) {
+        banner.posicaoCelular = posicaoValida(alteracao.posicaoCelular, null);
     }
     banners[indice] = banner;
 

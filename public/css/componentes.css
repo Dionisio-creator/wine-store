@@ -1205,3 +1205,99 @@
         height: 52px;
     }
 }
+
+/* ============================================
+   VERIFICAÇÃO DE IDADE (18+)
+   ============================================ */
+
+.age-gate-aberto,
+.age-gate-aberto body {
+    overflow: hidden;
+}
+
+.age-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-color: color-mix(in srgb, #150e10 82%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    overflow-y: auto;
+    animation: overlayIn 200ms ease;
+}
+
+.age-gate-content {
+    width: 100%;
+    max-width: 460px;
+    padding: 2.25rem 2rem 1.75rem;
+    text-align: center;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    animation: panelIn 260ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.age-gate-logo {
+    margin: 0 auto 1.25rem;
+    height: auto;
+    max-width: 180px;
+}
+
+.age-gate-selo {
+    display: inline-grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 1rem;
+    border: 2px solid var(--gold-500);
+    border-radius: var(--radius-full);
+    color: var(--gold-600);
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.age-gate-content h2 {
+    font-size: 1.5rem;
+    margin: 0 0 0.75rem;
+}
+
+.age-gate-texto {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    margin: 0 0 1.5rem;
+}
+
+.age-gate-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.age-gate-acoes .btn {
+    width: 100%;
+    white-space: normal;
+}
+
+.age-gate-menor {
+    padding: 1rem;
+    border-radius: var(--radius);
+    background-color: var(--wine-200);
+    color: var(--wine-900);
+    font-weight: 600;
+}
+
+[data-theme='dark'] .age-gate-menor {
+    color: var(--text);
+}
+
+.age-gate-aviso {
+    margin: 1.25rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}

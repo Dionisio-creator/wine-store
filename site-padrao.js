@@ -76,6 +76,11 @@ module.exports = {
         ]
     },
 
+    // Abas "Ofertas" (catálogo do menor para o maior preço) e "Destaques"
+    // (seção "Vinhos em destaque"). "mostrar": 'sim' ou 'nao'.
+    ofertas: { mostrar: 'sim' },
+    destaques: { mostrar: 'sim' },
+
     // Abas especiais da loja. "mostrar": 'sim' ou 'nao' (tira a seção e o link do menu).
     // Os vinhos da Cesta de Natal e da Black Friday são marcados no editor de vinho.
     natal: {
@@ -134,6 +139,15 @@ module.exports = {
         horario: 'Almoço: segunda a sexta, a partir das 12h\nJantar: terça a sábado, a partir das 18h',
         botao: 'Reservar mesa pelo WhatsApp',
         mensagemWhatsapp: 'Olá! Quero reservar uma mesa no restaurante.'
+    },
+
+    // Janela "Você tem 18 anos?" que aparece ao entrar no site.
+    // "ativo": 'sim' ou 'nao'. Quem confirma não vê de novo por 30 dias.
+    verificacaoIdade: {
+        ativo: 'sim',
+        titulo: 'Você tem 18 anos ou mais?',
+        texto: 'Este site vende bebidas alcoólicas. A venda de bebidas alcoólicas para menores de 18 anos é proibida por lei (Estatuto da Criança e do Adolescente, arts. 81 e 243).',
+        mensagemMenor: 'Desculpe, o acesso a este site é permitido apenas para maiores de 18 anos.'
     },
 
     rodape: {

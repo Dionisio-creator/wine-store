@@ -88,17 +88,23 @@ function aplicarInformacoesSite(site) {
     const whatsapp = String(site.contato?.whatsapp || '').replace(/\D/g, '');
     if (whatsapp.length >= 10) WHATSAPP_LOJA = whatsapp.startsWith('55') && whatsapp.length > 11 ? whatsapp : `55${whatsapp}`;
 
-    // Blocos clicáveis da seção de contato
+    // Links de contato (rodapé e botão fixo do WhatsApp)
+    const telefone = String(site.contato?.telefone || '').replace(/\D/g, '');
     const links = {
         // Nome da loja + endereço: o Google Maps encontra a ficha da loja
         maps: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
             [site.nomeLoja, site.contato?.endereco].filter(Boolean).join(', ')
         )}`,
         whatsapp: `https://wa.me/${WHATSAPP_LOJA}`,
-        email: `mailto:${site.contato?.email || ''}`
+        email: `mailto:${site.contato?.email || ''}`,
+        telefone: `tel:+${telefone.startsWith('55') && telefone.length > 11 ? telefone : `55${telefone}`}`
     };
     document.querySelectorAll('[data-contato-link]').forEach(el => {
         el.href = links[el.dataset.contatoLink];
+    });
+    // Informação deixada em branco no admin some do rodapé
+    document.querySelectorAll('[data-contato-item]').forEach(el => {
+        el.classList.toggle('hidden', !String(valorDaChave(site, el.dataset.contatoItem) || '').trim());
     });
 
     // Abas especiais desligadas no admin somem do menu e da página
@@ -315,10 +321,72 @@ function iniciarContagemBlackFriday(dataIso) {
 async function carregarInformacoesSite() {
     try {
         const resposta = await fetch('/api/site', { cache: 'no-store' });
-        if (resposta.ok) aplicarInformacoesSite(await resposta.json());
+        if (!resposta.ok) return;
+        const site = await resposta.json();
+        aplicarInformacoesSite(site);
+        verificarIdade(site.verificacaoIdade);
     } catch {
         // Sem conexão com o servidor, ficam os textos padrão do HTML
     }
+}
+
+// ============================================
+// VERIFICAÇÃO DE IDADE (18+)
+// ============================================
+// Liga e desliga no admin, em "Informações do site". Quem confirma fica
+// guardado no navegador por 30 dias.
+
+const IDADE_KEY = 'vinhos-maior-de-idade';
+const IDADE_VALIDADE_MS = 30 * 24 * 60 * 60 * 1000;
+
+function idadeJaConfirmada() {
+    try {
+        const confirmadoEm = Number(localStorage.getItem(IDADE_KEY));
+        return confirmadoEm > 0 && Date.now() - confirmadoEm < IDADE_VALIDADE_MS;
+    } catch {
+        return false;
+    }
+}
+
+function verificarIdade(config) {
+    if (!config || config.ativo !== 'sim' || idadeJaConfirmada()) return;
+    if (document.getElementById('ageGate')) return;
+
+    const janela = document.createElement('div');
+    janela.id = 'ageGate';
+    janela.className = 'age-gate';
+    janela.setAttribute('role', 'dialog');
+    janela.setAttribute('aria-modal', 'true');
+    janela.setAttribute('aria-labelledby', 'ageGateTitulo');
+    janela.innerHTML = `
+        <div class="age-gate-content">
+            <img class="age-gate-logo logo-claro" src="assets/logo-grand-cru.png" alt="Grand Cru" width="200" height="40">
+            <img class="age-gate-logo logo-escuro" src="assets/logo-grand-cru-branco.png" alt="" aria-hidden="true" width="156" height="34">
+            <span class="age-gate-selo">18+</span>
+            <h2 id="ageGateTitulo">${escaparTexto(config.titulo)}</h2>
+            <p class="age-gate-texto">${textoFormatado(config.texto)}</p>
+            <div class="age-gate-acoes">
+                <button type="button" class="btn btn-primary btn-lg" data-idade="sim">Sim, tenho 18 anos ou mais</button>
+                <button type="button" class="btn btn-secondary btn-lg" data-idade="nao">Não</button>
+            </div>
+            <p class="age-gate-menor hidden" role="alert">${escaparTexto(config.mensagemMenor)}</p>
+            <p class="age-gate-aviso">Beba com moderação.</p>
+        </div>`;
+    document.body.appendChild(janela);
+    document.documentElement.classList.add('age-gate-aberto');
+
+    janela.querySelector('[data-idade="sim"]').addEventListener('click', () => {
+        try {
+            localStorage.setItem(IDADE_KEY, String(Date.now()));
+        } catch { /* sem localStorage, pergunta de novo na próxima página */ }
+        document.documentElement.classList.remove('age-gate-aberto');
+        janela.remove();
+    });
+    janela.querySelector('[data-idade="nao"]').addEventListener('click', () => {
+        janela.querySelector('.age-gate-acoes').classList.add('hidden');
+        janela.querySelector('.age-gate-menor').classList.remove('hidden');
+    });
+    janela.querySelector('[data-idade="sim"]').focus();
 }
 
 // ============================================

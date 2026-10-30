@@ -38,9 +38,14 @@ async function htmlComImagensDoAdmin(arquivo) {
     banners.forEach((banner, i) => {
         html = html.replace(
             `--slide-image: url('${BANNERS_PADRAO[i]}');`,
-            `--slide-image: url('${urlDoBanner(banner, i)}'); --slide-position: ${banner.posicao}%;`
+            `--slide-image: url('${urlDoBanner(banner, i)}'); --slide-position: ${banner.posicao}%;` +
+            estiloDoBannerCelular(banner, i)
         );
     });
+    // Com alguma versão para celular, o banner fica em pé no celular (layout.css)
+    if (banners.some(banner => banner.imagemCelular)) {
+        html = html.replace('class="hero-carousel"', 'class="hero-carousel hero-celular-vertical"');
+    }
     for (const [chave, padrao] of Object.entries(IMAGENS_PADRAO)) {
         html = html.replace(`src="${padrao}" data-imagem-site="${chave}"`,
             `src="${urlDaImagemSite(chave, await db.obterImagemSite(chave))}" data-imagem-site="${chave}"`);
@@ -261,12 +266,28 @@ function urlDoBanner(banner, indice) {
     return banner.imagem ? `/api/banners/${indice}/imagem?v=${banner.versao}` : BANNERS_PADRAO[indice];
 }
 
+// Versão para celular (opcional); null = o celular usa a imagem do computador
+function urlDoBannerCelular(banner, indice) {
+    return banner.imagemCelular ? `/api/banners/${indice}/imagem-celular?v=${banner.versaoCelular}` : null;
+}
+
+// Variáveis lidas pelo layout.css no celular. O enquadramento vai nos dois
+// eixos (P% P%): com background-size cover só um deles corta, então o mesmo
+// controle serve para foto deitada ou em pé.
+function estiloDoBannerCelular(banner, indice) {
+    const url = urlDoBannerCelular(banner, indice);
+    return (url ? ` --slide-image-celular: url('${url}');` : '') +
+        (banner.posicaoCelular !== null ? ` --slide-position-celular: ${banner.posicaoCelular}% ${banner.posicaoCelular}%;` : '');
+}
+
 function bannerParaAdmin(banner, indice) {
     return {
         indice,
         url: urlDoBanner(banner, indice),
         personalizada: Boolean(banner.imagem),
-        posicao: banner.posicao
+        posicao: banner.posicao,
+        urlCelular: urlDoBannerCelular(banner, indice),
+        posicaoCelular: banner.posicaoCelular
     };
 }
 
@@ -376,18 +397,20 @@ app.post('/api/admin/cestas/:id/mover', exigirAdmin, async (req, res) => {
     }
 });
 
-app.get('/api/banners/:indice/imagem', async (req, res) => {
-    try {
-        const banner = (await db.obterBanners())[Number(req.params.indice)];
-        const partes = banner?.imagem?.match(/^data:([^;]+);base64,(.+)$/);
-        if (!partes) return res.status(404).end();
-        res.set('Cache-Control', 'public, max-age=31536000, immutable');
-        res.type(partes[1]).send(Buffer.from(partes[2], 'base64'));
-    } catch (erro) {
-        console.error(erro);
-        res.status(500).end();
-    }
-});
+for (const [caminho, campo] of [['imagem', 'imagem'], ['imagem-celular', 'imagemCelular']]) {
+    app.get(`/api/banners/:indice/${caminho}`, async (req, res) => {
+        try {
+            const banner = (await db.obterBanners())[Number(req.params.indice)];
+            const partes = banner?.[campo]?.match(/^data:([^;]+);base64,(.+)$/);
+            if (!partes) return res.status(404).end();
+            res.set('Cache-Control', 'public, max-age=31536000, immutable');
+            res.type(partes[1]).send(Buffer.from(partes[2], 'base64'));
+        } catch (erro) {
+            console.error(erro);
+            res.status(500).end();
+        }
+    });
+}
 
 app.get('/api/admin/banners', exigirAdmin, async (req, res) => {
     try {
@@ -399,13 +422,16 @@ app.get('/api/admin/banners', exigirAdmin, async (req, res) => {
 });
 
 // Corpo: { imagem: data URL } para trocar, { imagem: null } para voltar à
-// imagem padrão e/ou { posicao: 0–100 } para o enquadramento.
+// imagem padrão e/ou { posicao: 0–100 } para o enquadramento. Os mesmos
+// campos com "Celular" no fim valem para a versão do celular.
 app.put('/api/admin/banners/:indice', exigirAdmin, async (req, res) => {
     try {
         const indice = Number(req.params.indice);
         const banner = await db.salvarBanner(indice, {
             imagem: req.body?.imagem,
-            posicao: req.body?.posicao
+            posicao: req.body?.posicao,
+            imagemCelular: req.body?.imagemCelular,
+            posicaoCelular: req.body?.posicaoCelular
         });
         res.json(bannerParaAdmin(banner, indice));
     } catch (erro) {

@@ -1353,6 +1353,48 @@
     gap: 0.6rem;
 }
 
+.banner-versao {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.banner-versao h4 {
+    font-size: 0.9rem;
+}
+
+.banner-versao h4 small {
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+/* Versão para celular: prévia pequena ao lado dos controles */
+.banner-versao-celular {
+    grid-template-columns: 110px minmax(0, 1fr);
+    align-items: start;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border);
+}
+
+.banner-versao-campos {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.banner-versao-campos .field-hint {
+    margin: 0;
+}
+
+/* Mesma proporção do banner na loja (celular) */
+.banner-preview-celular {
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+.banner-preview-celular.is-vertical {
+    aspect-ratio: 4 / 5;
+}
+
 .banner-upload {
     position: relative;
     cursor: pointer;

@@ -12,8 +12,9 @@ const SECOES_SITE = [
         campos: [
             { chave: 'nomeLoja', rotulo: 'Nome da loja', dica: 'Aparece no rodapé.' },
             { chave: 'contato.endereco', rotulo: 'Endereço', dica: 'Ao clicar, o cliente vai para o Google Maps com o nome da loja e este endereço.' },
-            { chave: 'contato.whatsapp', rotulo: 'WhatsApp', dica: 'Com DDD. Aparece em “Entre em contato” e é para este número que vão os pedidos.' },
-            { chave: 'contato.email', rotulo: 'E-mail' },
+            { chave: 'contato.telefone', rotulo: 'Telefone', dica: 'Com DDD. Aparece no rodapé; deixe vazio para não mostrar.' },
+            { chave: 'contato.whatsapp', rotulo: 'WhatsApp', dica: 'Com DDD. Aparece no rodapé e no botão verde, e é para este número que vão os pedidos.' },
+            { chave: 'contato.email', rotulo: 'E-mail', dica: 'Aparece no rodapé; deixe vazio para não mostrar.' },
             { chave: 'contato.instagram', rotulo: 'Instagram', dica: 'O @ do perfil (ex.: @grandcrucopacabana) ou o link. Deixe vazio para não mostrar.' },
             { chave: 'contato.horario', rotulo: 'Horário de funcionamento', linhas: 3, dica: 'Uma linha para cada horário.' }
         ]
@@ -33,6 +34,25 @@ const SECOES_SITE = [
     },
     // Os textos dos banners ficam na aba "Banners" (admin-banners.js)
     {
+        titulo: '👁️ Abas do menu',
+        campos: [
+            { chave: 'ofertas.mostrar', rotulo: 'Mostrar a aba Ofertas no site', opcoes: MOSTRAR_OPCOES,
+                dica: 'Link do menu que abre o catálogo do menor para o maior preço.' },
+            { chave: 'destaques.mostrar', rotulo: 'Mostrar a aba Destaques no site', opcoes: MOSTRAR_OPCOES,
+                dica: 'Com “não”, some o link do menu e a seção “Vinhos em destaque” da página inicial.' }
+        ]
+    },
+    {
+        titulo: '🔞 Verificação de idade (18+)',
+        campos: [
+            { chave: 'verificacaoIdade.ativo', rotulo: 'Perguntar a idade ao entrar no site', opcoes: [['sim', 'Ativado'], ['nao', 'Desativado']],
+                dica: 'Janela “Você tem 18 anos ou mais?” que aparece antes de o cliente ver a loja. Quem confirma não vê de novo por 30 dias. Recomendado deixar ativado.' },
+            { chave: 'verificacaoIdade.titulo', rotulo: 'Pergunta' },
+            { chave: 'verificacaoIdade.texto', rotulo: 'Texto abaixo da pergunta', linhas: 3 },
+            { chave: 'verificacaoIdade.mensagemMenor', rotulo: 'Mensagem para quem responde “Não”', linhas: 2 }
+        ]
+    },
+    {
         titulo: '⬇️ Rodapé',
         campos: [
             { chave: 'rodape.texto', rotulo: 'Texto abaixo da logo', linhas: 2 },
@@ -48,7 +68,7 @@ const SECOES_ABAS = {
         {
             titulo: '👁️ Visibilidade',
             campos: [
-                { chave: 'natal.mostrar', rotulo: 'Mostrar a aba Cesta de Natal no site', opcoes: MOSTRAR_OPCOES, dica: 'Com “não”, a aba some do menu e da página — use depois das festas.' }
+                { chave: 'natal.mostrar', rotulo: 'Mostrar a aba Natal no site', opcoes: MOSTRAR_OPCOES, dica: 'Com “não”, a aba some do menu e da página — use depois das festas.' }
             ]
         },
         {

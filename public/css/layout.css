@@ -118,14 +118,41 @@
 }
 
 /* Botão do WhatsApp no topo (ao lado do carrinho), sempre visível */
-.icon-btn.header-whatsapp {
+/* WhatsApp fixo no canto inferior direito (fica abaixo dos modais) */
+.whatsapp-float {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 900;
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-full);
     background-color: #25d366;
     color: #fff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    transition: background-color var(--transition), transform var(--transition);
 }
 
-.icon-btn.header-whatsapp:hover {
+.whatsapp-float:hover {
     background-color: #1ebe5b;
     color: #fff;
+    transform: scale(1.07);
+}
+
+.whatsapp-float:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+}
+
+@media (max-width: 768px) {
+    .whatsapp-float {
+        right: 16px;
+        bottom: 16px;
+        width: 54px;
+        height: 54px;
+    }
 }
 
 .icon-btn {
@@ -1498,74 +1525,27 @@
     color: var(--text);
 }
 
-.info-item a {
-    color: inherit;
-    text-decoration: none;
-}
-
-/* Bloco do Instagram: o item inteiro é um link que abre o perfil */
-a.info-item-link {
-    color: inherit;
-    text-decoration: none;
-}
-
-a.info-item-link p {
-    color: var(--primary);
-    font-weight: 600;
-}
-
-a.info-item-link:hover p {
-    text-decoration: underline;
-}
-
-.instagram-icon {
-    border: 0;
-    color: #fff;
-    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
-    transition: transform var(--transition);
-}
-
-a.info-item-link:hover .instagram-icon {
-    transform: scale(1.06);
-}
-
-/* .info-icon.xxx para vencer o fundo padrão de .info-icon, definido mais abaixo */
-.info-icon.whatsapp-icon {
-    border: 0;
-    color: #fff;
-    background: #25d366;
-}
-
-.info-icon.maps-icon {
-    background: #fff;
-}
-
-.info-icon.hours-icon {
-    border: 0;
-    color: #2a2109;
-    background: var(--gold-500);
-}
-
-.info-icon.email-icon {
-    background: #fff;
-}
-
-a.info-item-link:hover .info-icon {
-    transform: scale(1.06);
-}
-
-.info-icon {
-    transition: transform var(--transition);
-}
-
 .footer-instagram {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
 }
 
-.info-item a:hover {
-    color: var(--primary);
+/* Coluna "Contato" do rodapé: ícones de traço, na cor do texto, como o do Instagram */
+.footer-contato-item {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.footer-contato-icone {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin-top: 0.05rem;
+    font-size: 18px;
 }
 
 .about-text .about-tagline {
@@ -1608,69 +1588,6 @@ a.info-item-link:hover .info-icon {
 }
 
 /* ============================================
-   CONTATO
-   ============================================ */
-
-.contact-section {
-    padding: clamp(36px, 4.5vw, 56px) 0;
-    background-color: var(--bg-alt);
-    border-top: 1px solid var(--border);
-}
-
-.contact-section .section-head {
-    margin-bottom: 1.5rem;
-}
-
-.contact-info {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
-}
-
-.contact-info .info-item {
-    align-items: center;
-    padding: 1.1rem 1.2rem;
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-xs);
-    transition: border-color var(--transition), box-shadow var(--transition);
-}
-
-.contact-info a.info-item-link:hover {
-    border-color: var(--primary);
-    box-shadow: var(--shadow-sm);
-}
-
-.info-item {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-}
-
-.info-icon {
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
-    width: 42px;
-    height: 42px;
-    border-radius: var(--radius-sm);
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    font-size: 1.1rem;
-}
-
-.info-item h4 {
-    font-size: 0.92rem;
-    margin-bottom: 0.15rem;
-}
-
-.info-item p {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-}
-
-/* ============================================
    FOOTER
    ============================================ */
 
@@ -1682,7 +1599,7 @@ a.info-item-link:hover .info-icon {
 
 .footer-content {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1.6fr 1.4fr 1fr;
     gap: 2rem;
     margin-bottom: 2.5rem;
 }
@@ -1773,6 +1690,10 @@ a.info-item-link:hover .info-icon {
     .footer-content {
         grid-template-columns: 1fr 1fr;
     }
+
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1829,13 +1750,9 @@ a.info-item-link:hover .info-icon {
         padding: 40px 0;
     }
 
-    .contact-info .info-item {
-        padding: 0.75rem 0.9rem;
-    }
-
-    .contact-info .info-icon {
-        width: 38px;
-        height: 38px;
+    /* Espaço no fim da página para o botão fixo do WhatsApp não cobrir o rodapé */
+    .footer {
+        padding-bottom: 88px;
     }
 
     .btn-admin span {
@@ -1857,6 +1774,17 @@ a.info-item-link:hover .info-icon {
     .hero-slides {
         height: auto;
         aspect-ratio: 16 / 10;
+    }
+
+    /* Versão para celular enviada no admin (sem ela, vale a do computador) */
+    .hero-slide {
+        background-image: var(--slide-image-celular, var(--slide-image));
+        background-position: var(--slide-position-celular, center var(--slide-position, 50%));
+    }
+
+    /* Com alguma versão para celular, o banner fica em pé (1080×1350) */
+    .hero-celular-vertical .hero-slides {
+        aspect-ratio: 4 / 5;
     }
 
     .hero-dots {
@@ -1924,10 +1852,6 @@ a.info-item-link:hover .info-icon {
     .wine-discount-badge {
         padding: 3px 7px;
         font-size: 0.6rem;
-    }
-
-    .contact-info {
-        gap: 0.6rem;
     }
 
     .grid-header {
