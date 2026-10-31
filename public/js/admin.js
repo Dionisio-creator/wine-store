@@ -305,6 +305,13 @@ async function iniciarAdmin() {
     limparFormulario();
 
     $('#loginForm').addEventListener('submit', entrar);
+    $('#passwordToggle').addEventListener('click', evento => {
+        const botao = evento.currentTarget;
+        const visivel = botao.getAttribute('aria-pressed') !== 'true';
+        $('#password').type = visivel ? 'text' : 'password';
+        botao.setAttribute('aria-pressed', String(visivel));
+        botao.setAttribute('aria-label', visivel ? 'Ocultar senha' : 'Mostrar senha');
+    });
     $('#wineForm').addEventListener('submit', salvarVinho);
     $('#winePrice').addEventListener('input', atualizarDicaPromocao);
     $('#winePromoPrice').addEventListener('input', atualizarDicaPromocao);

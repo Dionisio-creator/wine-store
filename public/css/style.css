@@ -299,6 +299,7 @@ input[type='tel'],
 input[type='search'],
 input[type='number'],
 input[type='url'],
+input[type='password'],
 textarea,
 select {
     width: 100%;
@@ -323,6 +324,7 @@ input[type='tel']:focus,
 input[type='search']:focus,
 input[type='number']:focus,
 input[type='url']:focus,
+input[type='password']:focus,
 textarea:focus,
 select:focus {
     outline: none;
